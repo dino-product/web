@@ -1,0 +1,230 @@
+/* 1888:10894 — 1310x733, 흰 배경, radius 18, padding 30, 머리말 ↔ 본문 20 */
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 1310px;
+  height: 733px;
+  padding: 30px;
+  border-radius: 18px;
+  background: var(--color-gray-0);
+}
+
+/* 제목 22/700 Primary + 8 + 설명 18/500 Gray600 */
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.title {
+  color: var(--color-primary);
+  font-size: 22px;
+  line-height: var(--line-height-22);
+  font-weight: 700;
+}
+
+.description {
+  color: var(--color-gray-600);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 선택 줄 ↔ 표 12 */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 'N건 선택됨' 1951:20033: Background/3, 그림자 0 0 2 12%, radius 10, padding 16/24/16/16, 66px */
+.bulkBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 66px;
+  padding: 16px 24px 16px 16px;
+  border-radius: 10px;
+  background: var(--color-background-3);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.12);
+}
+
+.bulkCount {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  color: var(--color-primary);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 거절·승인 1951:20039·1951:20041: 60x34 고정, 글자 (16,6) 28x22 가운데, radius 8, 16/500 */
+.smallButton {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 34px;
+  padding: 0;
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/*
+ * 일괄 거절(일부 선택 1951:20039): 흰 배경 + Gray300 바깥 1px + Gray800.
+ * 테두리는 60x34 바깥에 그려진다(기준 스크린샷 1432~1493 · 303~338).
+ */
+.rejectBulk {
+  background: var(--color-gray-0);
+  box-shadow: 0 0 0 1px var(--color-gray-300);
+  color: var(--color-gray-800);
+}
+
+/* 일괄 거절(전체 선택 1951:21235): Warning/2 + Warning/1 */
+.rejectDanger {
+  background: var(--color-warning-2);
+  color: var(--color-warning-1);
+}
+
+/* 행 거절 1888:10469: 흰 배경 + Gray200 바깥 1px + Gray800 (441~476) */
+.rejectRow {
+  background: var(--color-gray-0);
+  box-shadow: 0 0 0 1px var(--color-gray-200);
+  color: var(--color-gray-800);
+}
+
+.approve {
+  background: var(--color-primary);
+  color: var(--color-gray-0);
+}
+
+/* 표 1888:10453: 흰 배경, radius 14, 머리줄 55 + 행 6개(456) */
+.table {
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--color-gray-0);
+}
+
+/* 머리줄 1888:10454: Gray50, 위 radius 14, 16/500 Gray600 (y=17) */
+.head {
+  position: relative;
+  height: 55px;
+  border-radius: 14px 14px 0 0;
+  background: var(--color-gray-50);
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.head > span {
+  position: absolute;
+  top: 17px;
+}
+
+/* 체크박스 (24,16) + 26 + 신청자 */
+.head > .headApplicant {
+  top: 16px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+/* 행 6개 높이(76 x 6), 넘치면 스크롤(기본 막대 숨김 → ScrollThumb) */
+.rows {
+  height: 456px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.rows::-webkit-scrollbar {
+  display: none;
+}
+
+/* 행 1888:10464: 76px, 아래 Gray200 1px, 18/500 */
+.row {
+  position: relative;
+  height: 76px;
+  border-bottom: 1px solid var(--color-gray-200);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.row > span {
+  position: absolute;
+}
+
+/* 선택 + 불일치: InProgress/6 · 선택: Select/1 */
+.rowMismatch {
+  background: var(--color-in-progress-6);
+}
+
+.rowSelected {
+  background: var(--color-select-1);
+}
+
+/* 체크박스 (24,25) + 26 + 이름 Gray800 */
+.applicant {
+  top: 25px;
+  left: 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 26px;
+  color: var(--color-gray-800);
+}
+
+/* 희망 유형 칩 1888:10476: 59x33, 흰 배경, Gray200 1px, radius 60, padding 4/14, 18/500 Gray900 */
+.desired {
+  top: 22px;
+  left: 196px;
+  padding: 3px 13px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 60px;
+  background: var(--color-gray-0);
+  color: var(--color-gray-900);
+}
+
+/* 확정 유형 선택 (375,18) + 12 + 불일치 칩 */
+.confirmed {
+  top: 18px;
+  left: 375px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 요청일(676)·요청 경로(879) Gray600 */
+.text {
+  top: 25px;
+  color: var(--color-gray-600);
+}
+
+/* 행 거절·승인: 오른쪽 24, 세로 가운데 */
+.row > .rowActions {
+  top: 21px;
+  right: 24px;
+}
+
+/* 1951:21580: 오른쪽 4px */
+.thumb {
+  right: 4px;
+}

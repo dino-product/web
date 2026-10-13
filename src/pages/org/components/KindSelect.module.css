@@ -1,0 +1,39 @@
+/*
+ * `직원 유형` 1377:7883 Drop Down=x — 118x41, padding 7/12, radius 10, Gray200 테두리, 18/500 Gray800, 셰브론 8x5.
+ * Figma 안쪽 테두리는 배치에 들어가지 않아 셰브론 오른쪽 끝이 바깥에서 12px이다(1951:19161 x=647~654).
+ * CSS 테두리 1px만큼 오른쪽 여백을 11로 줄인다. 글자는 시안과 같은 x=563에 그려져 왼쪽은 그대로 둔다.
+ */
+.trigger {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 118px;
+  height: 41px;
+  padding: 7px 11px 7px 12px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-gray-800);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.filled {
+  background: var(--color-gray-0);
+}
+
+/* State=Open: Secondary 테두리 */
+.open {
+  border-color: var(--color-secondary);
+}
+
+/* State=ReadOnly: Gray500 글자·셰브론 */
+.readOnly,
+.readOnly:disabled {
+  color: var(--color-gray-500);
+  cursor: default;
+}

@@ -1,0 +1,12 @@
+.iconButton {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  color: inherit;
+}
+
+.iconButton:disabled {
+  opacity: 0.5;
+}

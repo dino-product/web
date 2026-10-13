@@ -1,0 +1,154 @@
+/* 탭 막대 아래(154) → 검색 y=174 */
+.page {
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
+
+/* 이름 검색 (349,174) 701x50 · 건수 필터 (1611,174) 285x45 */
+.toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.search {
+  width: 701px;
+}
+
+/* 표 y=246(검색 아래 22) */
+.table {
+  margin-top: 22px;
+}
+
+/* 머리줄 1951:22495: 55px, Gray50, radius 14, 16/500 Gray600 (y=17) */
+.head {
+  position: relative;
+  height: 55px;
+  border-radius: 14px;
+  background: var(--color-gray-50);
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.head > span {
+  position: absolute;
+  top: 17px;
+}
+
+/* 행 1951:22503: 76px, 아래 Gray100 1px, 18/500 */
+.row {
+  position: relative;
+  height: 76px;
+  border-bottom: 1px solid var(--color-gray-100);
+  background: var(--color-gray-0);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.row > span {
+  position: absolute;
+}
+
+/* 이름(36,25) Gray800 + 간격 16 + 왕관 24 상자(아래 정렬) */
+.name {
+  left: 36px;
+  top: 25px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.nameText {
+  color: var(--color-gray-800);
+}
+
+/* fa-solid:crown 20x16을 24 상자 안 (2,2)에 */
+.crown {
+  display: flex;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding-top: 2px;
+}
+
+/* 직원 유형 선택 (200,18) */
+.kind {
+  left: 200px;
+  top: 18px;
+}
+
+/* 세부 유형(375)·참여일(1217) Gray700 */
+.text {
+  top: 25px;
+  color: var(--color-gray-700);
+}
+
+/* 상태 칩 (1064,23) */
+.status {
+  left: 1064px;
+  top: 23px;
+}
+
+/* 상세보기 (1390.64,25): check2-square 24 + 11 + 18/500 Gray900 */
+.manage {
+  left: 1390.64px;
+  top: 25px;
+}
+
+.detail {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 11px;
+  color: var(--color-gray-900);
+}
+
+/*
+ * 안내 줄 1951:22624: 표 아래 16, info 24 + 6 + 18/500 Gray500 (줄 높이 25).
+ * 총관리자 지정·해제 버튼(50px)이 줄 높이를 늘리지 않도록 버튼은 겹쳐 둔다 — 안내 줄 위치는 최신 시안 그대로.
+ */
+.footer {
+  position: relative;
+  margin-top: 16px;
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-gray-500);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+}
+
+/*
+ * 총관리자 지정·해제 1951:18546: Gray100 배경, radius 12, padding 10/16, 18/500 #444.
+ * 이전 시안(1951:18412)처럼 오른쪽 끝(x=1896)에 두고 안내 줄과 세로 가운데를 맞춘다(안내 y=1013 ↔ 버튼 y=1001).
+ */
+.ownerButton {
+  position: absolute;
+  top: -12px;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  height: 50px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--color-gray-100);
+  color: #444444;
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 빈 상태 2043:36031: 머리줄 아래 262, users 42 Gray500 + 24 + 20/600 Gray500 */
+.empty {
+  margin-top: 262px;
+}

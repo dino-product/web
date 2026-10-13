@@ -1,0 +1,71 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 30px;
+  border-radius: 18px;
+  background: var(--color-gray-0);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 34px;
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.title {
+  color: var(--color-gray-900);
+  font-size: 24px;
+  line-height: 34px;
+  font-weight: 700;
+}
+
+.description {
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 500;
+  white-space: pre-line;
+}
+
+.default {
+  color: var(--color-gray-800);
+}
+
+.muted {
+  color: var(--color-gray-700);
+}
+
+.subtle {
+  color: var(--color-gray-600);
+}
+
+.regular {
+  color: var(--color-gray-800);
+  font-weight: 400;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}

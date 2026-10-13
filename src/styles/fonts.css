@@ -1,0 +1,65 @@
+/*
+ * 화면 글자용 Pretendard('Orbit Pretendard'). 글꼴 파일은 pretendard 패키지(SIL OFL 1.1) 것을 그대로 쓰고,
+ * 세로 지표만 Figma 렌더와 같은 글자 위치가 나오도록 덮어쓴다.
+ *
+ * Chrome은 글꼴의 ascent·descent를 정수 px로 반올림하고 남는 줄 간격(반행간)을 내림해 기준선을 정한다.
+ * Pretendard 원래 지표(ascent 95.21%, descent 24.12%)로는 정수 줄 높이 상자(typography.css의 t-* 클래스) 안에서
+ * 12·15·16·24·32·36·48px 글자가 Figma보다 1px 위에 그려진다(14·18·20·22·28·30px는 같다).
+ * 아래 값(ascent 94.2%, descent 20.65%)은 앱에서 쓰는 모든 글자 크기·줄 높이 조합에서 Chrome 기준선이
+ * Figma 기준선(실제 지표로 계산해 반올림한 위치)과 같아지는 범위(ascent 93.75–94.64%, descent 20.46–20.83%)의 가운데다.
+ * 반올림 없이 그리는 브라우저에서는 기준선이 글자 크기의 1.1%만큼만 움직인다.
+ *
+ * 입력 상자(input·textarea·select)의 글자는 원래 지표로 Figma와 이미 같은 위치라 'Pretendard'(패키지 기본)를 그대로 쓴다
+ * (global.css). line-height: normal인 글자는 줄 상자가 1px 줄어드므로 해당 요소에 이전 높이를 px로 적어 둔다.
+ */
+@font-face {
+  font-family: 'Orbit Pretendard';
+  font-weight: 700;
+  font-display: swap;
+  src:
+    local('Pretendard Bold'),
+    url('../../node_modules/pretendard/dist/web/static/woff2/Pretendard-Bold.woff2') format('woff2'),
+    url('../../node_modules/pretendard/dist/web/static/woff/Pretendard-Bold.woff') format('woff');
+  ascent-override: 94.2%;
+  descent-override: 20.65%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Orbit Pretendard';
+  font-weight: 600;
+  font-display: swap;
+  src:
+    local('Pretendard SemiBold'),
+    url('../../node_modules/pretendard/dist/web/static/woff2/Pretendard-SemiBold.woff2') format('woff2'),
+    url('../../node_modules/pretendard/dist/web/static/woff/Pretendard-SemiBold.woff') format('woff');
+  ascent-override: 94.2%;
+  descent-override: 20.65%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Orbit Pretendard';
+  font-weight: 500;
+  font-display: swap;
+  src:
+    local('Pretendard Medium'),
+    url('../../node_modules/pretendard/dist/web/static/woff2/Pretendard-Medium.woff2') format('woff2'),
+    url('../../node_modules/pretendard/dist/web/static/woff/Pretendard-Medium.woff') format('woff');
+  ascent-override: 94.2%;
+  descent-override: 20.65%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: 'Orbit Pretendard';
+  font-weight: 400;
+  font-display: swap;
+  src:
+    local('Pretendard Regular'),
+    url('../../node_modules/pretendard/dist/web/static/woff2/Pretendard-Regular.woff2') format('woff2'),
+    url('../../node_modules/pretendard/dist/web/static/woff/Pretendard-Regular.woff') format('woff');
+  ascent-override: 94.2%;
+  descent-override: 20.65%;
+  line-gap-override: 0%;
+}

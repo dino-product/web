@@ -1,0 +1,37 @@
+.tabs {
+  display: flex;
+  align-items: center;
+}
+
+.tab {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  height: 45px;
+  padding: 10px 16px;
+  border-radius: 51px;
+  color: var(--color-gray-600);
+  font-size: 18px;
+  line-height: 25px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.label,
+.count {
+  opacity: 0.8;
+}
+
+.count {
+  color: var(--color-secondary);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+}
+
+.selected {
+  background: var(--color-gray-50);
+  color: var(--color-primary);
+}

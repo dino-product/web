@@ -1,0 +1,119 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.icon {
+  display: flex;
+  justify-content: center;
+  line-height: 0;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.texts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* page: 1338:6567 — 아이콘 68, gap 30 · 제목/설명 gap 16 · 버튼 gap 36 */
+.page {
+  gap: 30px;
+}
+
+.page .body {
+  gap: 36px;
+}
+
+.page .texts {
+  gap: 16px;
+}
+
+.page .title {
+  color: var(--color-primary);
+  font-size: 28px;
+  line-height: 39px;
+  font-weight: 700;
+}
+
+.page .description {
+  color: var(--color-gray-700);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 500;
+  white-space: pre-line;
+}
+
+/* list: 1802:5687 — 아이콘 40, gap 24 · 제목-버튼 gap 20 */
+.list {
+  gap: 24px;
+}
+
+.list .body {
+  gap: 20px;
+}
+
+.list .texts {
+  gap: 12px;
+}
+
+.list .title {
+  color: var(--color-gray-500);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.list .description {
+  color: var(--color-gray-600);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+/* card: 1834:11068 — 512x300 카드, 아이콘 46, gap 16 · 제목/설명 gap 8 · 버튼 gap 20 */
+.card {
+  justify-content: center;
+  gap: 16px;
+  width: 512px;
+  height: 300px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 18px;
+  background: var(--color-background-3);
+  box-shadow: var(--shadow-popover);
+}
+
+.card .body {
+  gap: 20px;
+}
+
+.card .texts {
+  gap: 8px;
+}
+
+.card .title {
+  color: var(--color-gray-900);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.card .description {
+  color: var(--color-gray-600);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}

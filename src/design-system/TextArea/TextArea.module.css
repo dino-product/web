@@ -1,0 +1,27 @@
+.textarea {
+  display: block;
+  width: 100%;
+  padding: 16px 12px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 12px;
+  outline: none;
+  background: var(--color-gray-0);
+  color: var(--color-gray-800);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+  resize: none;
+}
+
+.textarea::placeholder {
+  color: var(--color-gray-500);
+  opacity: 1;
+}
+
+.textarea:focus {
+  border-color: var(--color-secondary);
+}
+
+.invalid {
+  border-color: var(--color-warning-1);
+}

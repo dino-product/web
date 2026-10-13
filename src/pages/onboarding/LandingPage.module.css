@@ -1,0 +1,202 @@
+/* 마케팅 랜딩 1946:16500 — 1920×3908, Primary 배경. 좌표는 Figma 프레임 기준 */
+.page {
+  position: relative;
+  width: 100%;
+  height: 3908px;
+  overflow: hidden;
+  background: var(--color-primary);
+  color: var(--color-gray-0);
+}
+
+/* Ellipse 457(1951:17633): 1812×479 at (54,199), 흐림 효과 포함 이미지(2358.4×1025.4)가 노드보다 273px씩 크다. overlay 합성 */
+.glow {
+  position: absolute;
+  left: -219.25px;
+  top: -74.22px;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+/* Frame 3(1951:16587): 마크 + 'Orbit', 흰색 */
+.logo {
+  position: absolute;
+  left: 34px;
+  top: 34px;
+}
+
+/* Frame 2147239538(1951:17621): 오른쪽 54, 위 37, 간격 32 */
+.nav {
+  position: absolute;
+  top: 37px;
+  right: 54px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+/* 글자 상자 너비는 Figma 값(89, 버튼 131)으로 고정 — 브라우저 글자 폭이 1px 남짓 좁아 오른쪽 정렬이 밀리지 않게 */
+.loginLink {
+  width: 89px;
+  color: var(--color-gray-0);
+  text-align: center;
+}
+
+/* Frame 2147239537: #8476ff(토큰 없음), padding 10/24, radius 12 */
+.openButton {
+  width: 131px;
+  padding: 10px 24px;
+  border-radius: 12px;
+  background: #8476ff;
+  color: var(--color-gray-0);
+  text-align: center;
+}
+
+/* 1946:16504: Pretendard Bold 71, 140%, -2.5%, 가운데(x=960.5) */
+.headline {
+  position: absolute;
+  top: 307px;
+  left: 960.5px;
+  transform: translateX(-50%);
+  font-size: 71px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: var(--letter-spacing-base);
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* 1951:16580: Pretendard Medium 31, 140%, -2.5% */
+.lead {
+  position: absolute;
+  top: 435px;
+  left: 960.5px;
+  transform: translateX(-50%);
+  font-size: 31px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: var(--letter-spacing-base);
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* 기능 소개 글: 제목 SemiBold 36(줄 50) + 설명 Regular 24(줄 34). 자간 -2.5%는 글자 크기마다 다시 계산한다 */
+.feature {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  width: 574px;
+}
+
+.featureTitle {
+  font-size: 36px;
+  font-weight: 600;
+  line-height: var(--line-height-36);
+  letter-spacing: var(--letter-spacing-base);
+}
+
+.featureText {
+  font-size: 24px;
+  font-weight: 400;
+  line-height: var(--line-height-24);
+  letter-spacing: var(--letter-spacing-base);
+}
+
+/* 1951:17630 */
+.feature1 {
+  left: 180px;
+  top: 1011px;
+}
+
+/* 1951:17631: padding 14/0, 간격 13, 줄바꿈 없음 */
+.feature2 {
+  left: 1085px;
+  top: 1733px;
+  gap: 13px;
+  padding: 14px 0;
+  white-space: nowrap;
+}
+
+/* 2008:24220 */
+.feature3 {
+  left: 180px;
+  top: 3067px;
+}
+
+/* 화면 이미지: radius 14, 이미지 채움 자르기 비율은 Figma 값 그대로 */
+.shot {
+  position: absolute;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.shot > img {
+  position: absolute;
+  max-width: none;
+}
+
+/* image 43(1951:17624) 726×461 */
+.timetableShot {
+  left: 1014px;
+  top: 1011px;
+  width: 726px;
+  height: 461px;
+}
+
+.timetableShot > img {
+  left: -1.32%;
+  top: -4.15%;
+  width: 179.44%;
+  height: 158.03%;
+}
+
+/* 스크린샷 2026-10-04 101036 1(2051:36256) 863×435 */
+.membersLeftShot {
+  left: 670px;
+  top: 3157px;
+  width: 863px;
+  height: 435px;
+}
+
+.membersLeftShot > img {
+  left: -0.81%;
+  top: -2.99%;
+  width: 100.81%;
+  height: 108.05%;
+}
+
+/* image 50(2051:36249) 610×435 — 왼쪽 표 위에 겹친다 */
+.membersRightShot {
+  left: 1130px;
+  top: 3157px;
+  width: 610px;
+  height: 435px;
+}
+
+.membersRightShot > img {
+  left: 0;
+  top: -2.3%;
+  width: 101.15%;
+  height: 102.3%;
+}
+
+/* image 51(2051:36258) 1276×256, image 52(2051:36261) 1220×340 — object-fit cover, 라운드 없음 */
+.boardSummary,
+.boardTable {
+  position: absolute;
+  left: 180px;
+  object-fit: cover;
+}
+
+.boardSummary {
+  top: 2015px;
+  width: 1276px;
+  height: 256px;
+}
+
+.boardTable {
+  top: 2333px;
+  width: 1220px;
+  height: 340px;
+}

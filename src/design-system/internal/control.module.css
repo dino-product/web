@@ -1,0 +1,83 @@
+/*
+ * 입력 상자 공통 모양(TextField·SelectField). Figma 화면별 값:
+ * default 1325:5516 · modal 1325:9675/785:7932 · profile 463:5655 · large 650:2840 · filled 1453:12440
+ */
+.box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--color-gray-200);
+  background: var(--color-gray-0);
+  color: var(--color-gray-900);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+}
+
+/* 새 작업 등록: 높이 50, radius 8, 좌우 12(+테두리 1 → 글자 x=13) */
+.default {
+  height: 50px;
+  padding: 0 12px;
+  border-radius: 8px;
+}
+
+/* 모달 필드: 높이 56, radius 12 */
+.modal {
+  height: 56px;
+  padding: 0 12px;
+  border-radius: 12px;
+}
+
+/* 마이페이지: 높이 55, radius 14, 좌우 16, 18/500 */
+.profile {
+  height: 55px;
+  padding: 0 16px;
+  border-radius: 14px;
+  font-size: 18px;
+  line-height: 25px;
+}
+
+/* 발주사 정보: 높이 59, radius 12, 바깥쪽 Gray300 1px 테두리 */
+.large {
+  height: 59px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px var(--color-gray-300);
+}
+
+/* 온보딩: 높이 52, radius 12, Background/2 채움, 테두리 없음 */
+.filled {
+  height: 52px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--color-background-2);
+}
+
+/* 우편번호·기본 주소처럼 읽기 전용·비활성 */
+.readOnly {
+  background: var(--color-gray-50);
+}
+
+.focused {
+  border-color: var(--color-secondary);
+}
+
+.large.focused {
+  box-shadow: 0 0 0 1px var(--color-secondary);
+}
+
+.invalid {
+  border-color: var(--color-warning-1);
+}
+
+.large.invalid {
+  box-shadow: 0 0 0 1px var(--color-warning-1);
+}
+
+.disabledLook {
+  opacity: 0.5;
+}

@@ -1,0 +1,74 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.label {
+  font-weight: 500;
+}
+
+.suffix {
+  color: var(--color-gray-500);
+}
+
+.hint {
+  color: var(--color-gray-500);
+  font-size: 12px;
+  line-height: 17px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.default .label {
+  color: var(--color-gray-800);
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.modal .label {
+  color: var(--color-gray-900);
+  font-size: 18px;
+  line-height: 25px;
+}
+
+.title {
+  gap: 12px;
+}
+
+.title .label {
+  color: var(--color-gray-900);
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.profile .label {
+  color: var(--color-gray-700);
+  font-size: 20px;
+  line-height: 28px;
+}
+
+.large .label {
+  color: var(--color-gray-900);
+  font-size: 20px;
+  line-height: 28px;
+  opacity: 0.8;
+}
+
+.caption {
+  gap: 12px;
+}
+
+.caption .label {
+  color: var(--color-gray-600);
+  font-size: 14px;
+  line-height: 20px;
+}

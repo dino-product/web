@@ -1,0 +1,13 @@
+node_modules/
+dist/
+*.local
+.DS_Store
+
+# Figma 참조 캐시와 검증 스크린샷 (로컬 전용)
+.figma/
+.shots/
+
+# 로컬 환경값
+.env
+.env.*
+!.env.example

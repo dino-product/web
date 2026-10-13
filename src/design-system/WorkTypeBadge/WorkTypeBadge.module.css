@@ -1,0 +1,25 @@
+.badge {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  font-size: 15px;
+  font-weight: 600;
+  /* Figma line-height auto = Pretendard ascent+descent(18px). 지표를 바꾼 글꼴(fonts.css)에서도 같은 높이를 쓴다 */
+  line-height: 18px;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}

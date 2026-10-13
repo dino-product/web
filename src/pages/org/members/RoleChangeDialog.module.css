@@ -1,0 +1,197 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 역할 상자 2008:31015: 515x88, Gray50, radius 12. 현재 (16,16) · 화살표 (246,32) · 변경 (286,16) */
+.roleBox {
+  position: relative;
+  height: 88px;
+  border-radius: 12px;
+  background: var(--color-gray-50);
+}
+
+.roleFrom,
+.roleTo {
+  position: absolute;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.roleFrom {
+  left: 16px;
+}
+
+.roleTo {
+  left: 286px;
+}
+
+.roleArrow {
+  position: absolute;
+  top: 32px;
+  left: 246px;
+}
+
+.roleLabel {
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+}
+
+.roleValue {
+  color: var(--color-gray-600);
+  font-size: 20px;
+  line-height: var(--line-height-20);
+  font-weight: 500;
+}
+
+.roleValueNew {
+  color: var(--color-gray-800);
+}
+
+/* 안내 상자: Background/3, padding 16, 16/500 Gray600 */
+.info {
+  padding: 16px;
+  background: var(--color-background-3);
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+}
+
+/* 유형 선택 전 2008:31029: radius 8, 줄바꿈 한 문단 */
+.infoSingle {
+  border-radius: 8px;
+  white-space: pre-line;
+}
+
+/* 유형 선택 후 2008:31364: radius 10, 글머리 목록(글머리 x+11, 글자 x+24), 항목 간격 8 */
+.infoList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 10px;
+}
+
+.infoList > li {
+  position: relative;
+  padding-left: 24px;
+}
+
+.infoList > li::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* 예정 작업 2008:32019: 유형 선택 + 안내 묶음 간격 16 */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 변경 불가 안내 2008:31687: Type Color Red 12%, radius 12, padding 16, 아이콘 28 + 10 + 16/500 Red */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(239, 107, 90, 0.12);
+  color: var(--color-type-red);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  white-space: pre-line;
+}
+
+/* 작업중 작업 카드 2008:31691: Gray100 안쪽 1px, radius 12, padding 16 */
+.taskCard {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px;
+  border: 1px solid var(--color-gray-100);
+  border-radius: 12px;
+}
+
+.taskText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.taskTitle {
+  color: var(--color-gray-900);
+  font-size: 20px;
+  line-height: var(--line-height-20);
+  font-weight: 500;
+}
+
+.taskTime {
+  color: var(--color-gray-600);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+}
+
+/* 예정 작업 상자 2008:32024: InProgress/6, radius 12, padding 16, 간격 10 */
+.schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--color-in-progress-6);
+}
+
+.scheduleHead {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--color-gray-700);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  white-space: pre-line;
+}
+
+.scheduleHead strong {
+  color: var(--color-in-progress-5);
+  font-weight: 600;
+}
+
+/* 작업 2008:32028: 흰 배경, radius 8, padding 12/14, 18/600 Gray800 + 4 + 16/500 Gray600 */
+.scheduleTask {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--color-gray-0);
+}
+
+.scheduleTitle {
+  color: var(--color-gray-800);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 600;
+}
+
+.scheduleTime {
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+}

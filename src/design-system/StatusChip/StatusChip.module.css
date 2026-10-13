@@ -1,0 +1,32 @@
+/* 옛 Status Chip 449:2590 채움형(타임테이블 블록): 높이 30, padding 4/10, radius 8, 16/500 */
+.solid {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 배정됨 — 타임테이블 블록(443:1651): Pending/2 배경, Pending/1 글자 */
+.PENDING_ACCEPT {
+  background: var(--color-pending-2);
+  color: var(--color-pending-1);
+}
+
+/* 작업전 ← Confirmed(확정) */
+.ACCEPTED {
+  background: var(--color-secondary);
+  color: var(--color-gray-0);
+}
+
+/* 작업중 ← In Progress */
+.IN_PROGRESS {
+  background: var(--color-in-progress-1);
+  color: var(--color-gray-0);
+}

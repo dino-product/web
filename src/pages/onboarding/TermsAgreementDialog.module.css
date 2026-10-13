@@ -1,0 +1,36 @@
+/* Frame 2147239354(1453:14364): 간격 24 */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Frame 2147239353(1453:14365): 459×56, 아래 Gray200 1px(안쪽), 간격 12 */
+.allRow {
+  display: flex;
+  align-items: center;
+  height: 56px;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.allLabel {
+  color: var(--color-gray-900);
+}
+
+/* Frame 2147239349(1453:14369): 간격 12, 항목 459×26(체크박스·글자 간격 8, 오른쪽 Next 26 #aaaaaa) */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 26px;
+}
+
+.itemLabel {
+  color: var(--color-gray-900);
+}

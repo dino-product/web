@@ -1,0 +1,62 @@
+/* 1892:12832 — 제목(높이 45)과 날짜 줄(높이 28), 간격 6 */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* 560:2856 — Title/S(32/700) Primary */
+.title {
+  color: var(--color-primary);
+}
+
+/*
+ * 날짜 줄(560:2857, y=83~111)과 '연결 끊김 안내'(560:2862, x=1767~1896, y=86~111).
+ * 안내 묶음은 본문 열 오른쪽 끝·날짜 줄 아래 끝에 맞춰진다.
+ */
+.meta {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+/* 560:2857 — 가로, 간격 24, 아래 정렬 */
+.dateRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+/* 560:2858 — 20/600 Primary, 불투명 80% */
+.date {
+  color: var(--color-primary);
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+/* 560:2859 — 초록 점 8 + 간격 10 + 문구(높이 25) */
+.live {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 560:2861 — 18/500 Gray700, 불투명 80% */
+.liveText {
+  color: var(--color-gray-700);
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+/* 560:2862 — help-circle 24 + 간격 6 + 문구 */
+.help {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 560:2864 — 18/500 #817f95(토큰 없음) */
+.helpText {
+  color: #817f95;
+  white-space: nowrap;
+}

@@ -1,0 +1,37 @@
+/*
+ * 443:1156 — 본문(사이드바 319 오른쪽, 1601px). 제목 (349,32), 툴바 y=103, 격자·대기함 y=175, 오른쪽 여백 24.
+ * 본문 너비 1547 = 격자 1212 + 40 + 대기함 295(접힘: 1417 + 40 + 90).
+ */
+.page {
+  min-height: 100%;
+  padding: 32px 24px 0 30px;
+  background: var(--color-gray-0);
+}
+
+/* 편집 모드 1038:4233 — 화면 채움 #ababab(변수 아님), 사이드바는 그대로 */
+.pageEditing {
+  background: #ababab;
+}
+
+/* 'Title/S' 32/700 Primary (글자 위 y=40) */
+.title {
+  height: 45px;
+  color: var(--color-primary);
+}
+
+/* 툴바 y=103(제목 끝 77 + 26) */
+.toolbarRow {
+  margin-top: 26px;
+}
+
+/* 편집 모드 제목 불투명 50%(1038:4234) */
+.titleDimmed {
+  opacity: 0.5;
+}
+
+.content {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  margin-top: 22px;
+}

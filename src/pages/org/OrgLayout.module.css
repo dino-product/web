@@ -1,0 +1,29 @@
+/* 본문 열: x=349(사이드바 319 + 30), 너비 1547(오른쪽 24) */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 32px 24px 30px 30px;
+}
+
+/* Title/S 32/700 Primary (349,32) */
+.title {
+  color: var(--color-primary);
+}
+
+/* 탭 줄 y=107~154(47) · 버튼 y=104~154(50): 50px 줄 아래 정렬 */
+.header {
+  display: flex;
+  flex: none;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 50px;
+  margin-top: 27px;
+}
+
+/* 회사 코드 관리 167 + 14 + 승인대기 139 (1951:19293) */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}

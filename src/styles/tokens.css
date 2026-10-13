@@ -1,0 +1,111 @@
+/*
+ * Figma "Design.v0" 로컬 변수(Variable collection, 59개)와 텍스트 스타일에서 옮긴 디자인 토큰.
+ * 이름 규칙: Figma 변수 이름을 kebab-case로 바꾸고 --color- 접두사를 붙인다.
+ * get_design_context 코드의 var(--gray200,#dedede) 같은 값은 오른쪽 주석의 Figma 이름으로 찾아 이 토큰으로 바꾼다.
+ */
+:root {
+  /* Brand */
+  --color-primary: #1c1b2a; /* Primary */
+  --color-secondary: #4f3bfe; /* Secondary */
+  --color-primary-100: #a99fff; /* Primary100 */
+
+  /* Gray scale */
+  --color-gray-0: #ffffff; /* Gray0 */
+  --color-gray-50: #f4f4f4; /* Gray50 */
+  --color-gray-100: #e9e9ea; /* Gray100 */
+  --color-gray-200: #dedede; /* Gray200 */
+  --color-gray-300: #cecece; /* Gray300 */
+  --color-gray-400: #aaaaaa; /* Gray400 */
+  --color-gray-500: #9b9b9b; /* Gray500 */
+  --color-gray-600: #767676; /* Gray600 */
+  --color-gray-700: #585858; /* Gray700 */
+  --color-gray-800: #404040; /* Gray800 */
+  --color-gray-900: #222222; /* Gray900 */
+
+  /* White alpha */
+  --color-white-100: #ffffff; /* White/100% */
+  --color-white-60: #ffffff99; /* White/60% */
+  --color-white-9: #ffffff17; /* White/9% */
+
+  /* Backgrounds */
+  --color-background-1: #ededed; /* Background/1 */
+  --color-background-2: #f1f1f6; /* Background/2 */
+  --color-background-3: #f5f6f8; /* Background/3 */
+  --color-background-4: #0000000a; /* Background/ 4 */
+
+  /* Task status (작업 상태) */
+  --color-registered-1: #6c6c6c; /* Registered/1 — 등록 */
+  --color-registered-2: #ededed; /* Registered/2 */
+  --color-pending-1: #1f1f1f; /* Pending/1 — 배정됨 */
+  --color-pending-2: #cecece; /* Pending/2 */
+  --color-pending-3: #cecece80; /* Pending/3 */
+  --color-accepted-1: #4f3bfe; /* Accepted/1 — 작업전 */
+  --color-accepted-2: #4f3bfe24; /* Accepted/2 */
+  --color-confirmed: #ece5fe; /* Confirmed */
+  --color-in-progress-1: #eea216; /* InProgress/1 — 작업중 */
+  --color-in-progress-2: #eea21633; /* InProgress/2 */
+  --color-in-progress-3: #eea21680; /* InProgress/3 */
+  --color-in-progress-4: #ffebc5; /* InProgress/4 */
+  --color-in-progress-5: #944f00; /* InProgress/5 */
+  --color-in-progress-6: #eea2160f; /* InProgress/6 */
+  --color-completed-1: #277d02; /* Completed/1 — 완료 */
+  --color-completed-2: #3dbc0733; /* Completed/2 */
+  --color-delayed-1: #843e0b; /* Delayed/1 — 지연 */
+  --color-delayed-2: #fcdcc6; /* Delayed/2 */
+  --color-warning-1: #d71a29; /* Warning/ 1 — 거절·오류·삭제 */
+  --color-warning-2: #feeded; /* Warning/2 */
+
+  /* Work type (작업 유형 배지) */
+  --color-install-1: #7244d8; /* Install/1 — 설치 */
+  --color-install-2: #8c5cf533; /* Install/2 */
+  --color-inspection-1: #2771e7; /* Inspection/1 — 점검 */
+  --color-inspection-2: #2771e733; /* Inspection/2 */
+  --color-repair-1: #f59e0a; /* Repair/1 — 수리 */
+  --color-repair-2: #f59e0a33; /* Repair/2 */
+
+  /* Type colors (유형 색상) */
+  --color-type-gray: #6f829c; /* Type Color/ Gray */
+  --color-type-green: #70b470; /* Type Color/ Green */
+  --color-type-purple: #7244d8; /* Type Color/ Purple */
+  --color-type-brown: #975a32; /* Type Color/ Brown */
+  --color-type-yellow: #e8a934; /* Type Color/ Yellow */
+  --color-type-pink: #ee87ad; /* Type Color/ Pink */
+  --color-type-red: #ef6b5a; /* Type Color/ Red */
+  --color-type-blue: #618eed; /* Type Color/ Blue */
+
+  /* Support */
+  --color-select-1: #4f3bfe0f; /* Select/1 */
+  --color-support-select-1: #d4efffe3; /* Support/select1 */
+  --color-support-select-2: #ebeaf02b; /* Support/select2 — 사이드바 선택 배경 */
+  --color-support-sidebar-icon: #898eae; /* Support/side bar icon */
+
+  /* Typography (Pretendard, line-height 140%, letter-spacing -2.5%) */
+  /* 화면 글자는 Figma와 기준선이 같도록 세로 지표를 맞춘 'Orbit Pretendard'(fonts.css), 입력 상자는 원래 'Pretendard' */
+  --font-family-base: 'Orbit Pretendard', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  --font-family-control: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  --line-height-base: 1.4;
+  --letter-spacing-base: -0.025em;
+  /* 140%를 정수 px로 반올림한 줄 높이(Figma 텍스트 상자 높이). CSS Module에서 font-size와 함께 쓴다. */
+  --line-height-12: 17px;
+  --line-height-13: 18px;
+  --line-height-14: 20px;
+  --line-height-15: 21px;
+  --line-height-16: 22px;
+  --line-height-18: 25px;
+  --line-height-20: 28px;
+  --line-height-22: 31px;
+  --line-height-24: 34px;
+  --line-height-28: 39px;
+  --line-height-32: 45px;
+  --line-height-36: 50px;
+
+  /* Effects — Figma 효과·고정값(변수 아님). DS 컴포넌트와 섹션에서 같은 값을 쓰도록 모아 둔다. */
+  --color-dim: rgba(0, 0, 0, 0.4); /* 모달 배경(작업 목록 1920x1080 프레임 #000 40%) */
+  --shadow-dropdown: 0 0 8.2px 0 rgba(0, 0, 0, 0.17); /* 드롭다운 옵션·더보기 메뉴 (직원 유형 Drop Down=o) */
+  --shadow-popover: 0 0 12px 0 rgba(0, 0, 0, 0.08); /* 발주사 전환 팝오버, 기사 0명 카드 */
+
+  /* Layout — Figma 웹 프레임 1920x1080 기준 */
+  --design-width: 1920px;
+  --design-height: 1080px;
+  --sidebar-width: 319px;
+}

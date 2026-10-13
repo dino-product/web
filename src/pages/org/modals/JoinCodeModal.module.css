@@ -1,0 +1,283 @@
+/* 1951:18971 — 1204x590, 흰 배경, radius 18 */
+.panel {
+  width: 1204px;
+  border-radius: 18px;
+  background: var(--color-gray-0);
+}
+
+/* 머리말 1951:18972: padding 16/20, Gray200 아래선, 18/700 Primary */
+.header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.headerTitle {
+  color: var(--color-primary);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 700;
+}
+
+/* 본문 1951:18975: padding 30, 두 열(542 · 60 · 542) → 36 → 돌아가기 */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  padding: 30px;
+}
+
+.columns {
+  display: flex;
+  align-items: flex-start;
+  gap: 60px;
+}
+
+.left {
+  display: flex;
+  flex-direction: column;
+  gap: 76px;
+  width: 542px;
+}
+
+.sectionTitle {
+  color: var(--color-primary);
+  font-size: 20px;
+  line-height: var(--line-height-20);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 회사 참여 정보 1951:18980: 제목 16 아래 행 묶음(간격 22) */
+.joinInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.infoRows {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* 라벨 16/500 Gray600 (58) + 38 + 값: 값은 x=96(1951:18985). Chrome 라벨 폭(57.2)과 무관하게 열 너비로 맞춘다. */
+.infoRow {
+  display: grid;
+  grid-template-columns: 96px max-content;
+  align-items: center;
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.infoRow > dd {
+  margin: 0;
+}
+
+.infoValue {
+  color: var(--color-primary);
+}
+
+/* 코드 칩 줄 1951:18985: 높이 28. 발급 전('-')에도 줄 높이를 지켜 아래 줄·영구 참여 링크 위치가 시안 그대로 남게 한다. */
+.codeGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 28px;
+}
+
+/* 회사 코드 칩 1951:18986: 99x28(글자 79), Accepted/2, padding 4/10, radius 8, 14/500 Secondary */
+.codeChip {
+  min-width: 99px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--color-accepted-2);
+  color: var(--color-secondary);
+  font-size: 14px;
+  line-height: var(--line-height-14);
+}
+
+.empty {
+  color: var(--color-gray-600);
+}
+
+.iconButton {
+  display: inline-flex;
+  line-height: 0;
+}
+
+.policy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 코드 정책 칩: #f4f4f4, padding 4/10, radius 50, 14/500 Gray600 */
+.policyChip {
+  padding: 4px 10px;
+  border-radius: 50px;
+  background: var(--color-gray-50);
+  color: var(--color-gray-600);
+  font-size: 14px;
+  line-height: var(--line-height-14);
+}
+
+/* 영구 참여 링크 1951:18997 */
+.linkSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.linkRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 56px;
+}
+
+/*
+ * 1951:19001: 441x56, Gray200 1px, radius 12, 글자 (21,19) 16/500 Gray600(기준 1951:18795 글자 윗선 y=643).
+ */
+.linkBox {
+  width: 441px;
+  height: 56px;
+  padding: 18px 20px 0;
+  overflow: hidden;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 12px;
+  background: var(--color-gray-0);
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* 복사 1951:19004: Primary, 89x56, padding 10/12, 간격 10, 18/600 흰색 */
+.copyButton {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  width: 89px;
+  height: 56px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--color-primary);
+  color: var(--color-gray-0);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 참여 QR 코드 1951:19008: 542, 간격 16, 가운데 */
+.right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 542px;
+}
+
+.qrHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  align-self: stretch;
+}
+
+/* 새로고침 1951:19011: 32x32, Gray300 1px, radius 8, 아이콘 18 */
+.refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 8px;
+}
+
+/* 1951:19013: 542x294, Gray50, radius 16 */
+.qrBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  height: 294px;
+  border-radius: 16px;
+  background: var(--color-gray-50);
+}
+
+/* image 45: 240x240 radius 14 */
+.qrImage {
+  width: 240px;
+  height: 240px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+/* 발급 전 1951:18631: QR 01 40 + 22 + 'QR 이미지' 20/600 Gray300 */
+.qrPlaceholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  color: var(--color-gray-300);
+  font-size: 20px;
+  line-height: var(--line-height-20);
+  font-weight: 600;
+}
+
+.qrActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/*
+ * 이미지 저장 148x56(1951:19019)·인쇄 99x56(1951:19022): Gray300 안쪽 1px, padding 11/17, radius 12,
+ * 아이콘 24 + 10 + 18/500 Gray800. 너비는 시안 값으로 고정한다(saveButton·printButton).
+ */
+.outlineButton {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  height: 56px;
+  padding: 11px 16px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 12px;
+  color: var(--color-gray-800);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.saveButton {
+  width: 148px;
+}
+
+.printButton {
+  width: 99px;
+}
+
+/*
+ * 인력관리로 돌아가기 1951:19025: 16/500 Gray500 밑줄, 오른쪽.
+ * 시안 밑줄은 글자 상자 아래 끝(y=802~803)에 있어 글꼴 기본 위치(801)보다 2px 내린다.
+ */
+.back {
+  align-self: flex-end;
+  color: var(--color-gray-500);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-position: from-font;
+  text-underline-offset: 2px;
+}

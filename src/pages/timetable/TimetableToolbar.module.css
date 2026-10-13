@@ -1,0 +1,144 @@
+/* 툴바 y=103, 높이 50. 왼쪽 묶음(945:6342: 간격 20) ↔ 오른쪽 묶음(443:1270: 간격 12) */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 50px;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 날짜 이동 + 오늘(945:6343, 간격 10). 편집 모드에서는 묶음 불투명 50%(1038:4719) */
+.dateGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dimmed {
+  opacity: 0.5;
+}
+
+/* 945:6344 — 높이 50, Gray200 1px 테두리(레이아웃 포함), radius 12, [1][42][15][날짜][15][42][1] */
+.dateNav {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  height: 50px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 12px;
+}
+
+/* 편집 모드 날짜 이동 채움 Gray100(1038:4720) */
+.dateNavEditing {
+  background: var(--color-gray-100);
+}
+
+/* 아이콘 칸 42x50 — 945:6345·945:6348에서 내보낸 셰브론(Primary 80%, assets/date-*.svg) */
+.navButton {
+  display: flex;
+  flex: none;
+  width: 42px;
+  height: 50px;
+}
+
+/* 18/500 Primary 80% */
+.dateText {
+  color: var(--color-primary);
+  opacity: 0.8;
+  white-space: nowrap;
+}
+
+/* 오늘 945:6350 — Gray100, radius 12, padding 10/16, 18/600 Primary 80% */
+.today {
+  height: 50px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--color-gray-100);
+}
+
+.todayLabel {
+  color: var(--color-primary);
+  opacity: 0.8;
+}
+
+/* 구분선 945:6352 — 세로 30, Gray200 */
+.divider {
+  width: 1px;
+  height: 30px;
+  background: var(--color-gray-200);
+}
+
+/* 보기/편집 토글 945:6353 — 160x50, Gray50, radius 12, padding 2/6 */
+.modeToggle {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  padding: 2px 6px;
+  border-radius: 12px;
+  background: var(--color-gray-50);
+}
+
+/* 항목 74x40, 아이콘 24 + 간격 2 + 16/500(줄 높이 auto, 자간 0) */
+.modeButton {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: 74px;
+  height: 40px;
+  padding: 8px 12px 8px 8px;
+  border-radius: 8px;
+  color: var(--color-gray-500);
+  font-size: 16px;
+  /* line-height auto = Pretendard ascent+descent(19px). 지표를 바꾼 글꼴(fonts.css)에서도 같은 높이를 쓴다 */
+  line-height: 19px;
+  font-weight: 500;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+/* 보기 선택(945:6354) — Primary, radius 10, 흰 글자 */
+.viewActive {
+  border-radius: 10px;
+  background: var(--color-primary);
+  color: var(--color-gray-0);
+}
+
+/* 편집 선택(1038:4735) — Secondary, radius 8, 흰 글자 */
+.editActive {
+  background: var(--color-secondary);
+  color: var(--color-gray-0);
+}
+
+/* 편집 안내 칩 1038:4741 — 높이 40, padding 10/20, Confirmed, radius 48, 16/500 Secondary. 토글과 간격 15 */
+.editHint {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  margin-left: -5px;
+  padding: 10px 20px;
+  border-radius: 48px;
+  background: var(--color-confirmed);
+  color: var(--color-secondary);
+  font-size: 16px;
+  /* line-height auto = Pretendard ascent+descent(19px). 지표를 바꾼 글꼴(fonts.css)에서도 같은 높이를 쓴다 */
+  line-height: 19px;
+  font-weight: 500;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+/* 편집 모드 필터(1038:4311): 흰 채움 + DS 비활성 불투명 50% → 회색 배경 위 #d5d5d5 */
+.right > .filterEditing {
+  background: var(--color-gray-0);
+}

@@ -1,0 +1,32 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  background: var(--color-gray-0);
+}
+
+.header {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 58px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-gray-200);
+  border-radius: 18px 18px 0 0;
+  background: var(--color-gray-0);
+}
+
+.title {
+  color: var(--color-primary);
+  font-size: 18px;
+  line-height: 25px;
+  font-weight: 700;
+}
+
+.body {
+  padding: 30px;
+  border-radius: 0 0 18px 18px;
+  background: var(--color-background-3);
+}

@@ -1,0 +1,38 @@
+/* 785:8303 — 탭과 간격 24, 586x433(잘림), 제목 20/600 Primary + 간격 12 + 목록 */
+.content {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 12px;
+  height: 433px;
+  margin-top: 24px;
+}
+
+.title {
+  flex: none;
+  color: var(--color-primary);
+}
+
+/* 2열(283 + 20 + 283), 줄 간격 20 */
+.grid {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(2, 283px);
+  grid-auto-rows: 172px;
+  gap: 20px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.item {
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--color-gray-100);
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

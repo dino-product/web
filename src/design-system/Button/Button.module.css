@@ -1,0 +1,96 @@
+/* Figma Button 449:2601 — 높이 50, padding 10/16, radius 12, Body/S/Medium(18/500) */
+.button {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 50px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-size: 18px;
+  line-height: 25px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.icon28 {
+  gap: 8px;
+}
+
+.icon24 {
+  gap: 10px;
+}
+
+.primary {
+  background: var(--color-primary);
+  color: var(--color-gray-0);
+}
+
+/* Text-Stoke / Icon-Stroke: 테두리가 레이아웃에 포함된다(85 → 87px) */
+.outline {
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+}
+
+.secondary {
+  border: 1px solid var(--color-gray-300);
+  color: var(--color-gray-900);
+}
+
+.danger {
+  background: var(--color-warning-1);
+  color: var(--color-gray-0);
+}
+
+.dangerSoft {
+  background: var(--color-warning-2);
+  color: var(--color-warning-1);
+}
+
+.accent {
+  background: var(--color-secondary);
+  color: var(--color-gray-0);
+}
+
+.ghost {
+  color: var(--color-gray-900);
+}
+
+/* 발주사 정보 650:2840 · 새 작업 등록 1282:8589 하단 버튼: 높이 60, 20/500 */
+.lg {
+  height: 60px;
+  padding: 16px 31px;
+  font-size: 20px;
+  line-height: 28px;
+}
+
+/* lg 취소: 바깥쪽 1px 테두리(레이아웃 밖), Gray800 글자 */
+.lg.secondary {
+  border: 0;
+  background: var(--color-gray-0);
+  box-shadow: 0 0 0 1px var(--color-gray-300);
+  color: var(--color-gray-800);
+}
+
+.button:disabled {
+  opacity: 0.5;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* 승인대기 버튼 빨간 점: 13px, 바깥 흰 테두리 2px, 버튼 기준 (right -5, top -4) */
+.dot {
+  position: absolute;
+  top: -4px;
+  right: -5px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--color-warning-1);
+  box-shadow: 0 0 0 2px var(--color-gray-0);
+}

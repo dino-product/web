@@ -1,0 +1,165 @@
+/* Figma 1924:15032 — 너비 1547(본문 열 전체), 머리줄 + 흰 본문 */
+.table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* 1924:15033 — 1547x55, Gray50, radius 14(바깥 테두리는 표 영역에 잘려 보이지 않음) */
+.header {
+  position: relative;
+  flex: none;
+  height: 55px;
+  border-radius: 14px;
+  background: var(--color-gray-50);
+}
+
+/* 시안 글자 상자 y=17(16/500, Figma 렌더 252~266) */
+.headerName,
+.headerColor {
+  position: absolute;
+  top: 17px;
+  color: var(--color-gray-600);
+  white-space: nowrap;
+}
+
+.headerName {
+  left: 36px;
+}
+
+/* 작업유형 1888:9353 '색상' (380,17) */
+.headerColor {
+  left: 380px;
+}
+
+/* 1924:15036 — 흰 본문(아래 radius 14) */
+.body {
+  display: flex;
+  flex-direction: column;
+  border-radius: 0 0 14px 14px;
+  background: var(--color-gray-0);
+}
+
+/* 일반 행 1924:15682 — 높이 76, 아래 Gray100 1px(안쪽) */
+.row {
+  position: relative;
+  flex: none;
+  height: 76px;
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+/* 편집·새 행 1924:15037 / 1924:15089 — 높이 101 */
+.formRow {
+  height: 101px;
+}
+
+/* 이름 상자(36,15) 187x47 padding 11/0 → 글자 (36,26) */
+.name {
+  position: absolute;
+  top: 26px;
+  left: 36px;
+  color: var(--color-gray-900);
+  white-space: nowrap;
+}
+
+/* 비활성 행 2008:35266 — 이름 Gray600 */
+.inactiveName {
+  color: var(--color-gray-600);
+}
+
+/* 2008:26950 — '수정하기'(121x43) + 간격 12 + ⋮ 20, 오른쪽 36·위 17 */
+.viewActions {
+  position: absolute;
+  top: 17px;
+  right: 36px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 43px;
+}
+
+/* 확인 모달 뒤에 남겨 둔 메뉴 — ⋮ 왼쪽 12(오른쪽 32), 버튼 묶음 위쪽에 맞춤(시안 2008:27440 위치) */
+.frozenMenu {
+  position: absolute;
+  top: 0;
+  right: 32px;
+  z-index: 1;
+}
+
+/* 비활성 행의 메뉴는 시안에서 1px 위(행 위 + 16, 2008:35289) */
+.frozenMenuInactive {
+  top: -1px;
+}
+
+/* 입력 + 도움말 1924:15042 — (36,14) */
+.field {
+  position: absolute;
+  top: 14px;
+  left: 36px;
+}
+
+/* 편집 행 버튼 2008:27018 — '취소' + 8 + '변경사항 저장', 오른쪽 36·위 29 */
+.editActions {
+  position: absolute;
+  top: 29px;
+  right: 36px;
+  display: flex;
+  gap: 8px;
+}
+
+/* 새 행 버튼 1924:15111 — '삭제' + 8 + '저장', 오른쪽 38·위 17(시안 배치 그대로) */
+.draftActions {
+  position: absolute;
+  top: 17px;
+  right: 38px;
+  display: flex;
+  gap: 8px;
+}
+
+/* 1924:15138 — 마지막 행 76, 구분선 없음 */
+.addRow {
+  position: relative;
+  flex: none;
+  height: 76px;
+}
+
+/* 1924:15139 — (36,24) 아이콘 28 + 간격 10 + 18/500 Gray500 */
+.addButton {
+  position: absolute;
+  top: 24px;
+  left: 36px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-gray-500);
+  white-space: nowrap;
+}
+
+/* 목록 없음 1924:16328 — 머리줄 아래 80px에 가운데 버튼 */
+.emptyTable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 80px;
+  width: 100%;
+}
+
+.emptyTable > .header {
+  align-self: stretch;
+}
+
+/* 1924:16324 — 142x40, 흰 배경 + Gray300 바깥 1px, radius 8, padding 6/8, 아이콘 28 + 4 + 20/500 Gray600 */
+.emptyAdd {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  width: 142px;
+  height: 40px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: var(--color-gray-0);
+  box-shadow: 0 0 0 1px var(--color-gray-300);
+  color: var(--color-gray-600);
+  white-space: nowrap;
+}

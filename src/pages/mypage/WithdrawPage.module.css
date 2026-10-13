@@ -1,0 +1,274 @@
+/* 계정 탈퇴 921:3702 · 1230:5227 · 1325:8866 — 배경 Background/3, 제목 (357,32), 카드 (357,111) 1534px */
+.page {
+  min-height: 100%;
+  padding: 32px 24px 52px 38px;
+  background: var(--color-background-3);
+}
+
+/* Title/S 32/700 Primary (357,32) */
+.title {
+  color: var(--color-primary);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  width: 1534px;
+  margin-top: 34px;
+  border-radius: 18px;
+  background: var(--color-gray-0);
+}
+
+.strong {
+  color: var(--color-gray-900);
+}
+
+.muted {
+  color: var(--color-gray-700);
+}
+
+/* 목록 상자(1230:5203 · 1230:5208): Gray200 1px, radius 8 */
+.list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 8px;
+}
+
+/* 1230:5192 · 1230:5343: 버튼 간격 10 */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 1230:5193~5196 · 1802:6261: 높이 50, radius 12, 20/500 — DS Button(md)의 글자만 키운다(자간 -2.5%는 20px 기준으로 다시 계산) */
+.actions .actionButton {
+  width: 160px;
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: var(--letter-spacing-base);
+}
+
+/* '마이페이지로'·'취소': 흰 배경, #c7c7c7 바깥 테두리 1px(시안 렌더 162x52), #444 글자 */
+.actions .ghostButton {
+  border: 0;
+  background: var(--color-gray-0);
+  box-shadow: 0 0 0 1px #c7c7c7;
+  color: #444;
+}
+
+.actions .cancelButton {
+  width: 97px;
+}
+
+/* ── 921:3702 탈퇴 불가 ── 카드 높이 741: 위 44 · 안내 80 · 36 · 본문 527 · 아래 54 */
+.blockedCard {
+  gap: 36px;
+  padding: 44px 50px 54px;
+}
+
+/* 1230:5187: Warning/2, 높이 80, 좌우 24, radius 14, 아이콘 30 + 간격 9 */
+.banner {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 80px;
+  padding: 0 24px;
+  border-radius: 14px;
+  background: var(--color-warning-2);
+  color: var(--color-gray-900);
+}
+
+/* 1230:5353: 섹션들과 버튼, 간격 30, 버튼 오른쪽 정렬 */
+.blockedBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 30px;
+}
+
+.blockedSections {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  width: 100%;
+  color: var(--color-gray-900);
+}
+
+.reasonSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.reasonHead {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 1230:5203: 높이 74(테두리 포함) — 행 72 */
+.companyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.companyRow:not(:last-child) {
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+/* 1230:5205: Gray100, 150x48, radius 12 */
+.roleChip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--color-gray-100);
+}
+
+.solutionSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 1230:5209 · 1230:5214 · 1230:5219: 높이 73 · 72 · 72(앞 두 행은 아래선 포함), 번호 30 + 간격 12 */
+.solutionRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 72px;
+  padding: 0 16px;
+  border-radius: 8px;
+}
+
+.solutionRow:first-child {
+  height: 73px;
+}
+
+.solutionRow:not(:last-child) {
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+/* Ellipse 256: Primary 원 30 + 흰 14/500 번호 */
+.stepNumber {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-gray-0);
+}
+
+/* ── 1230:5227 · 1325:8866 직원 탈퇴 ── 카드 높이 727: 위 40 · 머리말 79 · 12 · 본문 546 · 아래 50 */
+.formCard {
+  gap: 12px;
+  padding: 40px 50px 50px;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 1230:5370: 입력 묶음과 버튼, 간격 30 */
+.formBody {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 30px;
+}
+
+/* 1230:5375 · 1230:5247: 결과 안내 → 탈퇴 사유 → 동의, 간격 24 */
+.formFields {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+  width: 100%;
+}
+
+/* 1230:5248: Gray50, padding 20, radius 12, 18/500 Gray800 글머리표(들여쓰기 27), 줄 간격 8 */
+.results {
+  width: 100%;
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--color-gray-50);
+  color: var(--color-gray-800);
+}
+
+/* 글머리표: 시안 렌더 기준 지름 4px 점, 가운데가 글자 시작 왼쪽 13.4px · 줄 위에서 13.6px */
+.results li {
+  position: relative;
+  margin-left: 27px;
+}
+
+.results li::before {
+  content: '';
+  position: absolute;
+  top: 11.6px;
+  left: -15.9px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.results li + li {
+  margin-top: 8px;
+}
+
+/* 1230:5255: 머리말(간격 6) → 16 → 입력 191 */
+.reasonField {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.reasonFieldHead {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.optional {
+  color: var(--color-gray-500);
+}
+
+/* 1802:6253: Gray300 1px, radius 14 */
+.reasonField .reasonInput {
+  border-color: var(--color-gray-300);
+  border-radius: 14px;
+}
+
+.reasonField .reasonInput:focus {
+  border-color: var(--color-secondary);
+}
+
+/* 2277:12265: 120x50, Gray200 테두리 */
+.dialogCancel.dialogCancel {
+  width: 120px;
+  border-color: var(--color-gray-200);
+}
+
+/*
+ * 2277:12258: 카드(575x247)가 1920x1080 가운데 (673,416)에 놓인다. 높이가 홀수라 가운데 정렬하면 416.5 → 417로 그려지므로
+ * 위 여백 -1px로 가운데 정렬 기준 높이를 짝수(246)로 맞춰 416에 둔다.
+ */
+.confirmDialog {
+  margin-top: -1px;
+}
+
+

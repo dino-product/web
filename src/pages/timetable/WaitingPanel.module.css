@@ -1,0 +1,131 @@
+/* 대기함 패널 443:1194 — 295x836, Primary, radius 20 */
+.panel {
+  position: relative;
+  flex: none;
+  width: 295px;
+  height: 836px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--color-primary);
+}
+
+/* '대기함' (24,24) 24/700 흰색 */
+.title {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  color: var(--color-gray-0);
+}
+
+/* 'N건' (97,29) 20/500 흰색 50% */
+.count {
+  position: absolute;
+  top: 29px;
+  left: 97px;
+  color: var(--color-gray-0);
+  opacity: 0.5;
+}
+
+/* 접기 아이콘 1834:7411 — 24px, 흰색 60%, (247,28) */
+.toggle {
+  position: absolute;
+  top: 28px;
+  left: 247px;
+}
+
+/* 카드 목록 443:1209 — (24,77)부터 간격 14. 넘치면 패널 안에서 스크롤(스크롤바는 그리지 않는다) */
+.list {
+  position: absolute;
+  top: 77px;
+  right: 24px;
+  bottom: 0;
+  left: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-bottom: 24px;
+  overflow-y: auto;
+  scroll-padding-bottom: 24px;
+  scrollbar-width: none;
+}
+
+.list::-webkit-scrollbar {
+  display: none;
+}
+
+.card {
+  flex: none;
+}
+
+.cardDraggable {
+  cursor: grab;
+}
+
+/* 편집 모드 선택(블록 선택 1039:4935과 같은 Secondary 1.4px 테두리) */
+.cardSelected {
+  box-shadow: inset 0 0 0 1.4px var(--color-secondary);
+}
+
+.cardDimmed {
+  opacity: 0.5;
+}
+
+/* 빈 상태 1834:9145 — (63,366) 168x80, 상자 40(Gray500) → 12 → 20/600 Gray500 */
+.empty {
+  position: absolute;
+  top: 366px;
+  left: 63px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 168px;
+}
+
+.emptyText {
+  color: var(--color-gray-500);
+  white-space: nowrap;
+}
+
+/* 접힌 대기함 1834:6778 — 90x836 */
+.collapsed {
+  width: 90px;
+}
+
+/* 펼치기 아이콘 (33,30) */
+.toggleCollapsed {
+  position: absolute;
+  top: 30px;
+  left: 33px;
+}
+
+/* 1834:7355 — (25,80) 40 너비, 건수 → 4 → 세로 '대기함' */
+.collapsedInfo {
+  position: absolute;
+  top: 80px;
+  left: 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 40px;
+}
+
+/* 건수 20/500 흰색 50%, 가운데 */
+.collapsedCount {
+  width: 100%;
+  color: var(--color-gray-0);
+  text-align: center;
+  opacity: 0.5;
+}
+
+/* '대기함' 22/700(줄 높이 120%) 흰색 60%, 한 줄에 한 글자 */
+.collapsedLabel {
+  width: 21px;
+  color: var(--color-white-60);
+  font-size: 22px;
+  line-height: 26px;
+  font-weight: 700;
+  text-align: center;
+  white-space: pre-line;
+}

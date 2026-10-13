@@ -1,0 +1,55 @@
+/* 575:3298 — 카드 4개(각 368.75x176), 간격 24 */
+.cards {
+  display: flex;
+  gap: 24px;
+}
+
+/* 560:2836 — Background/2, radius 16, 글자 Gray800 */
+.card {
+  position: relative;
+  flex: 1 0 0;
+  min-width: 0;
+  height: 176px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--color-background-2);
+  color: var(--color-gray-800);
+}
+
+/* 560:2832 — 총 작업: Primary 배경, 흰 글자 */
+.dark {
+  background: var(--color-primary);
+  color: var(--color-gray-0);
+}
+
+/* 560:2833 — (24,24) 22/600, 줄 높이 31 */
+.label {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  font-size: 22px;
+  line-height: var(--line-height-22);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/*
+ * 숫자(560:2835)와 '건'(560:2834)은 각각 오른쪽 정렬 글자 상자다. 카드 368.75 기준
+ * 숫자 상자 오른쪽 끝 x=309(오른쪽 59.75)·y=95, 48/600 줄 높이 67 / '건' 상자 x=317~337(오른쪽 31.75)·y=121.
+ */
+.count {
+  position: absolute;
+  top: 95px;
+  right: 59.75px;
+  font-size: 48px;
+  line-height: 67px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.unit {
+  position: absolute;
+  top: 121px;
+  right: 31.75px;
+  white-space: nowrap;
+}

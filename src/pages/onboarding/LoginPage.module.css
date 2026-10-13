@@ -1,0 +1,199 @@
+/*
+ * 로그인 2423:12739 — 1920×1080 기준 좌표. 세로 위치는 Figma 제약(가운데 기준 calc)을 그대로 따른다.
+ * '카카오 로그인' 글꼴: Figma IBM Plex Sans KR SemiBold 19 — 해당 글자만 담은 부분 글꼴(SIL OFL 1.1)을 쓴다.
+ */
+@font-face {
+  font-family: 'Orbit Kakao Label';
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url('./assets/fonts/ibm-plex-sans-kr-semibold-kakao.woff2') format('woff2');
+}
+
+/* 배경: Figma Mesh gradient(ShaderFill) 파라미터를 같은 수식으로 그린 1920×1080 이미지. 프레임 비율(%) 기준이라 늘려 채운다 */
+.page {
+  position: relative;
+  height: 100%;
+  min-height: 1080px;
+  overflow: hidden;
+  background: url('./assets/login-background.png') center / 100% 100% no-repeat;
+}
+
+/* Frame 2(2423:12768): (94,94), 불투명 80% */
+.logo {
+  position: absolute;
+  left: 94px;
+  top: 94px;
+  opacity: 0.8;
+}
+
+/* Frame 2147239581(2423:12795): x 329, 세로 가운데 +9.5(높이 174), 간격 16, 불투명 80% */
+.hero {
+  position: absolute;
+  left: 329px;
+  top: calc(50% - 77.5px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 466px;
+  opacity: 0.8;
+  text-align: center;
+}
+
+/* 'Orbit' 글자 상자 400×124(KIMM_Bold 123.6). 외곽선 SVG(323×94)를 Figma 글자 위치(상자 기준 40, 10.5)에 둔다 */
+.heroMark {
+  position: relative;
+  width: 400px;
+  height: 124px;
+}
+
+.heroLogo {
+  position: absolute;
+  left: 40px;
+  top: 10.5px;
+}
+
+.heroCaption {
+  width: 100%;
+  color: var(--color-primary);
+}
+
+/* Frame 2147239566(2423:12771): 608×703, 오른쪽 188, 세로 가운데 -0.5, radius 38 */
+.card {
+  position: absolute;
+  top: calc(50% - 352px);
+  right: 188px;
+  width: 608px;
+  height: 703px;
+  overflow: hidden;
+  border-radius: 38px;
+  background: var(--color-gray-0);
+}
+
+/* Frame 2147239575(2423:12772): (79, 79.5) 450 너비, 간격 40 */
+.loginBlock {
+  position: absolute;
+  left: 79px;
+  top: 79.5px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  width: 450px;
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.title {
+  color: #000;
+}
+
+.subtitle {
+  color: var(--color-gray-600);
+}
+
+.kakaoBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Kakao Login Button(2423:12777): #fee500(카카오 브랜드 색), 높이 64, radius 12, 간격 10 */
+.kakaoButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #fee500;
+}
+
+.kakaoLabel {
+  color: rgba(0, 0, 0, 0.85);
+  font-family: 'Orbit Kakao Label', var(--font-family-base);
+  font-size: 19px;
+  font-weight: 600;
+  line-height: normal;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.notice {
+  color: var(--color-gray-600);
+}
+
+.noticeStrong {
+  color: var(--color-gray-800);
+}
+
+/* Frame 2147239572(2423:12783): (79, 376) 450 너비, 간격 20 */
+.helpList {
+  position: absolute;
+  left: 79px;
+  top: 376px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 450px;
+}
+
+/* Help 상자: 높이 114, padding 20/24, radius 16, Background/3, 간격 12 */
+.helpBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  height: 114px;
+  padding: 20px 24px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--color-background-3);
+}
+
+/* Help 상자 글자는 자간 0(Figma 기본값). 전역 자간(global.css)을 각 글자 요소에서 덮는다. */
+.helpBox * {
+  letter-spacing: 0;
+}
+
+.helpText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+/* SemiBold 17, 줄 높이 auto(상자 20) */
+.helpTitle {
+  color: var(--color-gray-900);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+/* Medium 14, 줄 높이 150% */
+.helpDescription {
+  color: var(--color-gray-600);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 21px;
+}
+
+/* SemiBold 14 밑줄, 줄 높이 auto(상자 17) — 목적지 시안 없음 */
+.helpLink {
+  color: var(--color-gray-700);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 17px;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-thickness: from-font;
+  text-underline-position: from-font;
+}

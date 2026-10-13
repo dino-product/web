@@ -1,0 +1,59 @@
+/* 785:5802 — 탭 간격 30, 위 정렬. 줄 높이 40(첨부 파일 탭의 막대는 40 아래로 넘친다) */
+.tabs {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  gap: 30px;
+  height: 40px;
+}
+
+.tab {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 108px;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.label {
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 건수 칩: padding 2/8, radius 7, 16/500 Secondary */
+.count {
+  padding: 2px 8px;
+  border-radius: 7px;
+  color: var(--color-secondary);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+}
+
+.bar {
+  width: 100%;
+  height: 3px;
+}
+
+.activeReport .label {
+  color: var(--color-gray-900);
+}
+
+.activeAttachments .label {
+  color: #000;
+}
+
+.activeReport .bar,
+.activeAttachments .bar {
+  background: var(--color-secondary);
+}

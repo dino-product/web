@@ -1,0 +1,34 @@
+.trigger {
+  justify-content: space-between;
+  text-align: left;
+}
+
+.value {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-gray-700);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.valueOpen {
+  color: var(--color-gray-900);
+}
+
+.placeholder {
+  color: var(--color-gray-500);
+}
+
+.placeholderStrong {
+  color: var(--color-gray-700);
+}
+
+/* Figma Polygon 1: 18x11 상자 안의 둥근 삼각형(보이는 크기 13x8, 위쪽 3px 여백) */
+.caret {
+  display: flex;
+  flex: none;
+  justify-content: center;
+  width: 18px;
+  height: 11px;
+  padding-top: 3px;
+}

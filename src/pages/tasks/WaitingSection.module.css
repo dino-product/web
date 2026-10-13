@@ -1,0 +1,167 @@
+/* 2293:11933 — 머리말 아래 25px, 상자와 페이지네이션 간격 12 */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+/* 456:4601 — Background/2, radius 18, padding 20/26, 간격 16 */
+.box {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 26px;
+  border-radius: 18px;
+  background: var(--color-background-2);
+}
+
+/* 1771:7266 — 빈 상자 73px, 제목 줄 가운데 */
+.boxEmpty {
+  justify-content: center;
+  height: 73px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 33px;
+}
+
+/* bxs:box 28 + 간격 12 + 20/600 Gray900 */
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  color: var(--color-gray-900);
+  white-space: nowrap;
+}
+
+/* '등록 12건'·'거절 3건' — padding 4/8, 18/500 */
+.counts {
+  display: flex;
+  align-items: center;
+}
+
+.count {
+  padding: 4px 8px;
+  color: var(--color-pending-1);
+  white-space: nowrap;
+}
+
+.countRejected {
+  color: var(--color-warning-1);
+}
+
+/* 1802:5692 — 제목 묶음 + 간격 16 + 왼쪽 Gray300 2px 선, 좌우 12, 20/600 Gray400 */
+.emptyHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.emptyText {
+  padding: 0 12px;
+  border-left: 2px solid var(--color-gray-300);
+  color: var(--color-gray-400);
+  white-space: nowrap;
+}
+
+/* 460:4931 — 열 이름 줄(22) + 간격 12 + 행 목록(간격 8) */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* 열 이름 16/500 Gray700: 작업명 0 · 상태 473 · 미처리 사유 631 · 등록자 1104 */
+.columns {
+  position: relative;
+  height: 22px;
+  color: var(--color-gray-700);
+  white-space: nowrap;
+}
+
+.columns > span {
+  position: absolute;
+  top: 0;
+}
+
+.colTitle {
+  left: 0;
+}
+
+.colStatus {
+  left: 473px;
+}
+
+.colReason {
+  left: 631px;
+}
+
+.colRegistrant {
+  left: 1104px;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* 456:4462 — 흰 배경, 높이 66, radius 8, 좌우 16 */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 66px;
+  padding: 0 16px;
+  border-radius: 8px;
+  background: var(--color-gray-0);
+}
+
+/* 작업명 0 · 칩 457 · 미처리 사유 614 · 등록자 1087 (행 안쪽 기준) */
+.cells {
+  display: grid;
+  grid-template-columns: 457px 157px 473px 160px;
+  align-items: center;
+  color: var(--color-gray-900);
+  white-space: nowrap;
+}
+
+.cellTitle {
+  min-width: 0;
+  padding-right: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cellReason {
+  min-width: 0;
+}
+
+.dot {
+  font-weight: 700;
+}
+
+.cellRegistrant {
+  color: var(--color-gray-600);
+}
+
+/* 배정하기 456:4584 — 150x48, Gray300 1px, radius 12, 18/500 Gray900 */
+.row .assignButton {
+  width: 150px;
+  height: 48px;
+}

@@ -1,0 +1,278 @@
+/* Figma SIde bar 536:2553 — 319 x 1080 기준 좌표를 주석으로 남긴다. */
+.sidebar {
+  position: relative;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  width: var(--sidebar-width);
+  height: 100%;
+  background: var(--color-primary);
+  color: var(--color-gray-0);
+}
+
+/* 로고 줄: y=10, 높이 80, padding 24 → 로고 (24,34) */
+.logoRow {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: 80px;
+  margin-top: 10px;
+  padding: 24px;
+}
+
+/* 검색: (23,110) 274x54, padding 12/14, radius 10, 흰색 9% */
+.search {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 9px;
+  width: 274px;
+  height: 54px;
+  margin: 20px 0 0 23px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--color-white-9);
+  cursor: text;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--color-gray-0);
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 700;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.searchInput::placeholder {
+  color: var(--color-gray-600);
+  opacity: 1;
+}
+
+.searchInput::-webkit-search-cancel-button {
+  display: none;
+}
+
+/* 메뉴: (23,188) 너비 274, 항목 68px 간격 8 */
+.menu {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 8px;
+  width: 274px;
+  margin-left: 23px;
+}
+
+.sidebar > .menu {
+  margin-top: 24px;
+}
+
+/* 메뉴 항목: padding 20/10, radius 11, 아이콘 28 + 간격 10 + 20/500. 비선택 50% 불투명 */
+.item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 68px;
+  padding: 20px 10px;
+  border-radius: 11px;
+  color: #f1f1f1;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 500;
+  opacity: 0.5;
+}
+
+/* 알림함·마이페이지: 흰색 글자·아이콘(536:2553 v0) */
+.itemBottom {
+  color: var(--color-gray-0);
+}
+
+.active {
+  background: var(--color-support-select-2);
+  opacity: 1;
+}
+
+.item:focus-visible,
+.userCardButton:focus-visible,
+.logoutButton:focus-visible {
+  outline: 2px solid var(--color-primary-100);
+  outline-offset: -2px;
+}
+
+/* 아래쪽 묶음: 구분선(y=786~788) → 10 → 메뉴(y=798) → 8 → 사용자 카드(y=950) → 62 */
+.bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-bottom: 62px;
+}
+
+.divider {
+  flex: none;
+  width: 274px;
+  height: 2px;
+  margin: 0 0 2px 23px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* 사용자 카드: 274x68, 양끝 정렬 */
+.userCard {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  width: 274px;
+  height: 68px;
+  margin-left: 23px;
+}
+
+.userCardButton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  text-align: left;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding-right: 20px;
+}
+
+.userTexts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.userName {
+  color: var(--color-gray-0);
+  font-size: 18px;
+  line-height: 25px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.userMeta {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+  white-space: pre;
+}
+
+.userRole {
+  color: var(--color-primary-100);
+}
+
+.userCompany {
+  color: var(--color-white-60);
+}
+
+.logoutButton {
+  display: inline-flex;
+  flex: none;
+  line-height: 0;
+}
+
+/* 발주사 전환 팝오버(1921:10962): 274px, 흰 배경, Gray200 테두리, radius 12, padding 0 6, 간격 2 */
+.switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 6px;
+  overflow: hidden;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 12px;
+  background: var(--color-gray-0);
+  box-shadow: var(--shadow-popover);
+}
+
+.switcherHeader {
+  padding: 16px 16px 8px;
+  color: var(--color-gray-600);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+/* 발주사 항목: padding 10/12, radius 8, 현재 회사 Background/2 */
+.company {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-align: left;
+}
+
+.companyCurrent {
+  background: var(--color-background-2);
+}
+
+.companyInfo {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding-right: 20px;
+}
+
+.companyTexts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.companyName {
+  overflow: hidden;
+  color: var(--color-gray-700);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.companyCurrent .companyName {
+  color: var(--color-gray-900);
+}
+
+.companyRole {
+  color: var(--color-gray-500);
+  font-size: 12px;
+  line-height: 17px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 로그아웃 줄: 위 Gray100 1px, 높이 50, padding 16/12, 아이콘 24 + 간격 10 + 16/500 Gray600 */
+.switcherLogout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 50px;
+  padding: 16px 12px;
+  border-top: 1px solid var(--color-gray-100);
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+  text-align: left;
+}

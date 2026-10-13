@@ -1,0 +1,4 @@
+/* 거절 사유 입력 중(2008:26090)에도 테두리가 Gray200 그대로라 DS 포커스 테두리(Secondary)를 덮는다 */
+.reason.reason:focus {
+  border-color: var(--color-gray-200);
+}

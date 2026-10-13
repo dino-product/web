@@ -1,0 +1,124 @@
+/*
+ * 선택 상자 트리거. 테두리 1px이 레이아웃에 포함돼 글자 x=13, ▼ 오른쪽 13(Figma 1325:5521·1325:9684).
+ * ▼은 DS caret-down(#727272)을 18px 너비 상자 위 3px에 둔다(Polygon 1). 상자 높이를 12로 둬 세로 가운데가 정수 px에
+ * 떨어지게 한다(11이면 0.5px 아래로 밀린다).
+ */
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 0 12px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 8px;
+  background: var(--color-gray-0);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  text-align: left;
+}
+
+.value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.placeholder {
+  color: var(--color-gray-500);
+}
+
+.caret {
+  display: flex;
+  flex: none;
+  justify-content: center;
+  width: 18px;
+  height: 12px;
+  padding-top: 3px;
+}
+
+/* 새 작업 등록 1325:5516 — 높이 50, 값 Gray900. 열려도 테두리는 그대로(1834:13707) */
+.register {
+  height: 50px;
+}
+
+.register .value:not(.placeholder) {
+  color: var(--color-gray-900);
+}
+
+/* 배정 확인 1325:9684 — 높이 56, 값 Gray700. 열림은 DS SelectField와 같게 Secondary 테두리 + 값 Gray900 */
+.dialog {
+  height: 56px;
+}
+
+.dialog .value:not(.placeholder) {
+  color: var(--color-gray-700);
+}
+
+.dialog.open {
+  border-color: var(--color-secondary);
+}
+
+.dialog.open .value:not(.placeholder) {
+  color: var(--color-gray-900);
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: 1px;
+}
+
+/*
+ * 새 작업 등록 옵션 패널 1834:13940 — 흰 배경, Gray200 1px 안쪽 테두리, radius 12, 그림자 0 0 12 8%,
+ * 항목 50px(글자 16/500 Gray900, 왼쪽 16) 간격 2. 호버 항목은 좌우 6px 들어간 Gray50 radius 8(시안 '점검').
+ */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 12px;
+  background: var(--color-gray-0);
+  box-shadow: var(--shadow-popover);
+  scrollbar-width: thin;
+}
+
+.option {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: 50px;
+  padding: 0 16px;
+  border-radius: 8px;
+  background: var(--color-gray-0);
+  color: var(--color-gray-900);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.option:hover,
+.option:focus-visible {
+  margin: 0 6px;
+  background: var(--color-gray-50);
+  outline: none;
+}
+
+/* 배정 확인 패널: DS Menu에 높이 제한만 더한다 */
+.menu {
+  max-height: 260px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+/* Menu는 세로 flex라 높이 제한이 걸리면 항목(48px)이 줄어든다. 줄이지 않고 패널 안에서 스크롤한다 */
+.menu > * {
+  flex: none;
+}

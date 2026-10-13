@@ -1,0 +1,26 @@
+/*
+ * Figma 텍스트 스타일 유틸리티 클래스. 모두 Pretendard, line-height 140%, letter-spacing -2.5%.
+ * line-height는 Figma 텍스트 상자 높이와 같도록 140%를 정수 px로 반올림한 값이다(16px → 22, 18px → 25, 20px → 28).
+ * 소수 px 줄 높이를 쓰면 여러 줄이 쌓일 때 Figma보다 1px씩 밀린다.
+ * 사용 예: <p className="t-body-s-medium">…</p>
+ * CSS Module 안에서는 같은 값을 직접 쓰거나 composes: t-body-s-medium from global; 를 사용한다.
+ */
+.t-title-m { font-size: 36px; font-weight: 700; line-height: 50px; letter-spacing: var(--letter-spacing-base); } /* Title/M */
+.t-title-s { font-size: 32px; font-weight: 700; line-height: 45px; letter-spacing: var(--letter-spacing-base); } /* Title/S */
+.t-body-xxl-bold { font-size: 28px; font-weight: 700; line-height: 39px; letter-spacing: var(--letter-spacing-base); } /* Body/XXL/Bold */
+.t-body-xl-bold { font-size: 24px; font-weight: 700; line-height: 34px; letter-spacing: var(--letter-spacing-base); } /* Body/XL/Bold */
+.t-body-xl-semibold { font-size: 24px; font-weight: 600; line-height: 34px; letter-spacing: var(--letter-spacing-base); } /* Body/XL/Semibold */
+.t-body-xl-medium { font-size: 24px; font-weight: 500; line-height: 34px; letter-spacing: var(--letter-spacing-base); } /* Body/XL/Medium */
+.t-body-l-bold { font-size: 22px; font-weight: 700; line-height: 31px; letter-spacing: var(--letter-spacing-base); } /* Body/L/Bold */
+.t-body-m-semibold { font-size: 20px; font-weight: 600; line-height: 28px; letter-spacing: var(--letter-spacing-base); } /* Body/M/SemiBold */
+.t-body-m-medium { font-size: 20px; font-weight: 500; line-height: 28px; letter-spacing: var(--letter-spacing-base); } /* Body/M/Medium */
+.t-body-m-regular { font-size: 20px; font-weight: 400; line-height: 28px; letter-spacing: var(--letter-spacing-base); } /* Body/M/Regular */
+.t-body-s-bold { font-size: 18px; font-weight: 700; line-height: 25px; letter-spacing: var(--letter-spacing-base); } /* Body/S/Bold */
+.t-body-s-semibold { font-size: 18px; font-weight: 600; line-height: 25px; letter-spacing: var(--letter-spacing-base); } /* Body/S/SemiBold */
+.t-body-s-medium { font-size: 18px; font-weight: 500; line-height: 25px; letter-spacing: var(--letter-spacing-base); } /* Body/S/Medium */
+.t-body-xs-semibold { font-size: 16px; font-weight: 600; line-height: 22px; letter-spacing: var(--letter-spacing-base); } /* Body/XS/Semibold */
+.t-body-xs-medium { font-size: 16px; font-weight: 500; line-height: 22px; letter-spacing: var(--letter-spacing-base); } /* Body/XS/Medium */
+.t-body-xs-regular { font-size: 16px; font-weight: 400; line-height: 22px; letter-spacing: var(--letter-spacing-base); } /* Body/XS/Regular */
+.t-caption-m-semibold { font-size: 14px; font-weight: 600; line-height: 20px; letter-spacing: var(--letter-spacing-base); } /* Caption/M/Semibold */
+.t-caption-m-medium { font-size: 14px; font-weight: 500; line-height: 20px; letter-spacing: var(--letter-spacing-base); } /* Caption/M/Medium */
+.t-caption-s-medium { font-size: 12px; font-weight: 500; line-height: 17px; letter-spacing: var(--letter-spacing-base); } /* Caption/S/Medium */

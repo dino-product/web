@@ -1,0 +1,59 @@
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border-radius: 10px;
+  background: var(--color-gray-0);
+  box-shadow: var(--shadow-dropdown);
+}
+
+/* 항목 48px, radius 6, 글자 왼쪽 12px, 18/500 */
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 48px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 18px;
+  line-height: 25px;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.option {
+  color: var(--color-gray-600);
+}
+
+.action {
+  color: var(--color-gray-800);
+}
+
+.danger {
+  color: var(--color-warning-1);
+}
+
+.item:hover,
+.item:focus-visible,
+.selected {
+  background: var(--color-gray-50);
+  outline: none;
+}
+
+.option.selected,
+.option:hover {
+  color: var(--color-gray-800);
+}
+
+.item:disabled {
+  opacity: 0.5;
+}

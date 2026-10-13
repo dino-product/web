@@ -1,0 +1,60 @@
+/* 블록 자리: 행 위쪽에 높이 110(행 111의 아래 1px은 행 구분선) */
+.block {
+  position: absolute;
+  z-index: 1;
+  height: 110px;
+}
+
+.draggable {
+  cursor: grab;
+}
+
+/* 1039:4935 선택 블록 — Secondary 1.4px 안쪽 테두리(내용 위에 그린다) */
+.selected {
+  z-index: 2;
+}
+
+.selected::after {
+  position: absolute;
+  inset: 0;
+  border-radius: 0 12px 12px 0;
+  box-shadow: inset 0 0 0 1.4px var(--color-secondary);
+  content: '';
+  pointer-events: none;
+}
+
+/* 1039:4935 선택되지 않은 블록 불투명 50% */
+.dimmed {
+  opacity: 0.5;
+}
+
+/*
+ * 완료 블록(시안 없음): 작업전 블록 구조에 Completed 색을 입힌다. DS 블록 클래스보다 우선하도록 클래스를 겹쳐 쓴다.
+ * 막대 = 카드 첫 자식 span, 직원 칩 = 내용 div의 span.
+ */
+.completedCard.completedCard {
+  background: var(--color-completed-2);
+}
+
+.completedCard.completedCard > span:first-child {
+  background: var(--color-completed-1);
+}
+
+.completedCard.completedCard > div > span {
+  border-color: var(--color-completed-2);
+}
+
+/* 칩 자리(위 12, 오른쪽 12) — 높이 30, padding 4/10, radius 8, 16/500 흰 글자(작업전·작업중 채움 칩과 같은 모양) */
+.completedChip {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--color-completed-1);
+  color: var(--color-gray-0);
+  white-space: nowrap;
+}

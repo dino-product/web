@@ -1,0 +1,10 @@
+.logo {
+  display: inline-flex;
+  flex: none;
+  line-height: 0;
+}
+
+.logo > svg {
+  display: block;
+  flex: none;
+}

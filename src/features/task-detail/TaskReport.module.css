@@ -1,0 +1,167 @@
+/*
+ * 탭 아래 내용. 탭과의 간격은 24(785:5801), 완료 보고는 20(785:3338).
+ * 내용이 오른쪽 열을 넘으면(긴 메모 등) 모달 크기를 지키도록 이 영역만 스크롤한다.
+ */
+.content {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  margin-top: 24px;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+/* 785:5805 — '완료 보고' 20/600 Primary + 간격 12 + 상태 칩 */
+.titleRow {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+/* Status Chip 785:5808 — 높이 28, padding 4/10, radius 50, 14/500. 미제출·제출됨 #f4f4f4 + Gray600 */
+.stateChip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  height: 28px;
+  padding: 4px 10px;
+  border-radius: 50px;
+  background: var(--color-gray-50);
+  color: var(--color-gray-600);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 보고 미제출 785:5302 — Warning/2 + Warning/1 */
+.stateChipWarning {
+  background: var(--color-warning-2);
+  color: var(--color-warning-1);
+}
+
+/* 빈 상태 785:5809 — 287px, 가운데, 아이콘 40 + 22 + 문구(간격 12) */
+.empty {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  align-self: center;
+  gap: 22px;
+  width: 287px;
+}
+
+.emptyGap130 {
+  margin-top: 130px;
+}
+
+/* 보고 미제출 785:5294 — 머리말과 간격 120, 문구 묶음과 버튼 간격 24 */
+.emptyGap120 {
+  margin-top: 120px;
+}
+
+.overdue {
+  gap: 24px;
+}
+
+.overdueMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  width: 100%;
+}
+
+.emptyTexts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.emptyTitle {
+  color: var(--color-gray-900);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.warningTitle {
+  color: var(--color-warning-1);
+}
+
+.emptySub {
+  color: var(--color-gray-500);
+  text-align: center;
+}
+
+/* '기사에게 요청 보내기' 785:5432 — 211x48, Gray300 1px, radius 12, 아이콘 24 + 간격 8, 18/500 Gray900 */
+.empty .requestButton {
+  gap: 8px;
+  height: 48px;
+}
+
+/* 완료 785:3459 — 탭과 간격 20, 묶음 간격 16 */
+.completed {
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.photos {
+  display: flex;
+  flex: none;
+  gap: 16px;
+}
+
+.photo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 285px;
+  margin: 0;
+}
+
+/* 사진 칸 285x140, Gray50, radius 16. 사진이 없으면 가운데 이미지 아이콘(28) */
+.photoBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 140px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--color-gray-50);
+}
+
+.photoImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.note {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.noteLabel {
+  color: var(--color-gray-700);
+}
+
+/* 메모 상자 — Gray50, radius 8, padding 16, 16/500 Gray700 */
+.noteBox {
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--color-gray-50);
+  color: var(--color-gray-700);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}

@@ -1,0 +1,59 @@
+.tabs {
+  display: flex;
+  align-items: flex-start;
+  height: 47px;
+}
+
+/* 탭 128x45가 47px 줄 안에서 y=1에 놓인 Figma 배치(조직 설정·진행 보드) */
+.tab {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-top: 1px;
+}
+
+/* 128x47 탭 인스턴스(y=0): 라벨 1px 위, 막대는 줄 맨 아래(라벨 아래 16px) */
+.tall {
+  gap: 16px;
+  margin-top: 0;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+}
+
+/* 비활성 라벨 #4c4c4c(변수 아님): 조직 설정 Component 2·11·12·14, 진행 보드 Component 14~17 인스턴스 값 */
+.label {
+  color: #4c4c4c;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.count {
+  padding: 2px 8px;
+  border-radius: 7px;
+  color: var(--color-secondary);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+}
+
+.bar {
+  width: 100%;
+  height: 3px;
+}
+
+.active .label {
+  color: #000;
+}
+
+.active .bar {
+  background: var(--color-secondary);
+}

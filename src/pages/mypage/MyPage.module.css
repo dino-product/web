@@ -1,0 +1,166 @@
+/* 마이페이지 460:5226 — 본문은 사이드바(319) 오른쪽 x=357(38), 너비 1539, 제목 y=32 · 내용 y=111 */
+.page {
+  min-height: 100%;
+  padding: 32px 24px 52px 38px;
+  background: var(--color-gray-0);
+}
+
+/* Title/S 32/700 Primary (357,32) */
+.title {
+  color: var(--color-primary);
+}
+
+/* 463:5784: 세로 간격 24 */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 1539px;
+  margin-top: 34px;
+}
+
+/* 463:5783: 인사말 + 프로필 카드, 간격 24 */
+.profileSection {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/*
+ * 463:5656: Pretendard Bold 30 / 140%(42) Primary, 자간 -2.5%.
+ * t-* 클래스가 없는 크기라 자간을 다시 지정한다(body에서 물려받으면 16px 기준 -0.4px로 계산돼 3px 넓어진다).
+ */
+.greeting {
+  color: var(--color-primary);
+  font-size: 30px;
+  line-height: 42px;
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-base);
+}
+
+/* 463:5655: Background/3, radius 16, 높이 349 — 내용 1439px(463:5719)이 위아래 40에 놓인다 */
+.profileCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 20px;
+  height: 349px;
+  padding: 40px 50px;
+  border-radius: 16px;
+  background: var(--color-background-3);
+}
+
+/* 463:5714: 사진 열 + 입력 열, 간격 60 */
+.profileRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 60px;
+  width: 100%;
+}
+
+/* 463:5712: 130px 열, 사진과 버튼 간격 19 */
+.photoColumn {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 19px;
+  width: 130px;
+}
+
+/* 463:5695 '사진 업로드': 흰 배경 + Gray200 테두리 + Primary 글자 */
+.photoColumn .uploadButton {
+  border-color: var(--color-gray-200);
+  background: var(--color-gray-0);
+}
+
+/* 463:5713: 입력 열 1242px, 필드 간격 17 */
+.fields {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 17px;
+  width: 1242px;
+}
+
+/* 463:5755 · 463:5756: 제목 + 목록, 간격 16 */
+.listSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionTitle {
+  color: var(--color-gray-900);
+}
+
+/* 463:5753 · 463:5758: Gray200 1px 테두리, radius 8 */
+.list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 8px;
+}
+
+/* 463:5723: padding 12/16, 아래 Gray200 선(마지막 행 제외) */
+.companyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: var(--color-gray-900);
+}
+
+.companyRow:not(:last-child) {
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+/* 463:5731: 소속 역할 — Gray100, 150x48, radius 12 */
+.roleChip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--color-gray-100);
+  color: var(--color-gray-900);
+}
+
+/* 463:5759 · 463:5779 · 463:5762: 높이 73(아래선 포함) · 72(아래선 포함) · 72 */
+.linkRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 72px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: var(--color-gray-900);
+  text-align: left;
+}
+
+.linkRowFirst {
+  height: 73px;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.linkRowMiddle {
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.danger {
+  color: var(--color-warning-1);
+}
+
+/* Frame 2147239108: 36px 상자 가운데 › */
+.chevron {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}

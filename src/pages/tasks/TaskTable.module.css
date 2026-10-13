@@ -1,0 +1,99 @@
+/* 2110:9761 — 대기함 영역 아래 24px, 표 1538px, 표와 페이지네이션 간격 12 */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 1538px;
+  margin-top: 24px;
+}
+
+/* 1230:4832 — 왼쪽·오른쪽·아래 Gray300 1px, radius 14 */
+.table {
+  border: 1px solid var(--color-gray-300);
+  border-top: 0;
+  border-radius: 14px;
+}
+
+/* 열 위치(안쪽 1536px 기준): 작업명 36 · 상태 202 · 담당기사 419 · 작업유형 660 · 예정시간 899 · 등록자 1172 · 최근 수정일 1368 */
+.head,
+.row {
+  display: grid;
+  grid-template-columns: 166px 217px 241px 239px 273px 196px minmax(0, 1fr);
+  white-space: nowrap;
+}
+
+/*
+ * 1230:4833 — Gray50 띠, 위 radius 14, 16/500 #212121, 글자 y=17.
+ * 시안의 머리글 테두리(Gray50 1px)는 바깥쪽이라 표 테두리 위·좌·우 1px를 덮는다: 띠 1538x56, 표보다 1px 위.
+ */
+.head {
+  align-items: start;
+  height: 56px;
+  margin: -1px -1px 0;
+  padding: 18px 0 0 37px;
+  border-radius: 14px 14px 0 0;
+  background: var(--color-gray-50);
+  color: #212121;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+}
+
+/* 1773:7744 — 작업이 없으면 머리글 띠(1538px)만. 바깥 테두리는 머리글에 가려 보이지 않는다. */
+.tableEmpty .head {
+  margin: -1px 0 0;
+}
+
+/* 1230:4839 — 높이 66, 아래 Gray300 1px, 18/500, 작업명 x=36 */
+.row {
+  align-items: center;
+  height: 66px;
+  padding-left: 36px;
+  border-bottom: 1px solid var(--color-gray-300);
+  color: var(--color-gray-900);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:focus-visible {
+  outline: 2px solid var(--color-secondary);
+  outline-offset: -2px;
+}
+
+.cellTitle {
+  min-width: 0;
+  padding-right: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 행의 작업유형 글자는 머리글보다 1px 오른쪽(661) */
+.cellType {
+  padding-left: 1px;
+}
+
+.muted {
+  color: var(--color-gray-600);
+}
+
+/* 1773:7704 — 아이콘 위끝이 화면 y=582(머리글 띠 아래 262px = 섹션 간격 12 + 250) */
+.empty {
+  margin-top: 250px;
+}
+
+/* 1802:5412 '새 작업 등록' — 아이콘 28 + 간격 10(154px) */
+.empty .registerButton {
+  gap: 10px;
+}

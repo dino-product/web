@@ -1,0 +1,44 @@
+/* 기본정보 카드 650:2840 — (349,184) 1547x453, 흰 배경, 바깥 Gray300 1px, radius 18, padding 40/50 */
+.card {
+  margin-top: 30px;
+  padding: 40px 50px;
+  border-radius: 18px;
+  background: var(--color-gray-0);
+  box-shadow: 0 0 0 1px var(--color-gray-300);
+}
+
+/* 입력 묶음 ↔ 버튼 36, 버튼은 가운데 */
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 36px;
+}
+
+/* 기본정보(39) — 24 — 발주사 명(95) — 24 — 업종(95) */
+.fields {
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  gap: 24px;
+}
+
+.heading {
+  color: var(--color-gray-900);
+}
+
+/*
+ * 발주사 명 650:2829: 글자 x=16(DS large는 18), 입력 중(1908:13162)에도 테두리가 Gray300 그대로라
+ * 포커스 테두리를 덮는다. DS 클래스와 같은 2단 선택자보다 앞서도록 3번 겹쳐 쓴다.
+ */
+.input.input.input {
+  padding: 0 16px;
+  box-shadow: 0 0 0 1px var(--color-gray-300);
+}
+
+/* 저장 173x60 · 10 · 취소 97x60 */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}

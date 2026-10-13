@@ -1,0 +1,141 @@
+/*
+ * 새 작업 등록 1282:8589 — ModalPanel(1337x929) 본문 1282:8598: 가로 배치 간격 24, padding 30.
+ * 왼쪽 열 614(기본 정보 376 + 24 + 고객 정보 396), 오른쪽 열 639x811(요금 184 + 24 + 사진 402, 아래 끝에 버튼).
+ */
+.body {
+  display: flex;
+  gap: 24px;
+}
+
+/* 높이 929(홀수)를 Modal이 가운데 두면 y=75.5가 된다. 시안처럼 y=75에 오도록 아래 1px을 더한다 */
+.panel {
+  margin-bottom: 1px;
+}
+
+.column {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 24px;
+  width: 614px;
+}
+
+.rightColumn {
+  justify-content: space-between;
+  width: 639px;
+  height: 811px;
+}
+
+.rightCards {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 카드 1325:5513 — 흰 배경, radius 12, padding 30, 제목 → 16 → 입력 묶음 */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 30px;
+  border-radius: 12px;
+  background: var(--color-gray-0);
+}
+
+/* 제목 20/600 Primary, '(선택)' 16/500 Gray500 */
+.sectionTitle {
+  color: var(--color-primary);
+}
+
+.optional {
+  color: var(--color-gray-500);
+}
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 두 칸 줄 — 간격 24 (265 + 24 + 265, 요금 정보 277.5 + 24 + 277.5) */
+.row {
+  display: flex;
+  gap: 24px;
+}
+
+.row > * {
+  flex: 1 1 0;
+}
+
+/* 우편번호 236 + 8 + 주소 검색 135 */
+.addressRow {
+  display: flex;
+  gap: 8px;
+}
+
+/* TextField 바깥 상자(width 100%)보다 우선하도록 부모 선택자를 붙인다 */
+.addressRow > .zip {
+  flex: none;
+  width: 236px;
+}
+
+/* 현장 사진 1325:5606 — 제목 묶음(제목 → 8 → 안내) → 16 → 사진 칸 3x2(185x129, 간격 12) */
+.photoHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.caption {
+  color: var(--color-gray-600);
+}
+
+.photoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 185px);
+  grid-auto-rows: 129px;
+  gap: 12px;
+}
+
+/* 사진 첨부 칸 1325:5659 — Gray100, radius 16, + 40px(Gray800) 아래 '사진 첨부' 14/500 Gray800 */
+/*
+ * 사진 첨부 1325:5659 — 185x129 칸 안 (66.5, 34)에 아이콘 40 + '사진 첨부'(51x60) 묶음.
+ * 높이 129·너비 185 가운데 정렬은 반 px(34.5, 67)에 걸려 글자가 1px 아래·오른쪽에 그려지므로 아래·오른쪽 1px을 빼고 가운데 둔다.
+ */
+.addPhoto {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1px 1px 0;
+  border-radius: 16px;
+  background: var(--color-gray-100);
+  color: var(--color-gray-800);
+}
+
+/* 빈 칸 1325:5660 — Gray50, radius 16, 가운데 사진 자리 아이콘 28 */
+.photoSlot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: var(--color-gray-50);
+}
+
+.photo {
+  width: 185px;
+  height: 129px;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.fileInput {
+  display: none;
+}
+
+/* 하단 버튼 1325:5689 — 취소 97 · 저장 173, 간격 10, 오른쪽 정렬 */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

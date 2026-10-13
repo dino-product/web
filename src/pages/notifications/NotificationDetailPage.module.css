@@ -1,0 +1,227 @@
+/*
+ * 알림 상세 1807:6719 · 1834:5562 (사이드바 319 오른쪽)
+ * '< 알림함' (339,60) · 삭제 (1767,68) 110x50 · 제목 묶음 (357,128) · 구분선 y=215 (356~1884)
+ * 작업 정보 (357,241) 802px · 처리 이력 카드 (1197,242) 680px
+ */
+.page {
+  position: relative;
+  min-height: 100%;
+  padding: 60px 24px 52px 20px;
+  background: var(--color-gray-0);
+}
+
+/* 1807:6983: Icon/Type=Next 180° 회전 + 간격 4 + '알림함'(오른쪽 10) */
+.back {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: max-content;
+  height: 28px;
+  color: var(--color-gray-800);
+}
+
+.backIcon {
+  transform: rotate(180deg);
+}
+
+.backLabel {
+  padding-right: 10px;
+}
+
+/* 1834:5619: 110x50, Warning/1 바깥 테두리 1px, radius 12, 20/500 Warning/1 */
+.page .deleteButton {
+  position: absolute;
+  top: 68px;
+  right: 43px;
+  width: 110px;
+  padding: 0;
+  border: 0;
+  box-shadow: 0 0 0 1px var(--color-warning-1);
+  color: var(--color-warning-1);
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: var(--letter-spacing-base);
+}
+
+/* 1834:5554: 제목 줄(아이콘 28 + 12 + 24/700) → 12 → 부제(16/500 Gray500) */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 1477px;
+  margin: 40px 0 0 18px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 제목 Body/XL 24px · 부제 Body/XS 16px */
+.title {
+  color: var(--color-primary);
+}
+
+.subtitle {
+  color: var(--color-gray-500);
+}
+
+/* Line 17: Gray300 1px */
+.divider {
+  width: 1528px;
+  height: 1px;
+  margin: 19px 0 0 17px;
+  background: var(--color-gray-300);
+}
+
+.body {
+  display: flex;
+  align-items: flex-start;
+  gap: 38px;
+  margin-left: 18px;
+}
+
+/* 1834:5555: 작업 정보 → 36 → 취소 상세 */
+.info {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 36px;
+  width: 802px;
+  margin-top: 25px;
+}
+
+/* 1833:5551: 제목(최소 높이 32) → 12 → 내용 */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  color: var(--color-primary);
+}
+
+/* 1807:6861: 좌우 16, 행 위아래 16 + 아래 Gray100 선, 값은 행 시작에서 211 */
+.table {
+  margin: 0;
+  padding: 0 16px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 211px 1fr;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--color-gray-100);
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.rowLabel {
+  color: var(--color-gray-700);
+}
+
+.rowValue {
+  margin: 0;
+  color: var(--color-gray-900);
+}
+
+/* 1807:6878: Background/2, padding 24/30, radius 8 (상자 높이 92) */
+.cancelBox {
+  padding: 24px 30px;
+  border-radius: 8px;
+  background: var(--color-background-2);
+  color: var(--color-gray-900);
+  white-space: pre-line;
+}
+
+/* 1833:5548: Gray200 1px, padding 40/50, radius 18 — 제목 → 30 → 이력 */
+.historyCard {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 30px;
+  width: 680px;
+  margin-top: 26px;
+  padding: 40px 50px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 18px;
+}
+
+.historyTitle {
+  color: var(--color-gray-900);
+}
+
+/*
+ * Group 4(1807:6886): 세로선 Gray200 1.5px, 점은 지름 10(흰색 + Gray300 2px 테두리), 마지막 점은 강조색 채움.
+ * 점 가운데는 이력 글자 열 왼쪽에서 -26px, 항목 위에서 13px.
+ */
+.timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-left: 31px;
+}
+
+/* 세로선: Figma는 Gray200 1.5px 선이 두 픽셀에 걸쳐 75%로 그려진다(#e7e7e7). 같은 두 픽셀에 75% 불투명도로 그린다. */
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 13px;
+  bottom: 36px;
+  left: 4px;
+  width: 2px;
+  background: var(--color-gray-200);
+  opacity: 0.75;
+}
+
+.entry {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.entry::before {
+  content: '';
+  position: absolute;
+  top: 7px;
+  left: -32px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--color-gray-300);
+  border-radius: 50%;
+  background: var(--color-gray-0);
+}
+
+.current::before {
+  top: 8px;
+  left: -31px;
+  width: 10px;
+  height: 10px;
+  border: 0;
+  background: var(--accent);
+}
+
+.entryLabel {
+  color: var(--color-gray-900);
+}
+
+.current .entryLabel {
+  color: var(--accent);
+}
+
+.entryMeta {
+  color: var(--color-gray-500);
+}

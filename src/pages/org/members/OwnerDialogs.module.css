@@ -1,0 +1,15 @@
+/* 1888:11223: Background/3, radius 8, padding 16, 16/500 Gray600 */
+.notice {
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--color-background-3);
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+}
+
+/* 시안 줄바꿈만 쓰고 자동 줄바꿈하지 않는다 */
+.lines {
+  white-space: pre;
+}

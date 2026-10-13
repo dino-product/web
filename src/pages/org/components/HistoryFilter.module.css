@@ -1,0 +1,29 @@
+.button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 15px;
+  height: 47px;
+  padding: 10px 16px;
+  border: 1px solid var(--color-gray-300);
+  border-radius: 12px;
+  color: var(--color-gray-800);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Vector 3: 레이아웃 6x3(획 1.5는 바깥으로) — DS chevron-down-sm(8x5)을 가운데에 겹쳐 그린다 */
+.chevron {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 6px;
+  height: 3px;
+}
+
+.menu {
+  min-width: 140px;
+}

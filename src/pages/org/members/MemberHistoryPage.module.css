@@ -1,0 +1,199 @@
+/* 1550:8288: 본문 열 x=349, 너비 1547. 페이지 높이는 화면 이상(목록 없음이면 페이지 번호가 아래 30px에 붙는다) */
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 32px 24px 0 30px;
+}
+
+/* 상단 경로 1551:9025: 18/500, '기사 관리' Gray500 · '／' '작업이력' Gray600, 간격 6 */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-gray-600);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.crumbLink {
+  color: var(--color-gray-500);
+}
+
+/* 기사 작업이력 32/700 (349,69) */
+.title {
+  margin-top: 12px;
+  color: var(--color-primary);
+}
+
+/* 인력 카드 1551:9040: (349,134) 1547x278, Gray50, radius 18, padding 24, 간격 16 */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+  padding: 24px;
+  border-radius: 18px;
+  background: var(--color-gray-50);
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profileText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+/* 이름 24/700 Gray800 · 부제 18/500 Gray500 */
+.name {
+  color: var(--color-gray-800);
+  font-size: 24px;
+  line-height: var(--line-height-24);
+  font-weight: 700;
+}
+
+.subtitle {
+  color: var(--color-gray-500);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+}
+
+/* 상태 칩 Component 15 (1447,24) */
+.statusChip {
+  position: absolute;
+  top: 24px;
+  left: 1447px;
+}
+
+/* 통계 카드 3개: 483.67x152, 간격 24 */
+.stats {
+  display: flex;
+  gap: 24px;
+}
+
+/* 흰 배경, radius 14. 라벨 (32,24) 22/600 · 숫자 오른쪽 끝 x=424 (y=71) 48/600 · '건' (432,97) 22/700, #424242 */
+.stat {
+  position: relative;
+  flex: 1;
+  height: 152px;
+  border-radius: 14px;
+  background: var(--color-gray-0);
+  color: #424242;
+  white-space: nowrap;
+}
+
+.statLabel {
+  position: absolute;
+  top: 24px;
+  left: 32px;
+  font-size: 22px;
+  line-height: var(--line-height-22);
+  font-weight: 600;
+}
+
+.statValue {
+  position: absolute;
+  top: 71px;
+  right: calc(100% - 424px);
+  font-size: 48px;
+  line-height: 67px;
+  font-weight: 600;
+  text-align: right;
+}
+
+.statUnit {
+  position: absolute;
+  top: 97px;
+  left: 432px;
+  font-size: 22px;
+  line-height: var(--line-height-22);
+  font-weight: 700;
+}
+
+/* 필터 1551:8977: (349,432), 간격 12 */
+.filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* 표 (349,491) */
+.table {
+  margin-top: 12px;
+}
+
+/* 머리줄 1584:9045: 55px, Background/3, radius 14, 16/500 Gray600 (y=17) */
+.head {
+  position: relative;
+  height: 55px;
+  border-radius: 14px;
+  background: var(--color-background-3);
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.head > span {
+  position: absolute;
+  top: 17px;
+}
+
+/* 행 1888:9654: 76px, 아래 Gray300 1px, 18/500 Gray800 (y=25) */
+.row {
+  position: relative;
+  height: 76px;
+  border-bottom: 1px solid var(--color-gray-300);
+  color: var(--color-gray-800);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.row > span {
+  position: absolute;
+  top: 25px;
+}
+
+/* 상태 칩 (406,23) */
+.row > .chip {
+  top: 23px;
+  left: 406px;
+}
+
+/* 완료보고 (1409,25) 18/600 Gray900 */
+.report {
+  left: 1409px;
+  color: var(--color-gray-900);
+  font-weight: 600;
+}
+
+/* 목록 없음 1951:21966: 머리줄 아래 120, file-text 42 Gray500 + 24 + 20/600 Gray500 */
+.empty {
+  margin-top: 120px;
+}
+
+/* 페이지 번호 1951:21712: 오른쪽. 목록이 있으면 표 아래 16·아래 여백 65(1419 프레임), 없으면 화면 아래 30 */
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+  padding: 16px 0 65px;
+}
+
+.pagerEmpty {
+  padding-bottom: 30px;
+}

@@ -1,0 +1,41 @@
+/*
+ * 진행 보드 560:2831 — 본문 열 1892:12838: x=349(사이드바 319 + 30), y=32, 너비 1547(오른쪽 여백 24).
+ * 프레임 아래 여백 41(1039 → 1080).
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  padding: 32px 24px 41px 30px;
+}
+
+/* 1892:12836 — 머리말(제목·날짜)과 요약 카드, 간격 16 */
+.overview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 1892:12837 — '작업 상태' 머리말·탭과 표, 간격 16 */
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 1892:12830 — 제목 '작업 상태'(24/700 #000, 높이 34)와 탭(640x47), 간격 24 */
+.statusHead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.statusTitle {
+  color: #000;
+}
+
+/* 진행 보드 탭(560:2848) 활성(Component 13, State=Active): 라벨과 건수 간격 2 → DS 간격 6에서 4를 줄인다. */
+.activeTabLabel {
+  margin-right: -4px;
+}

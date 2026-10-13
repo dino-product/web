@@ -1,0 +1,83 @@
+/* 배정 확인 1325:9675 — 필드 3개(라벨 18/500 → 8 → 56px 선택 상자) 사이 24 */
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.conflicts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/*
+ * 충돌 작업 상자 1325:11680 — 515x90, Gray50, radius 8.
+ * '기존' 칩 (16,19) → 10 → 작업명 20/500 Gray900 · 4 · 기사 18/500 Gray600 (67,17) … 시간 20/500 Gray900 오른쪽 16
+ */
+.conflict {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 90px;
+  padding: 17px 16px 16px;
+  border-radius: 8px;
+  background: var(--color-gray-50);
+}
+
+/*
+ * Status Chip 1325:11667 — 41 x 24.56, Gray100, radius 8, padding 4/10, 12/500 Gray700.
+ * 글자 '기존'은 고정이라 Figma 너비 41을 그대로 쓴다(크롬 글자 폭으로는 40이 되어 작업명이 1px 왼쪽으로 온다).
+ */
+.existingChip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 41px;
+  height: 25px;
+  margin-top: 2px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  white-space: nowrap;
+}
+
+.conflictTexts {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.conflictTitle {
+  color: var(--color-gray-900);
+}
+
+.conflictTechnician {
+  color: var(--color-gray-600);
+}
+
+.conflictTime {
+  flex: none;
+  color: var(--color-gray-900);
+  white-space: nowrap;
+}
+
+/*
+ * 세 모달은 너비 575(홀수)라 Modal 가운데 배치가 x=672.5에 놓인다. 시안 x=673(1325:9675·1325:10883·1325:12205)에
+ * 맞도록 왼쪽 1px을 더한다(가운데 정렬은 바깥 여백까지 포함한 상자 기준).
+ */
+.dialog {
+  margin-left: 1px;
+}
+
+/*
+ * 일정 충돌(333)·변경된 정보(275)는 높이가 홀수라 Modal 가운데 배치가 0.5px 아래(373.5·402.5)에 놓인다.
+ * 시안 좌표(373·402)에 맞도록 아래 1px을 더한다.
+ */
+.oddHeight {
+  margin-bottom: 1px;
+}

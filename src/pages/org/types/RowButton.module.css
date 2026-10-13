@@ -1,0 +1,37 @@
+/* Figma Button(행 크기) — 높이 43, padding 6/16, radius 10, Body/S/Medium(18/500) */
+.button {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  height: 43px;
+  padding: 6px 16px;
+  border-radius: 10px;
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 테두리는 Figma에서 바깥쪽(OUTSIDE) 1px이라 레이아웃 크기(63x43)에 들어가지 않는다. */
+.outline,
+.edit {
+  background: var(--color-gray-0);
+  box-shadow: 0 0 0 1px var(--color-gray-200);
+}
+
+.outline {
+  color: var(--color-gray-900);
+}
+
+.primary {
+  background: var(--color-primary);
+  color: var(--color-gray-0);
+}
+
+/* '수정하기' 121x43: 아이콘 24(x=16) + 간격 4 + 글자(x=44) — 고정 너비에서 왼쪽부터 채운다 */
+.edit {
+  justify-content: flex-start;
+  gap: 4px;
+  color: var(--color-gray-800);
+}

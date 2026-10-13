@@ -1,0 +1,70 @@
+/*
+ * 575:3955 — 머리줄 55 + 행 66(아래 Gray300 1px).
+ * 열 시작 x: 상태 42(머리줄)·45(칩), 고객 225, 작업 379, 시간 822(머리줄 821.5), 담당 기사 1375.
+ */
+.table {
+  display: flex;
+  flex-direction: column;
+}
+
+.head,
+.row {
+  display: grid;
+  grid-template-columns: 225px 154px 443px 553px minmax(0, 1fr);
+  align-items: start;
+}
+
+/*
+ * 560:2866 — Background/2, radius 14, 16/500 Gray600, 글자 y=17.
+ * 같은 색 1px 바깥 테두리(위·좌·우)가 있어 보이는 영역이 위·좌·우로 1px 넓다 → 그림자 3개로 옮긴다.
+ */
+.head {
+  height: 55px;
+  padding-top: 17px;
+  border-radius: 14px;
+  background: var(--color-background-2);
+  box-shadow:
+    -1px 0 0 0 var(--color-background-2),
+    1px 0 0 0 var(--color-background-2),
+    0 -1px 0 0 var(--color-background-2);
+  color: var(--color-gray-600);
+  white-space: nowrap;
+}
+
+.headStatus {
+  padding-left: 42px;
+}
+
+/* 2423:12177 — 높이 66, 아래 Gray300 1px. 글자 y=20(높이 25), 칩 y=18(높이 30) */
+.row {
+  height: 66px;
+  border-bottom: 1px solid var(--color-gray-300);
+  color: var(--color-gray-600);
+}
+
+/* 2423:12182 — 칩 간격 6 */
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 0 0 45px;
+}
+
+/* 18/500 Gray600 */
+.cell {
+  min-width: 0;
+  padding: 20px 16px 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 2423:12181 — 작업명 18/600 #212121(토큰 없음) */
+.title {
+  color: #212121;
+}
+
+/* 2043:36008 — 머리줄 아래 80px, 아이콘 42 + 간격 24 + 문구 20/600 Gray500 */
+.empty {
+  margin-top: 80px;
+}

@@ -1,0 +1,12 @@
+/* 더보기 메뉴 156x110 — DS Menu(padding 6, 항목 48, 간격 2)에 너비만 지정 */
+.menu {
+  width: 156px;
+}
+
+/*
+ * '삭제'는 시안 기본 상태처럼 Gray50(selected)로 칠해 두고, 비활성화·활성화를 가리키거나 키보드로 포커스하는 동안에만
+ * 기본 강조를 내린다(강조가 두 항목에 동시에 보이지 않게).
+ */
+.menu:has(.toggleItem:hover, .toggleItem:focus-visible) .deleteItem:not(:hover, :focus-visible) {
+  background: transparent;
+}

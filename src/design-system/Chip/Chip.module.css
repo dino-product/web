@@ -1,0 +1,78 @@
+.chip {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.md {
+  height: 30px;
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.sm {
+  height: 28px;
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.xs {
+  height: 25px;
+  padding: 4px 7px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.registered {
+  background: var(--color-registered-2);
+  color: var(--color-registered-1);
+}
+
+.pending {
+  background: var(--color-pending-3);
+  color: var(--color-pending-1);
+}
+
+.accepted {
+  background: var(--color-accepted-2);
+  color: var(--color-accepted-1);
+}
+
+.inProgress {
+  background: var(--color-in-progress-4);
+  color: var(--color-in-progress-5);
+}
+
+.completed {
+  background: var(--color-completed-2);
+  color: var(--color-completed-1);
+}
+
+.rejected {
+  background: var(--color-warning-2);
+  color: var(--color-warning-1);
+}
+
+.delayed {
+  background: var(--color-delayed-2);
+  color: var(--color-delayed-1);
+}
+
+/* Component 15 활성화: #4f3bfe 12% (Accepted/2는 14%라 다른 값) */
+.active {
+  background: rgba(79, 59, 254, 0.12);
+  color: var(--color-secondary);
+}
+
+.inactive {
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+}

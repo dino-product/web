@@ -1,0 +1,132 @@
+/* Frame 2147239381(1911:9257): 목록과 안내 간격 8 */
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Frame 2147239532(1921:10543): 간격 12 */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.label {
+  color: var(--color-gray-600);
+}
+
+/* 유형 상자: Gray50, 높이 91, radius 12, 글은 왼쪽 24·세로 가운데, 제목·예시 간격 4 */
+.typeBox {
+  display: flex;
+  align-items: center;
+  height: 91px;
+  padding-left: 24px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--color-gray-50);
+}
+
+.typeText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 153px;
+}
+
+.typeTitle {
+  color: var(--color-gray-900);
+}
+
+.typeExample {
+  color: var(--color-gray-700);
+  white-space: nowrap;
+}
+
+.note {
+  color: var(--color-gray-500);
+  white-space: nowrap;
+}
+
+/* 미리보기 카드(1921:10096 = 에셋 프레임 2122:11843): 209×129 at (198,377), 흰색, radius 11.935. 글자 자간 0 */
+.preview {
+  position: absolute;
+  left: 198px;
+  top: 377px;
+  width: 209px;
+  height: 129px;
+  overflow: hidden;
+  border-radius: 11.935px;
+  background: var(--color-gray-0);
+}
+
+/* 미리보기 카드 글자는 자간 0. 전역 자간(global.css)을 각 글자 요소에서 덮는다. */
+.preview * {
+  letter-spacing: 0;
+}
+
+.previewInner {
+  position: absolute;
+  left: 16px;
+  top: 19px;
+  display: flex;
+  flex-direction: column;
+  gap: 11.393px;
+  width: 178.318px;
+}
+
+.previewHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Frame 7: Install/2, padding 3.326/6.651, radius 4.157, 점 4.988 + 간격 4.988, SemiBold 12.471 Install/1 */
+.previewBadge {
+  display: flex;
+  align-items: center;
+  gap: 4.988px;
+  padding: 3.326px 6.651px;
+  border-radius: 4.157px;
+  background: var(--color-install-2);
+  color: var(--color-install-1);
+  font-size: 12.471px;
+  font-weight: 600;
+  /* line-height auto(15px) — 지표를 바꾼 글꼴(fonts.css)에서도 같은 높이 */
+  line-height: 15px;
+  white-space: nowrap;
+}
+
+.previewRole {
+  color: var(--color-install-1);
+  font-size: 11.393px;
+  font-weight: 500;
+  /* line-height auto(14px) — 지표를 바꾼 글꼴(fonts.css)에서도 같은 높이 */
+  line-height: 14px;
+  white-space: nowrap;
+}
+
+/* 회색 막대 두 개: Background/2, 높이 24.571, radius 21.061, 간격 8.424 */
+.previewBars {
+  display: flex;
+  flex-direction: column;
+  gap: 8.424px;
+}
+
+.previewBars > span {
+  display: block;
+  height: 24.571px;
+  border-radius: 21.061px;
+  background: var(--color-background-2);
+}
+
+/* 보라색 작업자 아바타 일러스트(1921:10461): 187.746×169 at (24,365) */
+.worker {
+  position: absolute;
+  left: 24px;
+  top: 365px;
+  width: 187.746px;
+  height: 169px;
+  object-fit: cover;
+  pointer-events: none;
+}

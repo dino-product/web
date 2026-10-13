@@ -1,0 +1,54 @@
+/* 450:2651 — 본문 x=357(사이드바 319 + 38), 너비 1539(오른쪽 24), 위 32 */
+.page {
+  padding: 32px 24px 0 38px;
+}
+
+/* 463:5626 — 제목 32/700 Primary + 간격 16 + 필터 줄(50) */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.title {
+  color: var(--color-primary);
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 필터 5개 간격 14(454:4052), 오른쪽 버튼 간격 14(456:4655) */
+.filters,
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+/*
+ * 필터 버튼 너비는 Figma 값으로 고정한다(454:4030 상태 103 · 담당기사 133 · 작업유형 133 · 기간 103 · 등록자 118).
+ * 글자 폭에 맞추면 브라우저 글자 폭 차이로 1px씩 좁아진다. 작업내역 출력 454:4071도 130으로 고정.
+ */
+.filters .w103 {
+  width: 103px;
+}
+
+.filters .w118 {
+  width: 118px;
+}
+
+.filters .w133 {
+  width: 133px;
+}
+
+.actions .exportButton {
+  width: 130px;
+}
+
+/* '새 작업 등록' 454:4056 — 아이콘 28 + 간격 10(154px) */
+.actions .registerButton {
+  gap: 10px;
+}

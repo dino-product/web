@@ -1,0 +1,55 @@
+.card {
+  position: relative;
+  width: 247px;
+  height: 122px;
+  border-radius: 12px;
+  background: var(--color-gray-0);
+  overflow: hidden;
+}
+
+.badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+}
+
+.assignee {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: var(--color-gray-600);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.title {
+  position: absolute;
+  top: 60px;
+  left: 16px;
+  right: 16px;
+  overflow: hidden;
+  color: #000;
+  font-size: 20px;
+  font-weight: 600;
+  /* Figma line-height auto = Pretendard ascent+descent(24px). 지표를 바꾼 글꼴(fonts.css)에서도 같은 높이를 쓴다 */
+  line-height: 24px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  position: absolute;
+  top: 90px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-gray-600);
+  font-size: 13px;
+  font-weight: 500;
+  /* line-height auto(15px) */
+  line-height: 15px;
+  white-space: nowrap;
+}

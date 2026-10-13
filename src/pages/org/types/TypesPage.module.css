@@ -1,0 +1,12 @@
+/*
+ * 유형 설정 본문 — OrgLayout(org-members)이 탭 막대 아래(y=154)에 Outlet으로 그린다.
+ * 시안 기준 알약 탭 (349,174), 표 (349,231) 너비 1547. 본문 열의 x·너비·아래 여백은 OrgLayout이 정한다.
+ */
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  margin-top: 20px;
+}

@@ -1,0 +1,36 @@
+/* 발주사 일러스트(1474:4910): 363×242 at (42,298), object-fit cover */
+.illustration {
+  position: absolute;
+  left: 42px;
+  top: 298px;
+  width: 363px;
+  height: 242px;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* 장식 원(Primary100 21%) — Ellipse 460·462·463·461 */
+.dot {
+  position: absolute;
+  pointer-events: none;
+}
+
+.dot7 {
+  left: 341px;
+  top: 459px;
+}
+
+.dot18 {
+  left: 353px;
+  top: 364px;
+}
+
+.dot10 {
+  left: 90px;
+  top: 448px;
+}
+
+.dot4 {
+  left: 171px;
+  top: 369px;
+}

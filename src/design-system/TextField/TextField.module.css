@@ -1,0 +1,26 @@
+.input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.input::placeholder {
+  color: var(--color-gray-500);
+  opacity: 1;
+}
+
+.input:disabled {
+  cursor: default;
+}
+
+.suffix {
+  flex: none;
+  color: var(--color-gray-900);
+}

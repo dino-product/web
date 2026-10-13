@@ -1,0 +1,129 @@
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  background: var(--color-gray-0);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  text-align: left;
+}
+
+.value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.placeholder {
+  color: var(--color-gray-500);
+}
+
+/* ▼ Polygon 1: 18x11 상자 안 13x8 삼각형(위 3px) */
+.caret {
+  display: flex;
+  flex: none;
+  justify-content: center;
+}
+
+.industry .caret,
+.owner .caret {
+  width: 18px;
+  height: 11px;
+  padding-top: 3px;
+}
+
+/* 역할 변경 Polygon 1: 14x8 상자(보이는 삼각형 10x6) Gray500 */
+.roleType .caret {
+  width: 14px;
+  height: 8px;
+  padding-top: 1px;
+}
+
+/* 발주사 정보 업종 650:2840 — 1447x59, 바깥 Gray300 1px, radius 12, 글자 (16, 19) Gray900, ▼ (1405, 24) */
+.industry {
+  align-items: flex-start;
+  height: 59px;
+  padding: 19px 24px 0 16px;
+  border-radius: 12px;
+  box-shadow: 0 0 0 1px var(--color-gray-300);
+  color: var(--color-gray-900);
+}
+
+.industry .caret {
+  margin-top: 5px;
+}
+
+/* 총관리자 지정 2008:24436 — 515x56, 안쪽 1px, radius 12, padding 16/12, 값 Gray900, 선택 후 Secondary 테두리 */
+.owner {
+  height: 56px;
+  padding: 0 12px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 12px;
+  color: var(--color-gray-900);
+}
+
+.owner.open,
+.owner.filled {
+  border-color: var(--color-secondary);
+}
+
+/* 역할 변경 2008:31026 — 515x56, Gray200 안쪽 1px, radius 12, padding 16/12, 값 Gray800 */
+.roleType {
+  height: 56px;
+  padding: 0 12px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 12px;
+  color: var(--color-gray-800);
+}
+
+.roleType.open {
+  border-color: var(--color-secondary);
+}
+
+/* 목록 1951:17646 · 1921:10948 */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 12px;
+  background: var(--color-gray-0);
+  box-shadow: var(--shadow-popover);
+  overflow: hidden;
+}
+
+/* 업종: 항목 1425 = 1447 - 테두리 2 - 여백 20 */
+.wideList {
+  padding: 0 10px;
+}
+
+/* 직원 선택: 항목 501 = 515 - 테두리 2 - 여백 12 */
+.modalList {
+  padding: 0 6px;
+}
+
+.item {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: 50px;
+  padding: 0 16px;
+  border-radius: 8px;
+  color: var(--color-gray-900);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.item:hover,
+.item:focus-visible,
+.selected {
+  background: var(--color-gray-50);
+  outline: none;
+}
