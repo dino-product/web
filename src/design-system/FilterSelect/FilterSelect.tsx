@@ -47,7 +47,7 @@ export function FilterSelect<T extends string>(props: FilterSelectProps<T>) {
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLButtonElement>(null);
 
-  // 선택지가 없으면(예: ?data=empty의 담당기사·유형) 빈 메뉴 상자를 열지 않는다(시안에 없는 모양).
+  // 선택지가 없으면(예: 기사·유형이 없는 발주사의 담당기사·유형) 빈 메뉴 상자를 열지 않는다(시안에 없는 모양).
   const hasOptions = options.length > 0;
   const isSelected = (value: T) => (props.multiple ? props.value.includes(value) : props.value === value);
 

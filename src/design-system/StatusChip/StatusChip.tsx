@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 
-import { TASK_STATUS_LABEL, type TaskStatus } from '@/mocks/types';
+import { TASK_STATUS_LABEL, type TaskStatus } from '@/data/types';
 
 import { Chip, type ChipTone } from '../Chip/Chip';
 import styles from './StatusChip.module.css';

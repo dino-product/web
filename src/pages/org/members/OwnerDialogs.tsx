@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { Button, Dialog, Field } from '@/design-system';
-import type { ID, Member } from '@/mocks/types';
+import type { ID, Member } from '@/data/types';
 
 import { ListSelect } from '../components/ListSelect';
 import dialogStyles from '../dialog.module.css';

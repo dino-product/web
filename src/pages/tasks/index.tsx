@@ -8,8 +8,8 @@ import { useCallback } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import TaskDetailModal from '@/features/task-detail/TaskDetailModal';
-import { selectTaskById } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
+import { selectTaskById } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
 
 import TaskListPage from './TaskListPage';
 
@@ -32,6 +32,7 @@ function TaskDetailRoute() {
   const navigate = useNavigate();
   const location = useLocation();
   const status = useAppStore((s) => selectTaskById(s, taskId)?.status);
+  const tasksLoaded = useAppStore((s) => s.tasksLoaded);
   // 목록에서 연 상세는 이전 기록(목록)으로 돌아가 브라우저 뒤로가기로 모달이 다시 열리지 않게 하고,
   // 주소로 바로 연 상세는 목록으로 바꿔 보낸다.
   const handleClose = useCallback(() => {
@@ -39,6 +40,8 @@ function TaskDetailRoute() {
     else navigate('/tasks', { replace: true });
   }, [location.key, navigate]);
 
+  // 주소로 바로 열면 작업 목록을 읽은 뒤에 판단한다.
+  if (!tasksLoaded) return null;
   if (!status || status === 'REGISTERED' || status === 'CANCELED') return <Navigate to="/tasks" replace />;
   return <TaskDetailModal taskId={taskId} backLabel="작업 목록으로" onClose={handleClose} />;
 }

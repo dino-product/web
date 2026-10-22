@@ -3,7 +3,7 @@ import type { DragEvent, MouseEvent } from 'react';
 
 import { ScheduleCard, type SolidChipStatus } from '@/design-system';
 import { formatTimeRange } from '@/lib/format';
-import { TASK_STATUS_LABEL, type Task } from '@/mocks/types';
+import { TASK_STATUS_LABEL, type Task } from '@/data/types';
 
 import styles from './ScheduleBlock.module.css';
 

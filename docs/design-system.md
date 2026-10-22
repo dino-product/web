@@ -182,7 +182,7 @@ radius는 12입니다. 화면에서 다른 값(주소 검색 8)은 `style`로 �
 ```
 
 - SelectButton: 높이 50, padding 10/16, radius 12, Gray200 테두리, 18/500 Primary, `chevron-down` 28(#222). 너비는 글자에 맞춰집니다(상태 103, 담당기사 133). 열림 모양 차이는 Figma에 없습니다.
-- FilterSelect 패널: 트리거 아래 6px, 트리거와 같은 너비(`matchWidth` 기본 true), Menu 모양. 단일 선택은 고르면 닫히고 `multiple`은 열린 채 토글합니다. 선택지가 없으면(`?data=empty`의 담당기사·유형 등) 패널을 열지 않습니다(빈 메뉴 상자는 시안에 없음).
+- FilterSelect 패널: 트리거 아래 6px, 트리거와 같은 너비(`matchWidth` 기본 true), Menu 모양. 단일 선택은 고르면 닫히고 `multiple`은 열린 채 토글합니다. 선택지가 없으면(기사·유형이 없는 발주사의 담당기사·유형 등) 패널을 열지 않습니다(빈 메뉴 상자는 시안에 없음).
 
 ### Menu · MenuItem · Popover
 
@@ -474,7 +474,7 @@ Popover props: `open`, `anchorRef`, `onClose`, `placement`(`bottom-start` 기본
 - 연결: `selectCurrentUser`(이름), `selectCurrentMembership`(역할 → `COMPANY_ROLE_LABEL`), `selectCurrentCompany`(회사명), `s.memberships`(발주사 목록), `s.session.currentCompanyId`, `s.switchCompany`, `s.logout`(후 `/login`으로 이동).
 - 메뉴: 타임테이블 `/timetable`, 작업 목록 `/tasks`, 진행 보드 `/board`, 조직 설정 `/org/company`, 알림함 `/notifications`, 마이페이지 `/mypage`. 선택 메뉴는 경로 첫 구간(`/org/*`는 조직 설정).
 - 검색: 입력만(결과 시안 없음).
-- 소속 1곳: 사용자 카드 오른쪽 `logout` 32.1px(#898eae) → 로그아웃. 2곳 이상: 카드 전체가 버튼, `selector` 30px(#898eae) → '발주사 전환' 팝오버(카드 위 12px, 274px, 현재 회사 Background/2 + 체크, 구분선, 로그아웃). `?companies=2`로 확인합니다.
+- 소속 1곳: 사용자 카드 오른쪽 `logout` 32.1px(#898eae) → 로그아웃. 2곳 이상: 카드 전체가 버튼, `selector` 30px(#898eae) → '발주사 전환' 팝오버(카드 위 12px, 274px, 현재 회사 Background/2 + 체크, 구분선, 로그아웃). 로컬 시드의 총관리자 오르빗(OO건설 총관리자 + 협력 발주사 직원)으로 확인합니다.
 - 좌표(319×1080): 로고 (24,34) · 검색 (23,110) 274×54 · 메뉴 (23,188) 68px 간격 8 · 구분선 y=786(2px, 흰색 12%) · 알림함 y=798 · 사용자 카드 y=950(68px) · 아래 여백 62. 화면 높이가 1080이 아니면 아래 묶음이 바닥에 붙습니다.
 - 메뉴 글자 20/500, 위 메뉴 `#f1f1f1`(아이콘 Gray50), 알림함·마이페이지 흰색, 선택 안 된 메뉴 불투명 50%, 선택 Support/select2 배경 radius 11.
 

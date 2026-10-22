@@ -15,7 +15,7 @@ import {
   today,
   weekdayLabel,
 } from '@/lib/date';
-import type { HourMinute, IsoDate } from '@/mocks/types';
+import type { HourMinute, IsoDate } from '@/data/types';
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
 

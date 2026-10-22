@@ -3,7 +3,7 @@ import type { KeyboardEvent } from 'react';
 
 import { Button, Icon, Pagination, StateMessage, StatusChip } from '@/design-system';
 import { formatRelativeTime, formatTaskTime } from '@/lib/format';
-import type { Task } from '@/mocks/types';
+import type { Task } from '@/data/types';
 
 import styles from './TaskTable.module.css';
 

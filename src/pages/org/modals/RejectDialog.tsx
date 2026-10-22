@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import { Button, Dialog, Field, TextArea } from '@/design-system';
-import { type JoinRequest, MEMBER_KIND_LABEL } from '@/mocks/types';
+import { type JoinRequest, MEMBER_KIND_LABEL } from '@/data/types';
 
 import dialogStyles from '../dialog.module.css';
 import styles from './RejectDialog.module.css';

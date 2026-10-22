@@ -1,7 +1,7 @@
 import { type ReactNode, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
-import { useAppStore } from '@/mocks/store';
+import { useAppStore } from '@/data/store';
 
 /**
  * 로그인한 사용자만 앱 화면(사이드바 레이아웃)을 보게 한다. 로그아웃 상태면 /login으로 바꿔 보낸다.

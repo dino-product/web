@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import type { HTMLAttributes, ReactNode } from 'react';
 
-import type { TypeColor } from '@/mocks/types';
+import type { TypeColor } from '@/data/types';
 
 import { Icon } from '../Icon/Icon';
 import { WorkTypeBadge } from '../WorkTypeBadge/WorkTypeBadge';

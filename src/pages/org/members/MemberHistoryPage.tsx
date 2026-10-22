@@ -5,8 +5,10 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Avatar, Icon, MemberStatusChip, StateMessage, StatusChip } from '@/design-system';
 import { addDays, today } from '@/lib/date';
 import { formatDuration, formatJoinDate } from '@/lib/format';
-import { useActiveTypes, useMember, useTechnicianHistory } from '@/mocks/selectors';
-import { type ID, MEMBER_KIND_LABEL, type Member } from '@/mocks/types';
+import { useActiveTypes, useMember, useTechnicianHistory } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import { useTechnicianHistorySync } from '@/data/sync';
+import { type ID, MEMBER_KIND_LABEL, type Member } from '@/data/types';
 
 import { HistoryFilter, type HistoryFilterOption } from '../components/HistoryFilter';
 import { PageNav } from '../components/PageNav';
@@ -41,12 +43,16 @@ const PERIOD_DAYS: Record<PeriodKey, number | null> = { '1m': 30, '3m': 90, all:
 export default function MemberHistoryPage() {
   const { memberId = '' } = useParams();
   const member = useMember(memberId);
+  const loaded = useAppStore((s) => s.organizationLoaded);
+  // 주소로 바로 열면 인력 목록을 읽은 뒤에 판단한다.
+  if (!loaded) return null;
   if (!member) return <Navigate to="/org/members" replace />;
   return <MemberHistory key={member.id} member={member} />;
 }
 
 function MemberHistory({ member }: { member: Member }) {
   const navigate = useNavigate();
+  useTechnicianHistorySync(member.id);
   const history = useTechnicianHistory(member.id);
   const typeName = useTypeName(member.typeId);
   const workTypes = useActiveTypes('WORK');

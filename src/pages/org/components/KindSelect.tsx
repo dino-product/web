@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { useRef, useState } from 'react';
 
 import { Icon, Menu, MenuItem, Popover } from '@/design-system';
-import { MEMBER_KIND_LABEL, type MemberKind } from '@/mocks/types';
+import { MEMBER_KIND_LABEL, type MemberKind } from '@/data/types';
 
 import styles from './KindSelect.module.css';
 

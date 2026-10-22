@@ -12,8 +12,8 @@ import {
 
 import { Button, DriverListItem, Icon, StateMessage } from '@/design-system';
 import { hmToMinutes, minutesToHm } from '@/lib/date';
-import { useAppStore } from '@/mocks/store';
-import type { ID, Member, Task } from '@/mocks/types';
+import { useAppStore } from '@/data/store';
+import type { ID, Member, Task } from '@/data/types';
 
 import {
   AXIS_HOURS,

@@ -3,8 +3,8 @@ import { type DragEvent, useEffect, useMemo, useRef } from 'react';
 
 import { Icon, IconButton, WorkCard } from '@/design-system';
 import { formatElapsedSinceRegistered } from '@/lib/format';
-import { useAppStore } from '@/mocks/store';
-import type { ID, Task } from '@/mocks/types';
+import { useAppStore } from '@/data/store';
+import type { ID, Task } from '@/data/types';
 
 import styles from './WaitingPanel.module.css';
 

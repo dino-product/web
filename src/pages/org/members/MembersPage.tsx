@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 
 import { Icon, MemberStatusChip, type PillTab, PillTabs, SearchInput, StateMessage } from '@/design-system';
 import { formatJoinDate } from '@/lib/format';
-import { getTechnicianOpenTasks, selectIsOwner, useMembers } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
-import type { ID, Member, MemberKind } from '@/mocks/types';
+import { getTechnicianOpenTasks, selectIsOwner, useMembers } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import type { ID, Member, MemberKind } from '@/data/types';
 
 import { KindSelect } from '../components/KindSelect';
 import { useTypeName } from '../useTypeName';

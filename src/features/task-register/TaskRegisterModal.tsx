@@ -4,10 +4,10 @@
  *
  * - 저장 활성: 작업명을 입력하면 활성(미입력 시안은 비활성, 입력 시안은 활성). 담당기사·시간은 비워도 대기함(등록)으로
  *   저장되고(디자이너 전달사항: 등록 = 담당기사·시간 중 하나라도 비어 대기함에 있는 작업), 작업 유형은 유형이 없는
- *   발주사(?data=empty)에서도 등록할 수 있게 필수에서 뺐다.
+ *   발주사에서도 등록할 수 있게 필수에서 뺐다.
  * - 저장: createTask. 시작 시간을 고르면 날짜는 TaskRegisterDateContext(타임테이블이 보고 있는 날짜, 없으면 오늘).
  *   기사·시작 시간·소요 시간이 모두 있으면 배정됨, 하나라도 없으면 등록(대기함).
- * - 주소 검색: 팝업 시안이 없어 샘플 주소를 채우는 목업 동작만 한다.
+ * - 주소 검색: 팝업 시안이 없어 샘플 주소를 채우는 동작만 한다(주소 검색 API 없음).
  */
 import clsx from 'clsx';
 import { type ChangeEvent, type ReactNode, useContext, useId, useRef, useState } from 'react';
@@ -15,10 +15,10 @@ import { type ChangeEvent, type ReactNode, useContext, useId, useRef, useState }
 import { Button, Field, Icon, Modal, ModalPanel, TextField } from '@/design-system';
 import { today } from '@/lib/date';
 import { formatNumber, formatPhone } from '@/lib/format';
-import { MAX_SITE_PHOTOS, PAYMENT_METHODS } from '@/mocks/constants';
-import { useActiveTechnicians, useActiveTypes } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
-import type { TaskCustomer } from '@/mocks/types';
+import { MAX_SITE_PHOTOS, PAYMENT_METHODS } from '@/data/constants';
+import { useActiveTechnicians, useActiveTypes } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import type { TaskCustomer } from '@/data/types';
 
 import { OptionSelect } from './OptionSelect';
 import { TaskRegisterDateContext } from './registerDate';
@@ -32,7 +32,7 @@ export interface TaskRegisterModalProps {
   onCreated?: (taskId: string) => void;
 }
 
-/** 주소 검색(목업)이 채우는 샘플 주소 */
+/** 주소 검색 버튼이 채우는 샘플 주소 */
 const SAMPLE_ADDRESS = { zipCode: '06236', address: '서울시 강남구 테헤란로 152' } as const;
 
 const PAYMENT_OPTIONS = PAYMENT_METHODS.map((method) => ({ value: method, label: method }));
@@ -116,7 +116,7 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
     setForm((prev) => ({ ...prev, photos: [...prev.photos, ...urls].slice(0, MAX_SITE_PHOTOS) }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!canSave) return;
     const hasCustomer = [form.customerName, form.customerPhone, form.zipCode, form.address, form.addressDetail].some(
       (v) => v.trim() !== '',
@@ -131,7 +131,7 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
         }
       : null;
     const priceDigits = form.price.replace(/\D/g, '');
-    const id = createTask({
+    const id = await createTask({
       title: form.title,
       workTypeId: form.workTypeId,
       technicianId: form.technicianId,
@@ -143,6 +143,8 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
       paymentMethod: form.paymentMethod,
       sitePhotoUrls: form.photos,
     });
+    // 등록에 실패하면(서버 오류) 입력값을 지우지 않도록 모달을 닫지 않는다. 오류 코드는 콘솔에 남는다.
+    if (!id) return;
     onCreated?.(id);
     onClose();
   };

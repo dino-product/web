@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom';
 
 import { Icon, StateMessage, StatusChip } from '@/design-system';
 import { formatTaskTime } from '@/lib/format';
-import { useAppStore } from '@/mocks/store';
-import type { Task } from '@/mocks/types';
+import { useAppStore } from '@/data/store';
+import type { Task } from '@/data/types';
 
 import styles from './BoardTaskTable.module.css';
 

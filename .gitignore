@@ -1,6 +1,7 @@
 node_modules/
 dist/
 *.local
+.dev-seed.json
 .DS_Store
 
 # Figma 참조 캐시와 검증 스크린샷 (로컬 전용)

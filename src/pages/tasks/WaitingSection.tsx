@@ -1,8 +1,8 @@
 import clsx from 'clsx';
 
 import { Button, Icon, Pagination, StatusChip } from '@/design-system';
-import { getUnassignedReason } from '@/mocks/selectors';
-import type { Task } from '@/mocks/types';
+import { getUnassignedReason } from '@/data/selectors';
+import type { Task } from '@/data/types';
 
 import styles from './WaitingSection.module.css';
 

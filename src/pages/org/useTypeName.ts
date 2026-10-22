@@ -1,5 +1,5 @@
-import { useType } from '@/mocks/selectors';
-import type { ID } from '@/mocks/types';
+import { useType } from '@/data/selectors';
+import type { ID } from '@/data/types';
 
 /** 유형 미지정·삭제 시 표기('유형 없음' — 유형 삭제 확인 모달 2008:27365 문구) */
 export const NO_TYPE_LABEL = '유형 없음';

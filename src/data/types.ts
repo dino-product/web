@@ -1,7 +1,7 @@
 /**
- * Orbit 웹 목업 도메인 타입 — 모든 섹션이 공유하는 계약.
- * 백엔드 연동 전이므로 값은 src/mocks의 시드 데이터와 스토어 액션으로만 바뀐다.
- * 이 파일은 공통 파일이다. 섹션 작업에서 수정하지 말고, 필요한 파생 값은 섹션 폴더에서 계산한다.
+ * Orbit 웹 화면 도메인 타입 — 모든 섹션이 공유하는 계약.
+ * 값은 백엔드 API 응답을 src/data/mappers.ts가 바꿔 src/data/store.ts에 채운다(서버 DTO는 src/api/types.ts).
+ * 화면 ID는 문자열이며 서버 숫자 ID에 종류 접두어를 붙인다(mappers.ts의 toId·fromId 참고).
  */
 
 export type ID = string;
@@ -273,21 +273,4 @@ export interface Session {
   isNewUser: boolean;
   termsAgreed: boolean;
   currentCompanyId: ID;
-}
-
-/**
- * 테스트 시나리오. 화면에 보이는 UI 없이 URL 쿼리로만 바꾼다(README 참조).
- * 한 번 지정하면 sessionStorage에 남아 같은 탭에서 유지된다.
- */
-export interface Scenario {
-  /** ?role=staff → 로그인 사용자를 직원으로 */
-  role: 'owner' | 'staff';
-  /** ?data=empty → 작업·인력·유형·알림이 비어 있는 상태 */
-  data: 'default' | 'empty';
-  /** ?network=offline → 타임테이블·진행 보드 네트워크 연결 실패 화면 */
-  network: 'online' | 'offline';
-  /** ?companies=2 → 소속 발주사 2곳(사이드바 발주사 전환) */
-  companies: 1 | 2;
-  /** ?user=new → 카카오 로그인 후 첫 사용자 온보딩 흐름 */
-  user: 'existing' | 'new';
 }

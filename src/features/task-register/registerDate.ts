@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 
-import type { IsoDate } from '@/mocks/types';
+import type { IsoDate } from '@/data/types';
 
 /**
  * 새 작업 등록 모달이 시작 시간을 고른 작업에 붙일 날짜.

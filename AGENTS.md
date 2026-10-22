@@ -1,13 +1,14 @@
 # Orbit 프론트 작업 규칙
 
-이 문서의 경로는 `front/`를 기준으로 합니다. 화면 범위·라우트·흐름·소유권은 [UI 구현 계획](docs/ui-plan.md)이 기준입니다.
+이 문서의 경로는 `dino-web-tmp/`를 기준으로 합니다. 화면 범위·라우트·흐름·소유권은 [UI 구현 계획](docs/ui-plan.md)이 기준입니다.
 
 ## 스택과 명령
 
 - Vite 7 + React 19 + TypeScript 5.9(strict) + React Router 7 + Zustand 5, 스타일은 CSS Modules + `src/styles`의 CSS 변수
 - `npm run dev` 개발 서버, `npm run typecheck` 타입 검사, `npm run build` 타입 검사 + 프로덕션 빌드
 - `node scripts/shot.mjs <url> <out.png> [--click sel] [--fill sel=value] [--wait ms] [--full] [--height px]` 1920×1080 스크린샷
-- `node scripts/check-flows.mjs [baseUrl] [flow ...]` 교차 흐름 점검(클릭 단계 재현 + 콘솔 오류 확인, `VIEWPORT=1440x900`로 창 크기 변경)
+- `npm run seed:local`로 로컬 Postgres·Redis를 초기화하고 API 기반 개발 데이터를 넣습니다. 보존할 데이터가 없는 로컬 환경에서만 실행합니다.
+- `node scripts/check-flows.mjs [baseUrl] [flow ...]`는 실행 중인 실제 백엔드를 대상으로 교차 흐름을 점검합니다(클릭 단계 재현 + 콘솔 오류 확인, `VIEWPORT=1440x900`로 창 크기 변경).
 - Tailwind 등 새 스타일 체계나 UI 라이브러리를 추가하지 않습니다. 새 의존성은 꼭 필요할 때만 추가하고 이유를 보고합니다.
 
 ## 구현 규칙
@@ -17,7 +18,9 @@
 - 공통 UI는 `src/design-system`의 컴포넌트를 재사용합니다. Figma 노드가 DS 컴포넌트 인스턴스이면 해당 컴포넌트를 씁니다.
 - 레이아웃은 1920px 캔버스 기준입니다. Figma 오토레이아웃은 flex/grid로, 고정 배치는 Figma 수치로 옮깁니다. `vh`·`vw`는 쓰지 않고 높이는 `var(--app-height)`를 씁니다.
 - 모달·드롭다운 포털 대상은 `#overlay-root`입니다.
-- 데이터는 `useAppStore`(`src/mocks/store.ts`)와 `src/mocks/selectors.ts`로 읽고 씁니다. 백엔드 호출 코드를 만들지 않습니다.
+- 화면은 `useAppStore`(`src/data/store.ts`)와 `src/data/selectors.ts`로 읽고, `src/data/sync.ts` 훅으로 동기화합니다. 쓰기는 스토어 액션을 호출하고 비동기 결과를 기다립니다.
+- 서버 호출은 `src/api/endpoints.ts`, DTO↔화면 도메인 변환은 `src/data/mappers.ts`에 모읍니다. 임시 개발 로그인(`src/api/devAuth.ts`)의 직접 인증 호출은 제거 예정인 예외입니다.
+- `../server/` 코드가 API 계약의 기준이며 프론트 흐름에 맞추려고 서버 코드를 바꾸지 않습니다. 화면별 연결·제약은 [백엔드 연동 가이드](../api-integration-guide.html)를 참고합니다.
 - 작업 상태 표기는 `TASK_STATUS_LABEL`을 씁니다(등록·배정됨·작업전·작업중·완료·취소, 거절·지연은 배지).
 - 소유하지 않은 경로는 수정하지 않습니다([소유권](docs/ui-plan.md#6-공통-계약과-파일-소유권)).
 

@@ -75,7 +75,7 @@ export function OptionSelect<T extends string>({
   const current = options.find((o) => o.value === value);
 
   const toggle = () => {
-    // 선택지가 없으면(예: ?data=empty의 작업 유형) 빈 패널을 열지 않는다.
+    // 선택지가 없으면(예: 작업 유형이 없는 발주사) 빈 패널을 열지 않는다.
     if (!open && options.length === 0) return;
     if (!open && anchorRef.current) {
       setPlacement(choosePlacement(anchorRef.current, estimatePanelHeight(options.length, appearance)));

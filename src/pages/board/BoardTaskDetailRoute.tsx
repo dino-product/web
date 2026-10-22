@@ -2,7 +2,8 @@ import { Suspense, useCallback, useState } from 'react';
 import { Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { today } from '@/lib/date';
-import { isScheduledStatus, useTask } from '@/mocks/selectors';
+import { isScheduledStatus, useTask } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
 
 import { getLoadedTaskDetailModal, LazyTaskDetailModal } from './taskDetailModalLoader';
 
@@ -17,6 +18,7 @@ export default function BoardTaskDetailRoute() {
   const navigate = useNavigate();
   const location = useLocation();
   const task = useTask(taskId);
+  const tasksLoaded = useAppStore((s) => s.tasksLoaded);
   // 보드에서 연 상세는 이전 기록(보드)으로 돌아가 브라우저 뒤로가기로 모달이 다시 열리지 않게 하고,
   // 주소로 바로 연 상세는 보드로 바꿔 보낸다.
   const handleClose = useCallback(() => {
@@ -26,6 +28,8 @@ export default function BoardTaskDetailRoute() {
   // 마운트할 때 한 번 정한다. 도중에 바꾸면 모달이 다시 마운트돼 탭·취소 모달 상태가 사라진다.
   const [LoadedModal] = useState(getLoadedTaskDetailModal);
 
+  // 주소로 바로 열면 작업 목록을 읽은 뒤에 판단한다.
+  if (!tasksLoaded) return null;
   if (!taskId || !task || !isScheduledStatus(task.status) || task.date !== today()) {
     return <Navigate to="/board" replace />;
   }

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { Icon, Logo } from '@/design-system';
-import { useAppStore } from '@/mocks/store';
+import { useAppStore } from '@/data/store';
 
 import styles from './LoginPage.module.css';
 import TermsAgreementDialog from './TermsAgreementDialog';
@@ -38,8 +38,8 @@ function HelpBox({ title, description, linkLabel }: HelpBoxProps) {
 
 /**
  * 로그인(최신 시안 Figma 2423:12739). 배경은 Figma 메시 그라데이션(ShaderFill)을 같은 수식으로 그린 이미지다.
- * - 카카오 로그인(목업): 기존 사용자 → 원래 경로 또는 /timetable.
- *   첫 사용자(?user=new) → 약관 미동의면 약관 동의 모달(1453:7505), 이미 동의했으면 /onboarding/profile.
+ * - 카카오 로그인(지금은 임시 개발 로그인, src/api/devAuth.ts): 가입을 마친 계정 → 원래 경로 또는 /timetable.
+ *   가입 전 계정(?user=new) → 약관 미동의면 약관 동의 모달(1453:7505), 이미 동의했으면 /onboarding/profile.
  * - '이용약관'·'개인정보처리방침'·'프로필 입력 안내 보기'·'소속 없는 계정 안내'는 목적지 시안이 없어 동작하지 않는다.
  */
 export default function LoginPage() {
@@ -47,8 +47,9 @@ export default function LoginPage() {
   const location = useLocation();
   const [termsOpen, setTermsOpen] = useState(false);
 
-  const handleKakaoLogin = () => {
-    const { needsOnboarding } = useAppStore.getState().loginWithKakao();
+  const handleKakaoLogin = async () => {
+    const { needsOnboarding } = await useAppStore.getState().loginWithKakao();
+    if (!needsOnboarding && !useAppStore.getState().session.loggedIn) return; // 로그인 실패(오류 코드는 콘솔)
     if (!needsOnboarding) {
       navigate(redirectTarget(location.state), { replace: true });
       return;

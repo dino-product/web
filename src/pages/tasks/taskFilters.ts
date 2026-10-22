@@ -3,7 +3,7 @@
  * 필터 상태는 화면 전용이라 컴포넌트 상태로 둔다.
  */
 import { addDays, weekdayOf } from '@/lib/date';
-import type { ID, IsoDate, Task, TaskStatus } from '@/mocks/types';
+import type { ID, IsoDate, Task, TaskStatus } from '@/data/types';
 
 /** 기간 필터: 작업 날짜 기준(날짜가 없는 작업은 기간을 고르면 빠진다) */
 export type PeriodKey = 'today' | 'week' | 'month';
@@ -40,13 +40,22 @@ export const EMPTY_FILTERS: TaskFilters = {
   registrantId: null,
 };
 
+/** 기간 필터의 날짜 구간(양 끝 포함). 이번 주는 월–일 */
+export function periodRange(period: PeriodKey, todayDate: IsoDate): { from: IsoDate; to: IsoDate } {
+  if (period === 'today') return { from: todayDate, to: todayDate };
+  if (period === 'month') {
+    const from = `${todayDate.slice(0, 7)}-01`;
+    return { from, to: addDays(`${addDays(from, 31).slice(0, 7)}-01`, -1) };
+  }
+  const monday = addDays(todayDate, -((weekdayOf(todayDate) + 6) % 7));
+  return { from: monday, to: addDays(monday, 6) };
+}
+
 /** 오늘이 속한 주(월–일)·달 안인지 */
 function inPeriod(date: IsoDate | null, period: PeriodKey, todayDate: IsoDate): boolean {
   if (!date) return false;
-  if (period === 'today') return date === todayDate;
-  if (period === 'month') return date.slice(0, 7) === todayDate.slice(0, 7);
-  const monday = addDays(todayDate, -((weekdayOf(todayDate) + 6) % 7));
-  return date >= monday && date <= addDays(monday, 6);
+  const { from, to } = periodRange(period, todayDate);
+  return date >= from && date <= to;
 }
 
 export function matchesFilters(task: Task, filters: TaskFilters, todayDate: IsoDate): boolean {

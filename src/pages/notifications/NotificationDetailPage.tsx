@@ -4,9 +4,10 @@ import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-route
 
 import { Button, Icon } from '@/design-system';
 import { formatKoreanDateTime } from '@/lib/format';
-import { selectMemberById, selectNotificationById, selectTaskById } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
-import { TASK_STATUS_LABEL } from '@/mocks/types';
+import { selectMemberById, selectNotificationById, selectTaskById } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import { useTaskDetailSync } from '@/data/sync';
+import { TASK_STATUS_LABEL } from '@/data/types';
 
 import styles from './NotificationDetailPage.module.css';
 import { DETAIL_COPY, historyDisplayLabel } from './notificationView';
@@ -29,6 +30,8 @@ export default function NotificationDetailPage() {
   const technician = useAppStore((s) => selectMemberById(s, task?.technicianId));
   const markRead = useAppStore((s) => s.markNotificationRead);
   const deleteNotification = useAppStore((s) => s.deleteNotification);
+  const loaded = useAppStore((s) => s.tasksLoaded && s.notificationsLoaded);
+  useTaskDetailSync(notification?.taskId);
 
   const listSearch = (location.state as { listSearch?: string } | null)?.listSearch ?? '';
   const listHref = `/notifications${listSearch}`;
@@ -38,6 +41,8 @@ export default function NotificationDetailPage() {
     if (notification && !notification.read) markRead(notification.id);
   }, [notification, markRead]);
 
+  // 주소로 바로 열면 알림·작업 목록을 읽은 뒤에 판단한다.
+  if (!loaded) return null;
   if (!notification || !task) return <Navigate to="/notifications" replace />;
 
   const isCancelNotice = notification.type === 'CANCELED';

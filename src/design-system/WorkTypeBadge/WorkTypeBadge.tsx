@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import type { CSSProperties } from 'react';
 
-import type { TypeColor } from '@/mocks/types';
+import type { TypeColor } from '@/data/types';
 
 import styles from './WorkTypeBadge.module.css';
 

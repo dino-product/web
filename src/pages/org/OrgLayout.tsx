@@ -2,7 +2,8 @@ import { useCallback } from 'react';
 import { Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { Button, type UnderlineTab, UnderlineTabs } from '@/design-system';
-import { useJoinRequestCount } from '@/mocks/selectors';
+import { useJoinRequestCount } from '@/data/selectors';
+import { useOrganizationSync } from '@/data/sync';
 
 import { ApprovalModal } from './modals/ApprovalModal';
 import { JoinCodeModal } from './modals/JoinCodeModal';
@@ -36,6 +37,7 @@ export default function OrgLayout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  useOrganizationSync();
   const pendingCount = useJoinRequestCount();
   const tab = currentTab(pathname);
   const modalParam = searchParams.get('modal');

@@ -3,8 +3,8 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Field, SelectField, type SelectFieldOption, TextField } from '@/design-system';
-import { INDUSTRIES } from '@/mocks/constants';
-import { useAppStore } from '@/mocks/store';
+import { INDUSTRIES } from '@/data/constants';
+import { useAppStore } from '@/data/store';
 
 import companyIllustration from './assets/company-illustration.png';
 import dot4 from './assets/dot-4.svg';
@@ -31,7 +31,7 @@ export default function CompanyStep() {
   const [industry, setIndustry] = useState<string | null>(null);
   const nameRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name.trim()) {
       nameRef.current?.focus();
       return;
@@ -40,8 +40,7 @@ export default function CompanyStep() {
       document.getElementById(INDUSTRY_SELECT_ID)?.focus();
       return;
     }
-    useAppStore.getState().createCompany({ name: name.trim(), industry });
-    navigate('/onboarding/types');
+    if (await useAppStore.getState().createCompany({ name: name.trim(), industry })) navigate('/onboarding/types');
   };
 
   return (

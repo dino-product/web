@@ -2,9 +2,9 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 import { type PillTab, PillTabs } from '@/design-system';
-import { getActiveTypesByCategory, useTypes } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
-import { type ID, TYPE_CATEGORY_LABEL, type TypeItem } from '@/mocks/types';
+import { getActiveTypesByCategory, useTypes } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import { type ID, TYPE_CATEGORY_LABEL, type TypeItem } from '@/data/types';
 
 import {
   ActivateTypeDialog,

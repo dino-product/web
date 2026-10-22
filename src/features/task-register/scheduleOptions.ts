@@ -4,7 +4,7 @@
  */
 import { minutesToHm } from '@/lib/date';
 import { formatDuration } from '@/lib/format';
-import type { HourMinute } from '@/mocks/types';
+import type { HourMinute } from '@/data/types';
 
 export interface ScheduleOption<T extends string = string> {
   value: T;

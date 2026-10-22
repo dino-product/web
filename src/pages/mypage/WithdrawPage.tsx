@@ -2,23 +2,32 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button, Checkbox, Dialog, Icon, TextArea } from '@/design-system';
-import { useOwnedMemberships } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
-import { COMPANY_ROLE_LABEL, type CompanyMembership } from '@/mocks/types';
+import { useOwnedMemberships } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import { useWithdrawalEligibilitySync } from '@/data/sync';
+import { COMPANY_ROLE_LABEL, type CompanyMembership } from '@/data/types';
 
 import styles from './WithdrawPage.module.css';
 
 /**
  * 계정 탈퇴(/mypage/withdraw).
- * - 총관리자인 발주사가 있으면 탈퇴 불가 화면(921:3702)
- * - 그 밖(직원, ?role=staff)은 동의 전(1230:5227)·동의 후(1325:8866) → 탈퇴 확인 모달(2277:12258) → withdrawAccount → /login
+ * - 총관리자인 발주사가 있거나 서버 탈퇴 가능 여부가 '유일한 총관리자'(SOLE_OWNER)면 탈퇴 불가 화면(921:3702).
+ *   서버는 아직 총관리자 탈퇴 차단을 판정하지 않으므로(organization HM-319 예정) 화면 규칙(총관리자 소속)도 함께 본다.
+ * - 그 밖(직원, 개발 로그인 ?role=staff)은 동의 전(1230:5227)·동의 후(1325:8866) → 탈퇴 확인 모달(2277:12258) → withdrawAccount → /login
  */
 export default function WithdrawPage() {
+  useWithdrawalEligibilitySync();
   const ownedMemberships = useOwnedMemberships();
+  const eligibility = useAppStore((s) => s.withdrawalEligibility);
   return (
     <div className={styles.page}>
       <h1 className={`t-title-s ${styles.title}`}>계정 탈퇴</h1>
-      {ownedMemberships.length > 0 ? <WithdrawBlocked memberships={ownedMemberships} /> : <WithdrawForm />}
+      {eligibility &&
+        (eligibility.soleOwner || ownedMemberships.length > 0 ? (
+          <WithdrawBlocked memberships={ownedMemberships} />
+        ) : (
+          <WithdrawForm />
+        ))}
     </div>
   );
 }
@@ -89,9 +98,10 @@ function WithdrawForm() {
   const [agreed, setAgreed] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const handleWithdraw = () => {
-    withdrawAccount(reason.trim());
-    navigate('/login', { replace: true });
+  const handleWithdraw = async () => {
+    // 실패하면(예: PROFILE-006 탈퇴 차단) 확인 모달만 닫고 이 화면에 남는다. 오류 코드는 콘솔에 남는다.
+    if (await withdrawAccount(reason.trim())) navigate('/login', { replace: true });
+    else setConfirmOpen(false);
   };
 
   return (

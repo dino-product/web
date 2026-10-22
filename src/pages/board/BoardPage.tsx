@@ -5,9 +5,10 @@ import { Outlet } from 'react-router-dom';
 import { type UnderlineTab, UnderlineTabs } from '@/design-system';
 import { today } from '@/lib/date';
 import { formatBoardDate } from '@/lib/format';
-import { type BoardSummary, selectIsOffline, useBoardSummary, useTasksByDate } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
-import { TASK_STATUS_LABEL } from '@/mocks/types';
+import { type BoardSummary, selectIsOffline, useBoardSummary, useTasksByDate } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import { useBoardSync } from '@/data/sync';
+import { TASK_STATUS_LABEL } from '@/data/types';
 
 import BoardHeader from './BoardHeader';
 import BoardOffline from './BoardOffline';
@@ -30,7 +31,7 @@ const BOARD_TABS: { key: BoardTab; text: string }[] = [
 
 /**
  * 진행 보드(560:2831). /board/:taskId 상세 모달은 <Outlet>으로 보드 위에 그린다.
- * 네트워크 실패(?network=offline)면 실패 화면(1472:7414)만 보여 준다.
+ * 네트워크 실패(서버에 닿지 못함)면 실패 화면(1472:7414)만 보여 준다.
  */
 export default function BoardPage() {
   const offline = useAppStore(selectIsOffline);
@@ -46,6 +47,7 @@ export default function BoardPage() {
 
 function BoardContent() {
   const date = today();
+  useBoardSync(date);
   const summary = useBoardSummary(date);
   const tasks = useTasksByDate(date);
   const [tab, setTab] = useState<BoardTab>('ALL');

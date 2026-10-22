@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 
 import { Avatar, Button, Field, Icon, TextField } from '@/design-system';
 import { formatPhone } from '@/lib/format';
-import { useCurrentUser } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
-import { COMPANY_ROLE_LABEL } from '@/mocks/types';
+import { useCurrentUser } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import { COMPANY_ROLE_LABEL } from '@/data/types';
 
 import styles from './MyPage.module.css';
 

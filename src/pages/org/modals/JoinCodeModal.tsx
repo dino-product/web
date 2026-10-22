@@ -1,8 +1,8 @@
 import clsx from 'clsx';
 
 import { Icon, Modal } from '@/design-system';
-import { useCurrentCompany } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
+import { useCurrentCompany } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
 
 import qrImage from '../assets/join-qr.png';
 import styles from './JoinCodeModal.module.css';
@@ -25,7 +25,7 @@ function copyText(text: string | null | undefined) {
  * - 회사 코드(+복사), 참여 경로, 코드 정책, 영구 참여 링크(+복사)
  * - 참여 QR 코드: 발급 전에는 'QR 이미지' 자리, 새로고침 → 발급 전이면 issueJoinCode, 발급 후면 regenerateJoinCode
  * - 이미지 저장 → 시안 QR 이미지 내려받기, 인쇄 → 동작 없음(시안 없음)
- * - 발급 전(?data=empty)에는 코드·링크가 없어 코드 자리에 '-', 링크 칸은 비우고 복사는 아무것도 하지 않는다
+ * - 코드를 아직 읽지 못했으면 코드 자리에 '-', 링크 칸은 비우고 복사는 아무것도 하지 않는다(서버는 발주사 생성 때 코드를 발급한다)
  *   (시안 1951:18412는 발급 후와 같은 예시 값을 보여 주지만 없는 코드를 지어낼 수 없다).
  * - 닫기 버튼 시안이 없어 Esc·바깥 클릭, '인력관리로 돌아가기'로 닫는다.
  */

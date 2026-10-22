@@ -1,4 +1,4 @@
-import type { Task } from '@/mocks/types';
+import type { Task } from '@/data/types';
 
 import styles from './TaskAttachments.module.css';
 

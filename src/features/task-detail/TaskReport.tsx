@@ -3,9 +3,9 @@ import clsx from 'clsx';
 import { Button, Chip, Icon } from '@/design-system';
 import { toHourMinute, toIsoDate } from '@/lib/date';
 import { formatMonthDayWeekdayTime, splitReportContent } from '@/lib/format';
-import { getTaskEndMs, isReportOverdue } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
-import type { Task } from '@/mocks/types';
+import { getTaskEndMs, isReportOverdue } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import type { Task } from '@/data/types';
 
 import styles from './TaskReport.module.css';
 
@@ -13,13 +13,14 @@ import styles from './TaskReport.module.css';
  * '완료 보고' 탭 내용. 상태별 시안:
  * - 배정됨(785:5490): '아직 작업이 수락되지 않았어요'
  * - 작업전·작업중(785:5923·785:4522): '담당 기사가 작업을 마치면 등록됩니다'
- * - 지연(785:6353): 위 문구 + '지연이 예상됩니다' 칩. 지연 배지가 있으면 보고 미제출보다 먼저 보여 준다.
- * - 보고 미제출(785:4984, isReportOverdue): 경고 + '기사에게 요청 보내기' → requestReport
+ * - 지연(785:6353): 위 문구 + '지연이 예상됩니다' 칩.
+ * - 보고 미제출(785:4984, isReportOverdue): 경고 + '기사에게 요청 보내기' → requestReport.
+ *   서버는 예정 종료 시각이 지난 미완료 작업을 모두 지연(delayed)으로 주므로, 작업중인데 종료 예정이 지났으면 지연보다 이 화면을 먼저 보여 준다.
  * - 완료(785:4191): 작업 전·후 사진, 작업 메모, 사용 부품
  */
 export function TaskReport({ task }: { task: Task }) {
   if (task.status === 'COMPLETED') return <CompletedReport task={task} />;
-  if (!task.delayed && isReportOverdue(task)) return <OverdueReport task={task} />;
+  if (isReportOverdue(task)) return <OverdueReport task={task} />;
   return <PendingReport task={task} />;
 }
 

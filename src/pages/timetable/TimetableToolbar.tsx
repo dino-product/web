@@ -2,7 +2,7 @@ import clsx from 'clsx';
 
 import { Button, FilterSelect, Icon } from '@/design-system';
 import { formatTimetableDate } from '@/lib/format';
-import type { ID, IsoDate, TypeItem } from '@/mocks/types';
+import type { ID, IsoDate, TypeItem } from '@/data/types';
 
 import nextIcon from './assets/date-next.svg';
 import prevIcon from './assets/date-prev.svg';
@@ -19,7 +19,7 @@ interface TypeFilterProps {
 }
 
 /**
- * 유형 필터(Select 449:2597). 선택지가 없으면(?data=empty) DS FilterSelect가 빈 옵션 패널을 열지 않는다.
+ * 유형 필터(Select 449:2597). 선택지가 없으면 DS FilterSelect가 빈 옵션 패널을 열지 않는다.
  */
 function TypeFilter({ label, types, value, onChange, editing }: TypeFilterProps) {
   return (

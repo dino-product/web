@@ -13,13 +13,13 @@ import {
   useActiveTypes,
   useTasksByDate,
   useWaitingTasks,
-} from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
-import type { ID, IsoDate, Task, TaskAssignment } from '@/mocks/types';
+} from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import { useTimetableSync } from '@/data/sync';
+import type { ID, IsoDate, Task, TaskAssignment } from '@/data/types';
 
 import { type AssignDraft, AssignConfirmDialog, ConflictDialog, StaleDialog } from './AssignDialogs';
 import { CONTENT_GAP, CONTENT_WIDTH, PANEL_COLLAPSED_WIDTH, PANEL_WIDTH, xToSlotMinutes } from './grid';
-import { applyConcurrentEdit, isStaleAssignment } from './staleDemo';
 import TimeGrid from './TimeGrid';
 import TimetableOffline from './TimetableOffline';
 import styles from './TimetablePage.module.css';
@@ -61,13 +61,14 @@ export default function TimetablePage() {
   const [drag, setDrag] = useState<DragState | null>(null);
   const [assignDraft, setAssignDraft] = useState<AssignDraft | null>(null);
   const [conflict, setConflict] = useState<ConflictState | null>(null);
-  /** '변경된 정보입니다'를 띄운 작업. 확인을 누를 때 최신 상태(다른 사용자의 변경)를 반영해 다시 그린다 */
+  /** '변경된 정보입니다'를 띄운 작업(서버가 SCHEDULE-016으로 거부). 확인을 누르면 최신 상태를 다시 읽어 그린다 */
   const [staleTaskId, setStaleTaskId] = useState<ID | null>(null);
   const [revealTaskId, setRevealTaskId] = useState<ID | null>(null);
 
   const technicianTypes = useActiveTypes('TECHNICIAN');
   const workTypes = useActiveTypes('WORK');
   const technicians = useActiveTechnicians();
+  useTimetableSync(date);
   const scheduledTasks = useTasksByDate(date);
   const waitingTasks = useWaitingTasks();
   const selectedTask = useAppStore((s) => selectTaskById(s, selectedTaskId));
@@ -152,13 +153,10 @@ export default function TimetablePage() {
     });
   };
 
-  const commitAssignment = (taskId: ID, assignment: TaskAssignment) => {
+  const commitAssignment = async (taskId: ID, assignment: TaskAssignment) => {
     setConflict(null);
-    if (isStaleAssignment(taskId)) {
-      setStaleTaskId(taskId);
-      return;
-    }
-    useAppStore.getState().assignTask(taskId, assignment);
+    // 화면을 본 뒤 다른 사람이 작업을 바꿨으면 서버가 반영하지 않고 '변경된 정보입니다'(SCHEDULE-016)로 답한다.
+    if ((await useAppStore.getState().assignTask(taskId, assignment)) === 'stale') setStaleTaskId(taskId);
   };
 
   const handleConfirmAssign = (draft: AssignDraft) => {
@@ -261,8 +259,8 @@ export default function TimetablePage() {
       <StaleDialog
         open={staleTaskId !== null}
         onConfirm={() => {
-          if (staleTaskId) applyConcurrentEdit(staleTaskId);
           setStaleTaskId(null);
+          void useAppStore.getState().loadTimetable(date);
         }}
       />
     </TaskRegisterDateContext.Provider>

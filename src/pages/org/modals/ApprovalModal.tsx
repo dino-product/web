@@ -3,9 +3,9 @@ import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 
 import { Chip, Modal } from '@/design-system';
 import { formatJoinDate } from '@/lib/format';
-import { useJoinRequests } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
-import { type ID, JOIN_CHANNEL_LABEL, type JoinRequest, MEMBER_KIND_LABEL } from '@/mocks/types';
+import { useJoinRequests } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import { type ID, JOIN_CHANNEL_LABEL, type JoinRequest, MEMBER_KIND_LABEL } from '@/data/types';
 
 import { KindSelect } from '../components/KindSelect';
 import { ScrollThumb, useScrollThumb } from '../components/ScrollThumb';

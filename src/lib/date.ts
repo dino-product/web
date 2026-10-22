@@ -3,7 +3,7 @@
  * 브라우저 시간대와 관계없이 같은 결과를 낸다. 현재 시각이 필요한 함수는 `now`(epoch ms)를 인자로 받고
  * 기본값으로 `clockNow()`(앱 시계)를 쓴다. 날짜는 'YYYY-MM-DD', 시각은 'HH:mm', 일시는 '+09:00' 오프셋 ISO 문자열이다.
  */
-import type { HourMinute, IsoDate, IsoDateTime } from '@/mocks/types';
+import type { HourMinute, IsoDate, IsoDateTime } from '@/data/types';
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const MINUTE_MS = 60 * 1000;
@@ -32,48 +32,14 @@ export interface KstParts {
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
 /**
- * 시연 시각(URL 쿼리 `?time=HH:mm`, Asia/Seoul). 앱의 현재 시각을 오늘 그 시각으로 옮기고 시간은 그대로 흐른다.
- * 시드·'방금 전' 같은 상대 시각·보고 미제출 판단·타임테이블 현재 시각선이 모두 이 시계를 쓴다.
- * 시나리오처럼 sessionStorage(`orbit:time`)에 남아 같은 탭에서 유지되고, `?reset=1` 또는 `?time=real`로 실제 시각으로 돌아간다.
- * 예: 오후에 작업중 상세(Figma 785:4522, 종료 예정 전)를 보려면 `?time=10:30`.
+ * 앱의 현재 시각(epoch ms). 지연·보고 미제출 같은 상태는 서버가 실제 시각으로 판단하므로 화면도 실제 시각을 쓴다.
+ * 현재 시각이 필요한 함수의 기본값이며, 테스트에서는 `now` 인자로 바꾼다.
  */
-const TIME_STORAGE_KEY = 'orbit:time';
-
-function parseClockTime(value: string | null): HourMinute | null {
-  const match = value ? /^(\d{1,2}):(\d{2})$/.exec(value) : null;
-  if (!match) return null;
-  const hour = Number(match[1]);
-  const minute = Number(match[2]);
-  return hour < 24 && minute < 60 ? `${pad2(hour)}:${pad2(minute)}` : null;
-}
-
-function readClockOffset(): number {
-  if (typeof window === 'undefined') return 0;
-  let time: HourMinute | null = null;
-  try {
-    const params = new URLSearchParams(window.location.search);
-    const query = params.get('time');
-    if (params.get('reset') === '1' || query === 'real') window.sessionStorage.removeItem(TIME_STORAGE_KEY);
-    const fromQuery = parseClockTime(query);
-    if (fromQuery) window.sessionStorage.setItem(TIME_STORAGE_KEY, fromQuery);
-    time = fromQuery ?? (query === 'real' ? null : parseClockTime(window.sessionStorage.getItem(TIME_STORAGE_KEY)));
-  } catch {
-    // 저장소를 쓸 수 없으면 쿼리 값만 쓴다.
-    time = parseClockTime(new URLSearchParams(window.location.search).get('time'));
-  }
-  if (!time) return 0;
-  const real = Date.now();
-  return startOfDayMs(toIsoDate(real)) + hmToMinutes(time) * MINUTE_MS - real;
-}
-
-const CLOCK_OFFSET_MS = readClockOffset();
-
-/** 앱의 현재 시각(epoch ms). 시연 시각 쿼리가 없으면 Date.now()와 같다. */
 export function clockNow(): number {
-  return Date.now() + CLOCK_OFFSET_MS;
+  return Date.now();
 }
 
-/** 입력을 epoch ms로 바꾼다. ISO 문자열은 오프셋을 포함해야 한다(시드·스토어가 만드는 값은 모두 '+09:00'). */
+/** 입력을 epoch ms로 바꾼다. ISO 문자열은 오프셋을 포함해야 한다(서버 UTC 'Z' 또는 화면 '+09:00'). */
 export function toEpochMs(input: DateInput): number {
   if (typeof input === 'number') return input;
   if (input instanceof Date) return input.getTime();

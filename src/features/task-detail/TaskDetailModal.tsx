@@ -13,9 +13,10 @@ import { Button, Icon, Modal, StatusChip } from '@/design-system';
 import TaskCancelModal from '@/features/task-cancel/TaskCancelModal';
 import { toHourMinute, toIsoDate } from '@/lib/date';
 import { formatDetailDate, formatHistoryDateTime, formatPrice } from '@/lib/format';
-import { getTaskEndMs, selectMemberById, selectTaskById, selectTypeById } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
-import type { Task, TaskStatus } from '@/mocks/types';
+import { getTaskEndMs, selectMemberById, selectTaskById, selectTypeById } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import { useTaskDetailSync } from '@/data/sync';
+import type { Task, TaskStatus } from '@/data/types';
 
 import { type DetailTab, DetailTabs } from './DetailTabs';
 import { TaskAttachments } from './TaskAttachments';
@@ -41,6 +42,7 @@ export default function TaskDetailModal(props: TaskDetailModalProps) {
 
 function TaskDetail({ taskId, backLabel, onClose, layout = 'list' }: TaskDetailModalProps) {
   const task = useAppStore((s) => selectTaskById(s, taskId));
+  useTaskDetailSync(taskId);
   const [tab, setTab] = useState<DetailTab>('report');
   const [cancelOpen, setCancelOpen] = useState(false);
 

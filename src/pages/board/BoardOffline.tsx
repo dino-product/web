@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 
 import { Button, Icon, StateMessage } from '@/design-system';
-import { useAppStore } from '@/mocks/store';
+import { useAppStore } from '@/data/store';
 
 import styles from './BoardOffline.module.css';
 

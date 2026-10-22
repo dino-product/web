@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { Checkbox, Field, Icon, TextField } from '@/design-system';
 import { formatPhone } from '@/lib/format';
-import { useAppStore } from '@/mocks/store';
+import { useAppStore } from '@/data/store';
 
 import { OnboardingStep } from './OnboardingStep';
 import styles from './StepFields.module.css';
@@ -30,7 +30,7 @@ export default function ProfileStep() {
   const phoneRef = useRef<HTMLInputElement>(null);
   const termsRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!name.trim()) {
       nameRef.current?.focus();
       return;
@@ -45,8 +45,8 @@ export default function ProfileStep() {
     }
     const store = useAppStore.getState();
     if (!store.session.termsAgreed) store.agreeTerms(false);
-    store.registerProfile({ name: name.trim(), phone });
-    navigate('/onboarding/company');
+    // 서버 규칙: 프로필 입력 → 필수 약관 동의 순서(registerProfile이 둘을 차례로 보낸다). 실패하면 이 화면에 남는다.
+    if (await store.registerProfile({ name: name.trim(), phone })) navigate('/onboarding/company');
   };
 
   const handleCancel = () => {

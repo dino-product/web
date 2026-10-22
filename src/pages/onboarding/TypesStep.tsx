@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
 
-import { useAppStore } from '@/mocks/store';
+import { useAppStore } from '@/data/store';
 
 import badgeDot from './assets/badge-dot.svg';
 import workerIllustration from './assets/worker-illustration.png';

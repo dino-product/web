@@ -2,9 +2,8 @@
  * 작업·인력 도메인 규칙(순수 함수). 스토어 액션과 셀렉터가 함께 쓴다.
  * 상태 정의는 types.ts 주석과 docs/ui-plan.md §3을 따른다.
  */
-import { clockNow, dateTimeToMs, hmToMinutes, minutesToHm, parseIsoDate } from '@/lib/date';
-import { formatKoreanHour } from '@/lib/format';
-import type { HourMinute, IsoDate, Member, NotificationType, Task, TaskStatus } from '@/mocks/types';
+import { clockNow, dateTimeToMs, hmToMinutes, minutesToHm } from '@/lib/date';
+import type { HourMinute, Member, Task, TaskStatus } from '@/data/types';
 
 /** 배정 판단에 쓰는 작업 필드 */
 type AssignmentFields = Pick<Task, 'technicianId' | 'date' | 'startTime' | 'durationMinutes'>;
@@ -68,52 +67,4 @@ export function rangesOverlap(aStart: number, aEnd: number, bStart: number, bEnd
 export function actorName(member: Pick<Member, 'name' | 'kind'> | undefined): string | null {
   if (!member) return null;
   return member.kind === 'TECHNICIAN' ? `${member.name} 기사` : member.name;
-}
-
-/** '로'/'으로' 조사. 받침(ㄹ 제외)이 있으면 '으로' */
-function withRo(word: string): string {
-  const last = word.charCodeAt(word.length - 1);
-  if (last < 0xac00 || last > 0xd7a3) return `${word}로`;
-  const jong = (last - 0xac00) % 28;
-  return jong === 0 || jong === 8 ? `${word}로` : `${word}으로`;
-}
-
-/** 일정 변경 알림 문장 속 일시. 같은 날이면 '오후 2시', 날짜가 바뀌면 '10월 15일 오후 2시' */
-export function scheduleChangePhrase(date: IsoDate, start: HourMinute, previousDate: IsoDate | null): string {
-  const hour = formatKoreanHour(start);
-  if (!previousDate || previousDate === date) return hour;
-  const { month, day } = parseIsoDate(date);
-  return `${month}월 ${day}일 ${hour}`;
-}
-
-/** 알림 문장 입력값 */
-export interface NotificationMessageInput {
-  title: string;
-  technicianName?: string;
-  /** 거절 사유(REJECTED) */
-  reason?: string;
-  /** 변경된 일정 문구(SCHEDULE_CHANGED). 예: '오후 2시' */
-  schedule?: string;
-}
-
-/**
- * 알림 목록 문장. Figma 알림창 문구 형식을 따른다.
- * 예: '홍길동 기사님께 [에어컨 점검] 작업이 배정되었습니다.', '[보일러 수리] 작업 일정이 오후 2시로 변경되었습니다.'
- */
-export function notificationMessage(type: NotificationType, input: NotificationMessageInput): string {
-  const { title, technicianName = '', reason = '', schedule = '' } = input;
-  switch (type) {
-    case 'ASSIGNED':
-      return `${technicianName} 기사님께 [${title}] 작업이 배정되었습니다.`;
-    case 'SCHEDULE_CHANGED':
-      return `[${title}] 작업 일정이 ${withRo(schedule)} 변경되었습니다.`;
-    case 'CANCELED':
-      return `[${title}] 작업이 취소되었습니다.`;
-    case 'ACCEPTED':
-      return `${technicianName} 기사님이 [${title}] 작업을 수락했습니다.`;
-    case 'REJECTED':
-      return `${technicianName} 기사님이 [${title}] 작업을 거절했습니다. 사유: ${reason}`;
-    case 'REPORTED':
-      return `${technicianName} 기사님이 [${title}] 작업의 완료 보고를 제출했습니다.`;
-  }
 }

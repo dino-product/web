@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { useRef, useState } from 'react';
 
 import { Icon, Popover } from '@/design-system';
-import { CANCEL_REASONS } from '@/mocks/constants';
+import { CANCEL_REASONS } from '@/data/constants';
 
 import styles from './CancelReasonSelect.module.css';
 

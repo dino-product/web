@@ -3,8 +3,8 @@ import { useMemo, useState } from 'react';
 
 import { Button, Dialog, Field, Icon, StatusChip } from '@/design-system';
 import { formatMonthDay } from '@/lib/format';
-import { useActiveTypes } from '@/mocks/selectors';
-import { type ID, MEMBER_KIND_LABEL, type Member, type MemberKind, type Task } from '@/mocks/types';
+import { useActiveTypes } from '@/data/selectors';
+import { type ID, MEMBER_KIND_LABEL, type Member, type MemberKind, type Task } from '@/data/types';
 
 import { ListSelect } from '../components/ListSelect';
 import dialogStyles from '../dialog.module.css';

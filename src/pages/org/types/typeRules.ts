@@ -1,5 +1,5 @@
-import { isTypeNameTaken } from '@/mocks/selectors';
-import type { ID, TypeCategory, TypeItem } from '@/mocks/types';
+import { isTypeNameTaken } from '@/data/selectors';
+import type { ID, TypeCategory, TypeItem } from '@/data/types';
 
 /** 하위 탭 쿼리 값(?tab=employee|technician|work) ↔ 유형 분류 */
 export type TypesTab = 'employee' | 'technician' | 'work';

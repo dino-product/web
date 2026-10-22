@@ -1,5 +1,5 @@
-import { HISTORY_LABEL } from '@/mocks/constants';
-import type { NotificationType } from '@/mocks/types';
+import { HISTORY_LABEL } from '@/data/constants';
+import type { NotificationType } from '@/data/types';
 
 /**
  * 알림창 행의 유형 라벨 색(1921:9287). 신규 배정 #4a4193은 변수가 아닌 Figma 고정값이다.

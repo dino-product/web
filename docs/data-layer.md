@@ -1,29 +1,33 @@
-# 목업 데이터 계층
+# 데이터 계층
 
-섹션 담당이 화면 데이터를 읽고 쓰는 방법입니다. 백엔드 호출 코드는 만들지 않고 `useAppStore`와 `src/mocks/selectors.ts`만 씁니다. 화면 범위·흐름은 [UI 구현 계획](ui-plan.md)이 기준입니다.
+화면은 `useAppStore`와 `src/data/selectors.ts`로 읽고 스토어 액션으로 쓴다. `src/data/sync.ts` 훅이 실제 백엔드를 읽어 화면 상태를 맞춘다. 서버 코드가 API 계약의 기준이며 프론트에 맞추려고 수정하지 않는다. 화면 범위는 [UI 구현 계획](ui-plan.md), 화면별 API와 제한은 [백엔드 연동 가이드](../../api-integration-guide.html)를 따른다.
 
 ## 1. 파일
 
 | 파일 | 내용 |
 | --- | --- |
-| `src/mocks/types.ts` | 도메인 타입 계약(읽기 전용, orchestrator 소유) |
-| `src/mocks/store.ts` | `useAppStore`, `AppState` 계약, 액션 구현, `getDeletedType` |
-| `src/mocks/selectors.ts` | 셀렉터(`select*`)·계산 함수(`get*`)·훅(`use*`) |
-| `src/mocks/seed.ts` | 시드 생성 `createSeed`, `SEED_MEMBER_IDS`, `SEED_TYPE_IDS`, `mockPhotoUrl` |
-| `src/mocks/scenario.ts` | URL 쿼리 시나리오 `readScenario`, `DEFAULT_SCENARIO` |
-| `src/mocks/constants.ts` | 이력 문구 `HISTORY_LABEL`, 시연용 작업 ID `DEMO_TASK_IDS`, 선택지(취소 사유·결제 방식·업종) |
-| `src/mocks/rules.ts` | 상태 규칙 순수 함수. 화면용 규칙은 `selectors.ts`가 다시 내보낸다 |
-| `src/lib/date.ts` | Asia/Seoul 날짜·시간 유틸 |
-| `src/lib/format.ts` | 화면 표시 포맷 |
-| `src/app/RequireAuth.tsx` | 로그인 가드(로그아웃 상태면 `/login`) |
+| `src/api/http.ts` | `/api/v1`, Bearer 토큰, 공통 응답 봉투, `ApiError`·`NetworkError`, 파일 응답 |
+| `src/api/token.ts` | 토큰·계정 ID·선택 발주사 localStorage 저장 |
+| `src/api/endpoints.ts` | 인증·프로필·조직·작업·알림 API 경로와 요청 |
+| `src/api/types.ts` | 서버 DTO·요청 타입 |
+| `src/api/devAuth.ts` | TEMP 개발 로그인: 로컬 JWT 서명·페르소나 선택. 실제 카카오 연결 시 제거 |
+| `src/data/types.ts` | 화면 도메인 타입 |
+| `src/data/store.ts` | `AppState`, `useAppStore`, 비동기 액션·읽기·오류 처리·캐시 |
+| `src/data/mappers.ts` | DTO↔도메인, ID·시각·코드·색 변환 |
+| `src/data/sync.ts` | 화면 진입·날짜·작업·발주사·revision 변경 시 재조회 |
+| `src/data/selectors.ts` | `select*`·`get*`·`use*` |
+| `src/data/rules.ts` · `constants.ts` | 순수 상태 규칙·이력 문구·선택지 |
+| `src/lib/date.ts` · `format.ts` | Asia/Seoul 날짜·실제 현재 시각·화면 포맷 |
+| `scripts/dev-seed.mjs` | 로컬 DB·Redis 초기화, API와 SQL로 개발 데이터 구성 |
+| `src/app/RequireAuth.tsx` | 로그인 가드 |
 
 ## 2. 사용법
 
 ### 읽기
 
 ```tsx
-import { useAppStore } from '@/mocks/store';
-import { selectTaskById, useBoardSummary, useWaitingTasks } from '@/mocks/selectors';
+import { useAppStore } from '@/data/store';
+import { selectTaskById, useBoardSummary, useWaitingTasks } from '@/data/selectors';
 import { today } from '@/lib/date';
 
 const task = useAppStore((s) => selectTaskById(s, taskId)); // select*: 안정 참조라 바로 넘겨도 된다
@@ -37,136 +41,91 @@ const summary = useBoardSummary(today());
 
 ### 액션 동작
 
-모든 작업 변경은 `updatedAt`을 바꾸고 `history`에 항목(`HISTORY_LABEL` 문구, 처리자 이름)을 덧붙인다. 처리자는 로그인 사용자 이름(기본 '오르빗')이다.
+서버 변경 액션은 비동기다. 화면 이동·모달 닫기는 반환 계약에 맞춰 `await` 뒤에 처리한다. `Promise<void>`는 성공 여부를 나타내는 boolean이 아니다. 이력·상태는 임의로 합성하지 않고 서버 응답을 매핑해 다시 읽는다.
 
-| 액션 | 동작 |
+```tsx
+const id = await useAppStore.getState().createTask(input);
+if (id === null) return; // 실패: 성공 화면으로 이동하지 않는다
+const result = await useAppStore.getState().assignTask(id, assignment);
+if (result === 'stale') {
+  // 기존 '변경된 정보입니다' 모달을 연다
+}
+```
+
+| 액션 | 반환·동작 |
 | --- | --- |
-| `createTask(input)` | 기사·날짜·시작 시각·소요 시간이 모두 있으면 `PENDING_ACCEPT`(이력 '작업 등록됨'·'배정 알림 발송됨', 신규 배정 알림), 하나라도 없으면 `REGISTERED`(이력 '작업 등록됨'). 등록자는 로그인 사용자. `sitePhotoUrls`(최대 6장)는 첨부 파일(`attachments`)로도 만든다. 새 ID를 돌려준다 |
-| `assignTask(id, assignment)` | 등록·배정됨·작업전 작업만. `PENDING_ACCEPT`로 바꾸고 기사·날짜·시각·소요 시간 설정, 거절 정보·지연 해제. 같은 기사의 시간만 바뀌면 이력 '일정 변경'+일정 변경 알림, 그 밖에는 '배정 알림 발송됨'+신규 배정 알림. 값이 그대로면 아무것도 하지 않는다 |
-| `updateTask(id, patch)` | 바뀐 필드만 반영. 등록·배정됨·작업전 작업은 배정 필드에 따라 상태를 다시 정한다(모두 채워지면 `PENDING_ACCEPT`, 배정 중인데 비면 `REGISTERED`+'배정 해제'). 그 밖에는 '작업 정보 수정'. 취소된 작업은 바꾸지 않는다 |
-| `cancelTask(id, reason, detail)` | `CANCELED`, `cancellation`(사유·상세·시각·처리자) 기록, 이력 '작업 취소', 작업 취소 알림. 취소 작업은 목록·보드·타임테이블 셀렉터에서 빠진다 |
-| `requestReport(id)` | `reportRequestedAt` 기록, 이력 '완료 보고 요청' |
-| `loginWithKakao()` | 첫 사용자(`session.isNewUser`, `?user=new`)면 `{ needsOnboarding: true }`이고 로그인 상태는 그대로. 약관 모달은 `session.termsAgreed`가 false일 때 띄운다. 기존 사용자는 `loggedIn: true` |
-| `agreeTerms(m)` / `registerProfile` / `createCompany` / `finishOnboarding` | 약관 동의 / 현재 사용자 이름·연락처 / 현재 발주사 이름·업종(소속 목록 이름도 함께) / `isNewUser: false`, `loggedIn: true` |
-| `logout()` / `withdrawAccount(reason)` | `loggedIn: false`(앱 화면은 `/login`으로 돌아간다) |
-| `switchCompany(id)` | `currentCompanyId` 변경. 인력·작업 데이터는 그대로 두고, 선택한 발주사의 소속 역할에 맞춰 로그인 사용자의 총관리자 여부를 바꾼다(직원이면 박서준이 총관리자) |
-| `updateProfile` / `updateCompany` | 현재 사용자 / 현재 발주사(소속 목록 이름 포함) 수정 |
-| `issueJoinCode()` / `regenerateJoinCode()` | 코드가 없을 때만 발급 / 항상 새 코드. 형식 `ORBIT-XXXX`, 링크 `https://orbit.app/join/<코드>` |
-| `changeMemberKind(id, kind, typeId)` | 구분·유형 변경. 기사 → 직원이면 그 기사의 배정됨·작업전 작업을 `REGISTERED`(기사 해제, 이력 '배정 해제')로 돌린다. 작업중 작업이 있으면 화면에서 막는다(`useTechnicianOpenTasks`) |
-| `setMemberType` / `setMemberStatus` | 유형 / 활성 상태 변경. 비활성 기사는 `useActiveTechnicians`(배정·타임테이블 대상)에서 빠진다 |
-| `assignOwner(id)` / `releaseOwner(id)` | 직원만 지정 가능, 기존 총관리자는 해제 / 해제. 로그인 사용자의 소속 역할(사이드바 '총 관리자')도 함께 바뀐다. '최소 1명 유지' 안내는 화면이 보여 주고, 액션은 막지 않는다 |
-| `setJoinRequestKind` / `approveJoinRequests` / `rejectJoinRequests` | 확정 유형 변경 / 확정 유형으로 인력 생성(활성, 참여일 지금, 유형 없음) 후 요청 제거 / 요청 제거 |
-| `addType(category, name, color?)` | 새 활성 유형. 작업 유형은 색을 안 주면 아직 안 쓴 색을 `TYPE_COLOR_ORDER` 순서로 고른다. 직원·기사 유형 색은 `null` |
-| `updateType` / `setTypeActive` | 이름·색(작업 유형만) / 활성화·비활성화 |
-| `deleteType(id)` | 목록에서 지우고, 그 유형의 인력은 유형 없음(`null`), 작업은 작업중·완료를 빼고 유형 없음. 작업중·완료 작업은 유형을 유지하며 `selectTypeById`·`useType`이 삭제된 유형도 찾아 준다(Figma 주석 1924:15794) |
-| `markNotificationRead` / `markAllNotificationsRead` / `deleteNotification` | 읽음 / 모두 읽음 / 삭제 |
-| `setNetwork('online' \| 'offline')` | 네트워크 실패 화면 전환. '다시 시도'는 `setNetwork('online')` |
+| `loginWithKakao()` | `Promise<{ needsOnboarding: boolean }>`; 현재는 devAuth로 토큰을 만든 뒤 프로필·소속·데이터를 읽는다 |
+| `registerProfile`, `createCompany`, `withdrawAccount` | `Promise<boolean>`; 성공 여부로 다음 화면 진행을 결정한다 |
+| `createTask`, `addType` | `Promise<ID \| null>`; 생성 ID 또는 실패 |
+| `assignTask` | `Promise<AssignResult>`: `applied` / `stale` / `failed`. 서버 버전을 `expectedVersion`으로 보낸다 |
+| `cancelTask`, `requestReport` | `Promise<void>`; 서버 변경 뒤 작업 상세·목록을 다시 읽는다 |
+| `exportTasks(filter)` | `Promise<void>`; 현재 필터로 `GET /organizations/{id}/works/export`, `작업내역_날짜.xlsx` 다운로드 |
+| `updateProfile`, `updateCompany`, `issueJoinCode`, `regenerateJoinCode` | `Promise<void>`; 프로필·조직·회사 코드 API |
+| `setMemberType`, `assignOwner`, `releaseOwner`, `approveJoinRequests`, `rejectJoinRequests` | `Promise<void>`; API 후 소속 또는 조직을 다시 읽는다 |
+| `updateType`, `deleteType` | `Promise<void>`; API 후 목록 재조회. 삭제된 유형은 현재 탭의 표시용 캐시에 보관한다 |
+| `markNotificationRead` | `Promise<void>`; 먼저 읽음 표시하고 서버 읽음 API를 보낸다 |
+| `logout`, `switchCompany`, `finishOnboarding` | 동기 액션. 로그아웃·발주사 전환 내부에서는 필요한 비동기 처리를 시작한다 |
 
-알림은 사무실 쪽 사건에서만 만든다: 배정(신규 배정), 배정된 작업의 시간 변경(일정 변경), 작업 취소. 새 알림은 안 읽음이다. 수락·거절·완료 보고 알림은 기사 앱 사건이라 시드에만 있다.
+### 화면 동기화 훅
 
-## 3. 시나리오 쿼리
+로그인 상태이며 현재 발주사가 있을 때 동작한다. 변경 뒤 `revision`이 늘면 활성 화면을 다시 읽는다. 폴링이나 다른 탭 변경의 실시간 구독은 아니다.
 
-| 쿼리 | 초기 상태 |
+| 훅 | 읽는 데이터 |
 | --- | --- |
-| `?role=staff` | 로그인 사용자 `isOwner: false`, 소속 역할 `STAFF`, 유형 배차 담당. 박서준이 총관리자(유형 관리자) |
-| `?data=empty` | 작업·알림·승인대기·유형 없음. 인력은 로그인 사용자만(기사 0명). `role=staff`와 함께면 총관리자 박서준도 있다. 회사 코드·링크 `null` |
-| `?network=offline` | `network: 'offline'` |
-| `?companies=2` | 발주사·소속 2곳: OO건설(역할은 role 기준), 협력 발주사(직원, 업종 종합 시설관리, 코드 미발급) |
-| `?user=new` | 로그아웃 상태, `isNewUser: true`, `termsAgreed: false`. 데이터는 기본 시드(빈 회사로 시작하려면 `&data=empty`) |
-| `?reset=1` | 저장된 시나리오를 지우고 기본값에서 시작(같은 URL의 다른 쿼리는 그 뒤에 적용) |
-| `?time=HH:mm` | 시연 시각. 앱의 현재 시각을 오늘 그 시각(Asia/Seoul)으로 옮긴다(시간은 계속 흐름). 시드의 '오늘' 사건·상대 시각·보고 미제출 판단·현재 시각선이 모두 따른다. sessionStorage `orbit:time`에 남고 `?reset=1`·`?time=real`로 실제 시각으로 돌아간다. 시나리오 계약(`Scenario`) 밖에서 `src/lib/date.ts`의 `clockNow()`가 처리한다 |
+| `useTimetableSync(date)` | 선택 날짜 타임테이블·대기함 |
+| `useBoardSync(date)` | 해당 날짜 진행 보드 |
+| `useTaskListSync()` | 작업 목록 전체 페이지·대기함 |
+| `useTaskDetailSync(taskId)` | 작업 상세·이력·보고 |
+| `useTechnicianHistorySync(memberId)` | 해당 기사 관련 작업·완료·거절 작업 상세 |
+| `useNotificationsSync()` | 알림 전체 페이지(현재 발주사·지원하는 알림 유형만 표시) |
+| `useOrganizationSync()` | 발주사·회사 코드·인력·승인대기·유형. 인력·승인대기는 OWNER만 조회 |
+| `useWithdrawalEligibilitySync()` | 계정 탈퇴 가능 여부 |
 
-- 앱 시작 때 한 번 읽어 sessionStorage `orbit:scenario`에 병합·저장한다. 같은 탭에서는 쿼리 없이 새로고침해도 유지된다. 기본값으로 돌아가려면 `?reset=1`.
-- 잘못된 값은 무시한다. 시나리오는 시작 상태만 정하고, 데이터 변경은 메모리에만 있어 새로고침하면 시드로 돌아간다(로그인·네트워크 상태 포함).
-- 시나리오 쿼리 외의 쿼리(예: `?mode=edit&task=<id>`)는 각 섹션이 읽는다.
+### 오류와 로컬 전용 동작
+
+- `call()`은 성공 결과를 돌려주고 실패하면 `undefined`를 돌려준다. 네트워크 연결 실패는 `network: 'offline'`, HTTP 401·`COMMON-404`·`AUTH-004`는 세션 초기화·로그아웃으로 처리한다. 서버 오류 코드·메시지는 콘솔에 남기며 새 오류 토스트는 만들지 않는다.
+- '다시 시도'는 `setNetwork('online')`으로 소속·공통 데이터·현재 화면을 다시 읽는다. 서버가 계속 끊겨 있으면 다시 실패한다.
+- 배정의 `SCHEDULE-016`은 `stale`로 반환해 기존 모달을 연다. `SCHEDULE-008`(동일 배정)은 `applied`로 취급한다.
+- 서버 API가 없는 `changeMemberKind`(직원↔기사), `setTypeActive`(유형 활성 상태), `deleteNotification`(숨김), 프로필 사진은 로컬 전용이다. 유형 활성 상태·숨긴 알림은 재조회에도 유지하지만 새로고침하면 사라진다. 역할 변경은 인력 재조회로 덮일 수 있고 서버 작업 배정을 해제하지 않는다.
+- `agreeTerms`는 선택을 잠시 기억하고 `registerProfile`이 프로필 저장 후 동의 API를 보낸다. `setJoinRequestKind`도 승인 전 선택값이며 승인 요청에 함께 보낸다.
+- 사진 업로드 API가 없어 신규 현장 사진은 등록 요청에 보내지 않는다. 응답 사진의 `fake-photo://` 접두어는 매퍼에서 제거한다.
+
+## 3. ID·시각·개발 로그인
+
+| 대상 | 화면 ID 예 | 서버 ID |
+| --- | --- | --- |
+| 직원 소속 | `s12` | membershipId 12 |
+| 기사 계약 | `t7` | technicianId 7 |
+| 직원·기사·작업 유형 | `st3` · `tt3` · `wt3` | 각 테이블 숫자 ID 3 |
+| 발주사·작업·알림·참여 요청 | `"12"` | 숫자 12 |
+| 인력 목록에 없는 로그인 사용자 | `me` | 표시용 ID; API 숫자 ID가 아니다 |
+
+`toId`·`fromId`·`typeIdNumber`를 사용한다. 서버 테이블별 숫자가 겹치므로 접두어를 임의로 없애지 않는다. 서버 UTC ISO는 화면에서 `+09:00` ISO·`YYYY-MM-DD`·`HH:mm`으로 바꾼다. 요청은 `toUtcIso`, 날짜 조회 범위는 `dayRange`의 KST 자정부터 다음 날 자정까지 `[from, to)`를 쓴다. 현재 시각은 실제 `Date.now()`이며 시연 시계는 없다.
+
+개발 로그인은 기본 오르빗(OWNER), `?role=staff` 김운영(STAFF), `?user=new` 미가입 계정, `?reset=1` 기본 선택이다. 선택은 sessionStorage `orbit:devLogin`, 인증 토큰·계정 ID·선택 발주사는 localStorage에 남는다. 이미 로그인했다면 로그아웃 후 쿼리로 다시 로그인한다. 선택 초기화는 서버 데이터를 지우지 않는다. devAuth는 서버의 로컬 JWT 키로 HS256 토큰을 만드는 개발 서버 전용 임시 구현이다. 실제 카카오는 nonce 발급 → SDK → login API로 교체해야 한다.
 
 ## 4. 시드
 
-실제 오늘 날짜(Asia/Seoul)를 기준으로 매번 만든다. 날짜는 '오늘 기준 일수'로 적는다. 오늘에 일어난 사건(알림·수락·시작 등)은 현재 시각을 넘지 않게 당겨진다.
+`npm run seed:local`은 **로컬 Postgres public 테이블 전체를 TRUNCATE하고 Redis DB를 FLUSHDB**한다. 서버를 먼저 실행하고 보존할 데이터가 없는 로컬 환경에서만 쓴다. 로컬 이외 DB·API 호스트는 거부한다. DB 기본 연결은 `localhost:54321/postgres`, Redis는 `127.0.0.1:6379`, API는 `http://localhost:8080`이다. DB는 `DATABASE_*`/`PG*`, API는 `API_BASE`로 지정한다. JWT 키·issuer는 환경 변수 또는 `../server/.env`에서 읽는다.
 
-### 발주사·유형·인력
+계정은 SQL로 만들고 프로필·약관·회사·참여·유형·작업 등록 등은 API로 처리한다. 기사 수락·거절·작업 시작·완료 보고·과거 시각·작업유형 연결은 SQL로 보완한다. 날짜는 실행 시점의 Asia/Seoul 오늘 기준이며 과거 사건 시각은 현재보다 뒤가 되지 않게 제한한다. 서버 재시작 시 local 프로필의 create-drop으로 데이터가 사라질 수 있다.
 
-- 발주사 `c-1` 'OO건설', 업종 '냉난방 설비', 코드 `ORBIT-7K2M`, 링크 `https://orbit.app/join/ORBIT-7K2M`
-- 유형(`SEED_TYPE_IDS`, 괄호는 비활성)
-  - 직원: 관리자, 배차 담당, 사무 지원, (현장 담당)
-  - 기사: 전문 기사, 설치 기사, A/S 기사, 전기 기사, (보조 기사)
-  - 작업: 설치 `PURPLE`, 점검 `BLUE`, 수리 `YELLOW`, (세척 `GREEN`)
-
-| 구분 | 인력(`SEED_MEMBER_IDS`) |
+| 데이터 | 생성 내용 |
 | --- | --- |
-| 직원 | 오르빗 `m-me`(관리자, 총관리자, 010-1234-5678), 김운영(배차 담당), 박서준(배차 담당), 이지은(사무 지원), 송지환(배차 담당), 양서희(사무 지원) |
-| 기사 | 김민수(전문 기사), 김민준(설치 기사), 이민준(A/S 기사), 홍길동(설치 기사), 김태훈(전기 기사), 박서연(설치 기사), 이철호(설치 기사), 이준혁(전기 기사) |
-| 비활성 | 최동욱(A/S 기사) — 타임테이블 행·배정 대상에서 빠진다 |
+| 발주사 | OO건설(냉난방 설비, 오르빗 OWNER), 협력 발주사(종합 시설관리, 협력관리자 OWNER·오르빗 STAFF) |
+| 직원 | 오르빗·김운영·박서준·이지은·송지환·양서희 |
+| 기사 | 김민수·김민준·이민준·홍길동·김태훈·박서연·이철호·이준혁·최동욱. 최동욱은 과거 완료 작업 생성 후 비활성화 |
+| 유형 | 직원 4종(관리자·배차 담당·사무 지원·현장 담당), 기사 5종(전문 기사·설치 기사·A/S 기사·전기 기사·보조 기사), 작업 4종(설치·점검·수리·세척). 유형 활성 상태는 서버에 없으므로 모두 활성으로 읽는다 |
+| 미가입 계정 | 온보딩용 5개. 모두 사용했다면 다시 시드한다 |
+| 승인대기 | 정하늘·오세훈·윤도현·장예린 기사, 한지우·서민재·임채원 직원. 회사 코드·참여 링크·QR 채널을 번갈아 사용 |
+| 작업 | 52건: 오늘 기본 18건, 어제 7건, 내일 5건, 모레 1건, 지난 완료 9건, 등록 10건, 취소 2건 |
+| 보고 요청 | `demo-no-report`는 요청 없음. `demo-delayed`에는 종료 이후의 과거 요청을 남긴다. 이른 시각에 시드하면 이 작업을 어제로 옮긴다 |
+| 사진 | 현장·완료 전후 사진은 `placehold.co` URL이다. 실제 사용자 업로드가 아니다 |
+| 알림 | 작업 API가 만든 알림과 등록자별 수락·거절·완료 보고 SQL 알림. 사무실 알림은 등록자별 최근 2건을 안 읽음으로 설정한다. 계정별 목록이므로 고정 12건이 아니다 |
 
-### 작업 52건
+`.env.development.local`에 개발 JWT 설정·계정 ID를, `.dev-seed.json`에 숫자 ID 매핑을 쓴다. 주요 키는 `organizationIds`, `accountIds`, `membershipIds`, `technicianIds`, `categoryIds`(`staff`·`technician`·`work`), `workIds`, `pendingParticipationRequestIds`, `newAccountIds`다. 파일의 값은 시드 결과이며 코드에 하드코딩하지 않는다.
 
-| 날짜 | 구성 |
-| --- | --- |
-| 오늘 | 18건: 완료 4, 작업중 4(지연 1), 작업전 4, 배정됨 6. 기사 8명, 09:00–18:00 |
-| 어제 | 7건: 완료 6, 작업중 1(종료 지남·보고 없음) |
-| 내일 | 5건: 작업전 3, 배정됨 2 (+ 취소 1건 숨김) |
-| 모레 | 작업전 1건 |
-| 지난 완료 | 9건(2–30일 전, 기사 작업이력용, 그중 박서연 기사 4건) |
-| 등록(대기함) | 10건: 기사·시간 미지정 7(그중 거절 3), 기사만 있음 2, 날짜·시각만 있음 1, 등록 1–5일 전 |
-| 취소 | 2건(목록·보드·타임테이블에서 숨김) |
-
-등록자는 김운영 35건, 박서준 12건, 오르빗 5건이다. 고객은 서울 주소·010 연락처, 금액·결제 방식(현장 결제·계좌 이체·카드 결제)이 있다. 취소를 뺀 작업은 50건(페이지당 5건이면 10쪽)이다.
-
-오늘 격자
-
-| 기사 | 작업 |
-| --- | --- |
-| 김민수 | 09:00–10:30 인덕션 설치 완료 · 13:00–15:00 에어컨 실외기 점검 및 세척 배정됨 · 16:00–17:00 가스레인지 점검 배정됨 |
-| 김민준 | 09:00–11:00 시스템 에어컨 설치 완료 · 15:00–17:00 배관 누수 점검 및 교체 배정됨 |
-| 이민준 | 10:00–12:00 보일러 배관 교체 작업중 · 15:00–16:30 냉장고 수리 작업전 |
-| 홍길동 | 09:00–10:00 정수기 설치 완료 · 11:00–12:00 욕실 환풍기 교체 작업중 · 16:00–17:00 에어컨 점검 배정됨 |
-| 김태훈 | 14:00–15:30 조명 교체 작업전 |
-| 박서연 | 09:30–11:00 건조기 설치 완료 · 14:00–16:00 보일러 수리 배정됨(오늘 일정 변경, 재수락 대기) |
-| 이철호 | 09:00–11:00 식기세척기 설치 작업중+지연 · 13:00–15:00 세탁기 설치 작업전 · 16:00–18:00 에어컨 이전 설치 배정됨 |
-| 이준혁 | 10:00–13:00 서초 상가 전기 공사 작업중 · 15:00–16:30 콘센트 증설 작업전 |
-
-### 시연용 고정 ID ↔ Figma 프레임
-
-`DEMO_TASK_IDS`(`src/mocks/constants.ts`)로 가져온다. 상세 모달은 `/tasks/<id>`, `/board/<id>`(오늘 작업)로 연다.
-
-| ID | 작업·상태 | Figma |
-| --- | --- | --- |
-| `t-demo-pending` | 배관 누수 점검 및 교체, 김민준, 오늘 15:00, 배정됨 | 작업 상세 미수락 `785:5490` |
-| `task-06` | 에어컨 실외기 점검 및 세척, 김민수, 오늘 13:00, 배정됨 | 진행 보드 작업 상세 `1892:12847`, 보드 취소 모달 `2490:13502` |
-| `t-demo-accepted` | 냉장고 수리, 이민준, 오늘 15:00, 작업전 | 작업 상세 수락됨 `785:5923`, 알림 상세 작업 배정됨(수락됨·이민준) `1834:5562` ← 알림 `n-04` |
-| `t-demo-in-progress` | 보일러 배관 교체, 이민준, 오늘 10:00, 작업중 | 작업중 `785:4522` |
-| `t-demo-delayed` | 식기세척기 설치, 이철호, 오늘 09:00, 작업중+지연 | 작업중/지연 `785:6353` |
-| `t-demo-completed` | 시스템 에어컨 설치, 김민준, 오늘 09:00, 완료(보고·사진 2장·첨부 6장) | 작업완료 `785:4191`, 첨부파일 탭 `785:7238` |
-| `t-demo-no-report` | 세탁기 배수 펌프 수리, 이민준, 어제 14:00–16:00, 작업중·보고 없음 | 보고 미제출 `785:4984`('기사에게 요청 보내기') |
-| `t-demo-rejected` | 세탁기 점검, 등록+거절(김태훈, 사유 '일정 중복') | 작업 목록 대기함 잔여·거절 행 `450:2651`, 알림 `n-05` |
-| `t-demo-conflict` | 세탁기 설치, 이철호, 오늘 13:00–15:00, 작업전 | 배정 확인 `1325:8954`(이철호·13:00·2시간), 일정 충돌 경고 `1325:10373` |
-| `t-demo-stale` | 인덕션 교체, 설치, 등록 3일 경과, 기사 미정 | 대기함 카드 `443:1156`. '변경된 정보입니다' `1325:11695`를 재현할 결정적 트리거 후보(사용 여부는 timetable 담당이 정해 보고) |
-
-그 밖의 시연 데이터
-
-| 데이터 | Figma |
-| --- | --- |
-| `task-42` 정수기 필터 교체 — 취소(고객 요청), 담당 기사 미정 ← 알림 `n-03` | 알림 상세 작업 취소됨 `1807:6719`, 취소 안내 패널 `1894:8798` |
-| 이준혁 — 작업중 '서초 상가 전기 공사' | 역할 변경 불가 `2008:31376` |
-| 김태훈 — 예정 작업 1건 '조명 교체'(작업중 없음) | 역할 변경 '예정된 작업 1건' `2008:31713` |
-| 박서연 — 완료 6건, 거절 1건(주방 수전 교체, 이후 홍길동이 완료) | 기사 작업이력 `1550:8288` |
-| 최동욱 — 비활성 기사 | 기사 활성화 모달 `2008:32588` |
-| 승인대기 7건 | 승인대기 모달 `1951:20261`, `1888:10087`, `1951:21047` |
-
-### 알림 12건(안 읽음 2)
-
-| 묶음 | 알림 |
-| --- | --- |
-| 오늘 | 신규 배정 '홍길동 기사님께 [에어컨 점검] 작업이 배정되었습니다.'(안 읽음), 일정 변경 '[보일러 수리] 작업 일정이 오후 2시로 변경되었습니다.'(안 읽음), 작업 취소 '[정수기 필터 교체] 작업이 취소되었습니다.', 수락 완료 '이민준 기사님이 [냉장고 수리] 작업을 수락했습니다.' |
-| 어제 | 작업 거절(김태훈, 세탁기 점검, 일정 중복), 완료 보고 '박서연 기사님이 [에어컨 설치] 작업의 완료 보고를 제출했습니다.', 수락 완료(김민준, 빌트인 오븐 설치) |
-| 2일 전 | 완료 보고(김민수, 배관 설치), 작업 거절(홍길동, 에어컨 배관 청소, 부품 수급 지연), 신규 배정(이철호, 세탁기 설치) |
-| 3일 전 | 작업 거절(이철호, 가스보일러 점검, 이동 거리 초과), 완료 보고(이준혁, 전기 콘센트 교체) |
-
-모든 알림은 `taskId`로 작업과 연결되고, 알림 시각은 그 작업 이력의 같은 사건 시각과 같다. ID는 `n-01`(최신)–`n-12`.
-
-### 승인대기 7건
-
-정하늘(기사), 오세훈(희망 기사 → 확정 직원, 불일치), 한지우(직원), 윤도현(기사), 서민재(희망 직원 → 확정 기사, 불일치), 장예린(기사), 임채원(직원). 요청 경로는 회사 코드·참여 링크·QR 코드가 섞여 있고 요청일은 1–6일 전이다.
+`workIds`의 `demo-pending`, `demo-accepted`, `demo-in-progress`, `demo-delayed`, `demo-completed`, `demo-no-report`, `demo-rejected`, `demo-conflict`, `demo-stale`, `task-01` 등은 **검색용 라벨이지 라우트 ID가 아니다**. `/tasks/<workIds의 숫자>`, `/board/<숫자>`로 연다. `demo-stale`은 일반 등록 작업이며 자동 충돌 트리거가 아니다. 동시 배정으로 서버 버전이 달라져야 변경정보 모달이 열린다.
 
 ## 5. 정의와 규칙
 
@@ -176,12 +135,12 @@ const summary = useBoardSummary(today());
 - **대기함 미처리 사유**(`getUnassignedReason`): '담당기사 · 시간 미지정', '담당기사 미지정', '시간 미지정'.
 - **이력 문구**(`HISTORY_LABEL`): 작업 등록됨, 배정 알림 발송됨, 기사 수락, 기사 거절, 작업 시작, 완료 보고 제출, 작업 취소, 일정 변경, 배정 해제, 작업 정보 수정, 완료 보고 요청. 처리자는 직원이면 이름, 기사면 '이름 기사'. 이력은 오래된 순이다.
 - **완료 보고**: `report.content`는 `작업 메모\n\n[사용 부품]\n부품` 형식이고 `splitReportContent`로 나눈다. `report.photoUrls[0]`은 작업 전 사진, `[1]`은 작업 후 사진이다.
-- **사진**: 시드 사진은 `mockPhotoUrl(n)`(회색 바탕 SVG data URI)이다. 첨부 파일 탭은 `attachments`(등록 때 현장 사진과 같은 목록, 최대 6장)를 쓴다.
-- **유형 삭제**: 인력은 유형 없음, 작업은 작업중·완료를 빼고 유형 없음. 인력·작업의 `updatedAt`·이력은 바꾸지 않는다.
-- **총관리자**: `Member.isOwner`(직원만, 회사당 1명)와 현재 발주사 `CompanyMembership.role`이 함께 움직인다. 사이드바·마이페이지 역할은 `selectCurrentMembership`/`selectIsOwner`, 인력 목록 왕관은 `isOwner`를 쓴다.
+- **사진**: 첨부 파일은 서버 상세의 현장 사진에서 매핑한다. 신규 현장 사진 업로드는 미지원이다.
+- **유형 삭제**: 서버 삭제 API 결과를 다시 읽는다. 현재 탭에서 삭제한 유형은 `getDeletedType`으로 이름·색을 유지한다.
+- **총관리자**: 인력의 `isOwner`와 소속 역할을 API 결과로 맞춘다. 지정 액션은 새 총관리자를 지정한 뒤 기존 총관리자를 해제한다. 서버의 유일 총관리자 탈퇴 차단은 아직 없으므로 화면 소속 규칙도 유지한다.
 - **정렬**: 작업 목록 최근 수정 순, 대기함 등록 오래된 순, 날짜별 작업 시작 시각 순, 알림·승인대기 최신순, 인력 총관리자 → 직원 → 기사(참여일 순), 유형 만든 순.
 
-## 6. 셀렉터·훅(`src/mocks/selectors.ts`)
+## 6. 셀렉터·훅(`src/data/selectors.ts`)
 
 `select*`는 `useAppStore`에 바로 넘겨도 되고, `get*`·`sort*`는 새 배열을 만드는 계산 함수라 훅·`useMemo` 안에서만 쓴다.
 
@@ -246,7 +205,7 @@ const summary = useBoardSummary(today());
 | `formatPhone(raw)` | '010-1234-5678'(입력 중 값도 단계적으로) |
 | `formatFileSize(bytes)` | '2.3MB' |
 | `splitReportContent(content)` · `joinReportContent(memo, parts)` | 완료 보고 메모·사용 부품 |
-| `clockNow()` | 앱의 현재 시각(epoch ms). `?time=HH:mm`이 있으면 그 시각, 없으면 `Date.now()`. 현재 시각 기본값은 모두 이 함수를 쓴다 |
+| `clockNow()` | 실제 현재 시각(epoch ms, `Date.now()`) |
 | `today()`, `nowIso()`, `addDays`, `diffDays`, `weekdayLabel`, `isToday` | 날짜 계산 |
 | `hmToMinutes`, `minutesToHm`, `addMinutesToHm`, `nowMinutes` | 'HH:mm' ↔ 분, 현재 시각(분, 타임테이블 현재 시각선) |
 | `combineDateTime`, `toIsoDate`, `toHourMinute`, `toKstParts`, `startOfMonth`, `isSameMonth` | 일시 변환 |
@@ -254,3 +213,5 @@ const summary = useBoardSummary(today());
 ## 8. 라우트 가드
 
 `src/app/router.tsx`에서 앱 레이아웃 라우트(`/timetable`·`/tasks`·`/board`·`/org`·`/notifications`·`/mypage`)를 `RequireAuth`로 감싼다. 로그아웃 상태로 앱 경로에 들어오면 `/login`으로 바꿔 보내고 원래 경로를 `location.state.from`에 담는다(로그인 후 그 경로로 간다). 앱 화면을 보던 중 로그아웃·탈퇴하면 담지 않아 다시 로그인하면 `/timetable`로 간다. `/`, `/login`, `/onboarding/*`는 공개다. 섹션 라우트는 lazy로 불러온다.
+
+작업 상세는 `tasksLoaded`, 알림 상세는 `tasksLoaded && notificationsLoaded`, 기사 작업이력은 `organizationLoaded`를 기다린 뒤 없는 ID인지 판단한다. 아직 API를 읽는 중인 빈 배열을 없는 데이터로 오인해 목록으로 보내지 않는다. 발주사 전환·세션 초기화 때 로딩 플래그도 초기화한다.

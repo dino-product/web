@@ -1,10 +1,10 @@
 import { Button, Icon, StateMessage } from '@/design-system';
-import { useAppStore } from '@/mocks/store';
+import { useAppStore } from '@/data/store';
 
 import styles from './TimetableOffline.module.css';
 
 /**
- * 타임테이블 네트워크 연결 실패(1338:6564, ?network=offline). 제목 아래 오류 카드(1338:6566)만 그린다.
+ * 타임테이블 네트워크 연결 실패(1338:6564, 서버에 닿지 못함). 제목 아래 오류 카드(1338:6566)만 그린다.
  * '작업 등록으로' → 새 작업 등록 모달(시안 프레임 이름 '작업 등록'), '다시 시도' → 온라인으로 바꿔 격자를 다시 그린다.
  */
 export default function TimetableOffline({ onRegister }: { onRegister: () => void }) {

@@ -8,7 +8,7 @@
 import { useId, useState } from 'react';
 
 import { Button, Dialog, Field, TextArea } from '@/design-system';
-import { useAppStore } from '@/mocks/store';
+import { useAppStore } from '@/data/store';
 
 import { type CancelReason, CancelReasonSelect } from './CancelReasonSelect';
 import styles from './TaskCancelModal.module.css';

@@ -4,9 +4,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { FilterChips, Icon, StateMessage } from '@/design-system';
 import { formatNotificationGroup, formatNotificationTime } from '@/lib/format';
-import { useNotifications, useUnreadNotificationCount } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
-import { type AppNotification, NOTIFICATION_TYPE_LABEL } from '@/mocks/types';
+import { useNotifications, useUnreadNotificationCount } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import { useNotificationsSync } from '@/data/sync';
+import { type AppNotification, NOTIFICATION_TYPE_LABEL } from '@/data/types';
 
 import styles from './NotificationsPage.module.css';
 import { TYPE_LABEL_COLOR } from './notificationView';
@@ -39,6 +40,7 @@ export default function NotificationsPage() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const filter: Filter = params.get('filter') === 'unread' ? 'unread' : 'all';
+  useNotificationsSync();
   const notifications = useNotifications();
   const unreadCount = useUnreadNotificationCount();
   const markRead = useAppStore((s) => s.markNotificationRead);

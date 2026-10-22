@@ -1,5 +1,5 @@
 import { Button, Dialog, Field, InfoBox } from '@/design-system';
-import type { ID } from '@/mocks/types';
+import type { ID } from '@/data/types';
 
 import { TypeSelect, type TypeSelectOption } from './TypeSelect';
 

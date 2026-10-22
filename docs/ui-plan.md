@@ -1,6 +1,6 @@
 # Orbit 웹 UI 구현 계획
 
-Figma에 있는 사무실(발주사) 웹 UI를 TypeScript + React로 구현해 UI/UX 테스트를 할 수 있게 만드는 작업의 계획입니다. 백엔드 API는 연동하지 않고 목데이터와 목업 스토어로 모든 버튼 흐름을 연결합니다.
+Figma에 있는 사무실(발주사) 웹 UI를 TypeScript + React로 구현해 UI/UX 테스트를 할 수 있게 만드는 작업의 계획입니다. 현재는 실제 백엔드 API와 연결하며 화면은 데이터 스토어·셀렉터·동기화 훅으로 읽고 씁니다.
 
 ## 1. 원칙
 
@@ -8,7 +8,7 @@ Figma에 있는 사무실(발주사) 웹 UI를 TypeScript + React로 구현해 U
 - **Figma와 시각적으로 일치시킨다.** 1920×1080 창에서 Figma 프레임과 나란히 비교해 위치·크기·색·타이포가 같아야 한다.
 - **디자인 시스템을 공통 컴포넌트로 만든다.** Figma `DesignSystem 웹` 페이지의 토큰·컴포넌트를 `src/design-system`에 만들고 모든 화면이 재사용한다.
 - **버튼마다 화면 흐름을 잇는다.** Figma에 목적지 화면·상태가 있으면 그곳으로 이동한다. 목적지가 Figma에 없으면 새 화면을 만들지 않고, 동작하지 않게 두거나 화면 변화 없는 목업 동작만 한다(예: 주소 검색 → 샘플 주소 채우기).
-- **테스트 상태 전환은 URL 쿼리만 쓴다.** 화면에 보이는 전환 UI는 만들지 않는다(§7).
+- **개발 로그인 페르소나는 URL 쿼리로 고른다.** 화면에 전환 UI는 만들지 않는다. 빈 데이터·연결 실패는 실제 서버 상태를 따른다(§7).
 
 ## 2. Figma 기준
 
@@ -90,9 +90,9 @@ Figma에 있는 사무실(발주사) 웹 UI를 TypeScript + React로 구현해 U
 ### 타임테이블
 - 날짜 이동(‹ ›), 오늘, 보기/편집 토글, 기사 유형·작업 유형 필터, 새 작업 등록 → 새 작업 등록 모달.
 - 대기함 접기·펼치기. 대기함은 `REGISTERED` 작업.
-- 편집 모드: 대기함 카드나 격자 블록을 드래그해 격자에 놓으면 배정 확인 모달 → 배정 확정 → `PENDING_ACCEPT`. 같은 기사·시간대에 작업이 있으면 일정 충돌 경고 → 충돌 확인 후 배치. 변경정보안내 모달은 결정적인 트리거(예: 특정 시드 작업)로 재현하고 README에 적는다.
+- 편집 모드: 대기함 카드나 격자 블록을 드래그해 격자에 놓으면 배정 확인 모달 → 배정 확정 → `PENDING_ACCEPT`. 같은 기사·시간대에 작업이 있으면 일정 충돌 경고 → 충돌 확인 후 배치. 변경정보안내 모달은 다른 탭에서 먼저 변경한 작업을 이전 버전으로 배정할 때 서버 `SCHEDULE-016`으로 재현한다(README 참고).
 - 기사 0명: 조직 설정으로 → `/org/members`.
-- 네트워크 실패(`?network=offline`): 다시 시도 → 온라인 전환 후 다시 표시.
+- 네트워크 실패(API 연결 불가): 다시 시도 → 공통 데이터·현재 화면을 서버에서 다시 읽는다.
 - `/timetable?mode=edit&task=<id>`: 작업 목록의 배정하기에서 진입, 해당 대기함 카드 강조.
 
 ### 작업 목록
@@ -104,7 +104,7 @@ Figma에 있는 사무실(발주사) 웹 UI를 TypeScript + React로 구현해 U
 
 ### 진행 보드
 - 요약 카드·탭·표. 행 클릭 → `/board/:taskId` 작업 상세 모달(뒤로가기 라벨 "진행 보드").
-- 연결 끊김 안내: 시안 없음 → 동작하지 않는다. 네트워크 실패는 `?network=offline`.
+- 연결 끊김 안내: 시안 없음 → 동작하지 않는다. 네트워크 실패는 실제 API 연결 불가 때 표시한다.
 
 ### 조직 설정
 - 탭: 발주사 정보 `/org/company`, 인력관리 `/org/members`, 유형 설정 `/org/types`, 관리자 설정(§4 참고).
@@ -122,9 +122,9 @@ Figma에 있는 사무실(발주사) 웹 UI를 TypeScript + React로 구현해 U
 
 | 담당 | 소유 경로 | 비고 |
 | --- | --- | --- |
-| orchestrator | `src/mocks/types.ts`, `src/features/*` 스텁 시그니처, `docs/`, `AGENTS.md` | 계약 변경은 orchestrator만 |
+| orchestrator | `src/data/types.ts`, `src/api/types.ts`, `src/features/*` 스텁 시그니처, `docs/`, `AGENTS.md` | 계약 변경은 orchestrator만, 서버 코드가 API 계약의 기준 |
 | foundation-ds | `src/styles/**`, `src/design-system/**`, `src/assets/**`, `src/app/layouts/AppLayout.tsx` | 토큰·컴포넌트·아이콘·사이드바 |
-| foundation-data | `src/mocks/**`(types.ts 제외), `src/lib/**`, `src/app/**`(AppLayout 제외) | 스토어 구현·시드·시나리오·라우터 |
+| foundation-data | `src/api/**`, `src/data/**`(각 types.ts 제외), `src/lib/**`, `src/app/**`(AppLayout 제외) | HTTP·인증·엔드포인트·매퍼·스토어·동기화·라우터 |
 | onboarding | `src/pages/onboarding/**` | |
 | timetable | `src/pages/timetable/**`, `src/features/task-register/**` | 새 작업 등록 모달 소유 |
 | tasks | `src/pages/tasks/**`, `src/features/task-detail/**`, `src/features/task-cancel/**` | 작업 상세·취소 모달 소유 |
@@ -136,22 +136,22 @@ Figma에 있는 사무실(발주사) 웹 UI를 TypeScript + React로 구현해 U
 - 섹션 담당은 자기 소유 경로만 수정한다. 공통 파일이 부족하면 자기 폴더에 지역 컴포넌트를 만들고 최종 보고에 "DS 보완 필요"로 남긴다.
 - 섹션 전용 에셋은 `src/pages/<section>/assets/`, 공용 아이콘은 `src/assets/icons/`(foundation-ds).
 - 공유 모달 사용: `TaskRegisterModal`(`@/features/task-register/TaskRegisterModal`), `TaskDetailModal`(`@/features/task-detail/TaskDetailModal`), `TaskCancelModal`(`@/features/task-cancel/TaskCancelModal`). props 시그니처는 스텁 파일 기준.
-- 스토어: `useAppStore`(`@/mocks/store`)의 `AppState` 인터페이스가 계약이다. Zustand v5에서 셀렉터는 안정된 참조를 반환해야 하므로 배열 파생값은 `useShallow` 또는 `useMemo`로 계산한다.
+- 스토어: `useAppStore`(`@/data/store`)의 `AppState` 인터페이스가 계약이다. 화면은 `src/data/selectors.ts`로 읽고 `src/data/sync.ts` 훅으로 동기화한다. API 호출은 `src/api/endpoints.ts`, DTO 변환은 `src/data/mappers.ts`에 모으며 서버는 수정하지 않는다. Zustand v5에서 셀렉터는 안정된 참조를 반환해야 하므로 배열 파생값은 `useShallow` 또는 `useMemo`로 계산한다.
 - 모달·드롭다운 포털은 `#overlay-root`(캔버스 안)를 쓴다. `document.body`로 포털하지 않는다.
 - `vh`·`vw` 단위를 쓰지 않는다. 화면 높이는 `var(--app-height)`.
 
-## 7. 테스트 시나리오(URL 쿼리)
+## 7. 개발 로그인과 데이터 상태
 
-| 쿼리 | 효과 |
+| 입력·상태 | 효과 |
 | --- | --- |
-| `?role=staff` | 로그인 사용자를 직원으로(계정 탈퇴 직원 흐름) |
-| `?data=empty` | 작업·인력·유형·알림·승인대기가 빈 상태(빈 화면 시안) |
-| `?network=offline` | 타임테이블·진행 보드 네트워크 연결 실패 |
-| `?companies=2` | 소속 발주사 2곳(사이드바 발주사 전환) |
-| `?user=new` | 로그아웃 상태에서 시작, 카카오 로그인 후 온보딩 |
-| `?reset=1` | 저장된 시나리오 초기화 |
+| 기본 / `?reset=1` | 개발 로그인 페르소나를 총관리자 오르빗으로 선택·초기화한다. 서버 데이터는 초기화하지 않는다 |
+| `?role=staff` | 김운영 직원 계정으로 다음 개발 로그인을 진행한다 |
+| `?user=new` | 아직 온보딩을 마치지 않은 개발 계정으로 로그인한다 |
+| `npm run seed:local` | 로컬 Postgres·Redis를 초기화하고 2개 발주사·작업·인력·유형 등을 넣는다 |
+| 빈 상태 | 새 발주사를 만들거나 데이터가 없는 협력 발주사·날짜·필터로 확인한다 |
+| 연결 실패 | API에 실제로 닿지 못할 때 표시한다. '다시 시도'는 API를 다시 읽는다 |
 
-시나리오는 sessionStorage에 남아 같은 탭에서 유지된다. 데이터 변경은 메모리에만 있고 새로고침하면 시드로 돌아간다.
+개발 로그인 선택은 sessionStorage `orbit:devLogin`에 남는다. 이미 로그인했다면 로그아웃 후 선택 쿼리로 다시 로그인한다. 토큰·계정 ID·선택 발주사는 localStorage에 저장하고, 서버에 저장된 변경은 새로고침해도 유지한다. 서버 API가 없는 역할 전환·유형 활성 상태·알림 삭제 등만 탭 메모리에 남는다. 연동 범위는 [백엔드 연동 가이드](../../api-integration-guide.html), 데이터 사용법은 [데이터 계층](data-layer.md)을 따른다.
 
 ## 8. 병렬 작업 분할
 
@@ -159,7 +159,7 @@ Figma에 있는 사무실(발주사) 웹 UI를 TypeScript + React로 구현해 U
 | --- | --- | --- | --- |
 | 0 | 계획·골격·토큰·계약(orchestrator) | — | 사용 완료 |
 | 1 | foundation-ds: DS 컴포넌트·아이콘·사이드바 | foundation-data와 병렬 | 14 |
-| 1 | foundation-data: 스토어·시드·시나리오·라우터 | foundation-ds와 병렬 | 0 |
+| 1 | foundation-data: API·매퍼·스토어·동기화·라우터 | foundation-ds와 병렬 | 0 |
 | 2 | 섹션 7개 구현 → 섹션별 독립 검증·수정 | 섹션끼리 병렬(소유 경로 분리) | 섹션별 6–16, 검증 각 2 |
 | 3 | 통합 검증(빌드·전체 흐름·교차 링크) | 단일 | 2 |
 

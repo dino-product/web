@@ -9,9 +9,9 @@ import {
   withCurrentOption,
 } from '@/features/task-register/scheduleOptions';
 import { formatDuration, formatTimeRange } from '@/lib/format';
-import { useActiveTechnicians } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
-import type { HourMinute, ID, Task } from '@/mocks/types';
+import { useActiveTechnicians } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import type { HourMinute, ID, Task } from '@/data/types';
 
 import styles from './AssignDialogs.module.css';
 

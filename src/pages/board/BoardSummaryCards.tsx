@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 
-import type { BoardSummary } from '@/mocks/selectors';
+import type { BoardSummary } from '@/data/selectors';
 
 import styles from './BoardSummaryCards.module.css';
 

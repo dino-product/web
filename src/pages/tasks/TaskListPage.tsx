@@ -8,11 +8,20 @@ import { useNavigate } from 'react-router-dom';
 
 import { Button, FilterSelect, type FilterOption } from '@/design-system';
 import { today } from '@/lib/date';
-import { useActiveTypes, useRegistrants, useTechnicians, useVisibleTasks, useWaitingTasks } from '@/mocks/selectors';
-import { getDeletedType, useAppStore } from '@/mocks/store';
-import { TASK_STATUS_LABEL, type TaskStatus } from '@/mocks/types';
+import { useActiveTypes, useRegistrants, useTechnicians, useVisibleTasks, useWaitingTasks } from '@/data/selectors';
+import { getDeletedType, useAppStore } from '@/data/store';
+import { useTaskListSync } from '@/data/sync';
+import { TASK_STATUS_LABEL, type TaskStatus } from '@/data/types';
 
-import { EMPTY_FILTERS, matchesFilters, PERIOD_LABEL, type PeriodKey, STATUS_FILTER_VALUES, type TaskFilters } from './taskFilters';
+import {
+  EMPTY_FILTERS,
+  matchesFilters,
+  PERIOD_LABEL,
+  type PeriodKey,
+  periodRange,
+  STATUS_FILTER_VALUES,
+  type TaskFilters,
+} from './taskFilters';
 import styles from './TaskListPage.module.css';
 import { TaskTable } from './TaskTable';
 import { WaitingSection } from './WaitingSection';
@@ -34,6 +43,7 @@ const PERIOD_OPTIONS: FilterOption<PeriodKey>[] = (Object.keys(PERIOD_LABEL) as 
 
 export default function TaskListPage() {
   const navigate = useNavigate();
+  useTaskListSync();
   const visibleTasks = useVisibleTasks();
   const waitingTasks = useWaitingTasks();
   const technicians = useTechnicians();
@@ -117,8 +127,17 @@ export default function TaskListPage() {
             />
           </div>
           <div className={styles.actions}>
-            {/* 작업내역 출력: 목적지 시안이 없어 동작하지 않는다(docs/ui-plan.md §5) */}
-            <Button variant="outline" className={styles.exportButton}>
+            {/* 작업내역 출력: 서버 GET /works/export(xlsx)를 지금 필터 조건으로 내려받는다. 목적지 화면은 없다. */}
+            <Button
+              variant="outline"
+              className={styles.exportButton}
+              onClick={() =>
+                void useAppStore.getState().exportTasks({
+                  ...filters,
+                  period: filters.period ? periodRange(filters.period, todayDate) : null,
+                })
+              }
+            >
               작업내역 출력
             </Button>
             <Button icon="plus" className={styles.registerButton} onClick={openRegister}>

@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { useRef } from 'react';
 
 import { Icon, IconButton } from '@/design-system';
-import type { ID, TypeCategory, TypeItem } from '@/mocks/types';
+import type { ID, TypeCategory, TypeItem } from '@/data/types';
 
 import { RowButton } from './RowButton';
 import { TypeMenuPanel, TypeMoreMenu } from './TypeMoreMenu';

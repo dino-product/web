@@ -13,7 +13,7 @@
 import { useMemo } from 'react';
 
 import { clockNow, hmToMinutes, isSameMonth, toIsoDate, today } from '@/lib/date';
-import { HISTORY_LABEL } from '@/mocks/constants';
+import { HISTORY_LABEL } from '@/data/constants';
 import {
   actorName,
   getTaskEndMs,
@@ -25,8 +25,8 @@ import {
   isScheduledStatus,
   rangesOverlap,
   UNSTARTED_ASSIGNED_STATUSES,
-} from '@/mocks/rules';
-import { type AppState, getDeletedType, useAppStore } from '@/mocks/store';
+} from '@/data/rules';
+import { type AppState, getDeletedType, useAppStore } from '@/data/store';
 import type {
   AppNotification,
   Company,
@@ -40,7 +40,7 @@ import type {
   TaskAssignment,
   TypeCategory,
   TypeItem,
-} from '@/mocks/types';
+} from '@/data/types';
 
 // 계산 함수와 같은 규칙을 화면에서도 쓰도록 다시 내보낸다.
 export {
@@ -76,7 +76,7 @@ export const selectIsOwner = (s: AppState): boolean => selectCurrentRole(s) === 
 /** 로그인 상태 */
 export const selectIsLoggedIn = (s: AppState): boolean => s.session.loggedIn;
 
-/** 네트워크 실패 화면을 보여야 하는지(?network=offline 또는 setNetwork('offline')) */
+/** 네트워크 실패 화면을 보여야 하는지(마지막 API 호출이 서버에 닿지 못함, store.ts handleFailure) */
 export const selectIsOffline = (s: AppState): boolean => s.network === 'offline';
 
 /** 현재 발주사의 총관리자 인력 */

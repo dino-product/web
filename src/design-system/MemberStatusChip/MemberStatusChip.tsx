@@ -1,4 +1,4 @@
-import { MEMBER_STATUS_LABEL, type MemberStatus } from '@/mocks/types';
+import { MEMBER_STATUS_LABEL, type MemberStatus } from '@/data/types';
 
 import { Chip } from '../Chip/Chip';
 

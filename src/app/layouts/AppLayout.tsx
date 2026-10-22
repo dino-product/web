@@ -2,9 +2,9 @@ import { useCallback, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { Sidebar, type SidebarCompanyItem, type SidebarMenuKey } from '@/design-system';
-import { selectCurrentCompany, selectCurrentMembership, selectCurrentUser } from '@/mocks/selectors';
-import { useAppStore } from '@/mocks/store';
-import { COMPANY_ROLE_LABEL } from '@/mocks/types';
+import { selectCurrentCompany, selectCurrentMembership, selectCurrentUser } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
+import { COMPANY_ROLE_LABEL } from '@/data/types';
 
 const MENU_HREF: Record<SidebarMenuKey, string> = {
   timetable: '/timetable',
