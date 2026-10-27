@@ -1,10 +1,10 @@
-# main 에 올라간 코드를 dev 웹(https://dev.orbi-t.com)에 낸다
+# develop 에 올라간 코드를 dev 웹(https://dev.orbi-t.com)에 낸다. main 은 deploy-prod.yml
 # 정적 파일이라 클러스터를 거치지 않는다: 빌드 → S3 동기화 → CloudFront index.html 무효화
-# AWS 쪽 리소스(버킷 · 배포 · gh-web-dev 역할)는 dino-product/infra terraform/envs/dev/web.tf
+# AWS 쪽 리소스(버킷 · 배포 · gh-web-dev 역할)는 dino-product/infra terraform/envs/dev/web.tf (modules/web-site)
 name: deploy-dev
 on:
   push:
-    branches: [main]
+    branches: [develop]
 permissions:
   id-token: write
   contents: read
