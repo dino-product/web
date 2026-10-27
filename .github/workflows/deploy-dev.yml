@@ -32,7 +32,7 @@ jobs:
         env:
           # API 는 교차 출처. 서버 CORS_ALLOWED_ORIGIN_PATTERNS 에 https://dev.orbi-t.com 이 들어 있다
           VITE_API_BASE_URL: https://dev-api.orbi-t.com
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::714047901967:role/gh-web-dev
           aws-region: ap-northeast-2
