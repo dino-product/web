@@ -1,0 +1,6 @@
+# GitHub Actions 버전 업데이트 PR (주 1회). npm 은 끄지 않고 보안 업데이트만 받는다 (레포 설정)
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
