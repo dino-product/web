@@ -1,0 +1,57 @@
+# main 에 올라간 코드를 dev 웹(https://dev.orbi-t.com)에 낸다
+# 정적 파일이라 클러스터를 거치지 않는다: 빌드 → S3 동기화 → CloudFront index.html 무효화
+# AWS 쪽 리소스(버킷 · 배포 · gh-web-dev 역할)는 dino-product/infra terraform/envs/dev/web.tf
+name: deploy-dev
+on:
+  push:
+    branches: [main]
+permissions:
+  id-token: write
+  contents: read
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+env:
+  BUCKET: ${{ vars.WEB_DEV_BUCKET }}             # orbit-web-dev-<계정>
+  DISTRIBUTION_ID: ${{ vars.WEB_DEV_DISTRIBUTION_ID }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: dev
+      url: https://dev.orbi-t.com
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run build
+        env:
+          # API 는 교차 출처. 서버 CORS_ALLOWED_ORIGIN_PATTERNS 에 https://dev.orbi-t.com 이 들어 있다
+          VITE_API_BASE_URL: https://dev-api.orbi-t.com
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::714047901967:role/gh-web-dev
+          aws-region: ap-northeast-2
+      - name: S3 올리기
+        run: |
+          # 해시 붙은 assets/ 는 1년 immutable, 나머지(index.html 등)는 매번 확인 → 배포 직후 새 index.html 이 새 assets 를 가리킨다
+          aws s3 sync dist/assets "s3://$BUCKET/assets" --delete \
+            --cache-control "public,max-age=31536000,immutable"
+          aws s3 sync dist "s3://$BUCKET" --delete --exclude "assets/*" \
+            --cache-control "no-cache"
+      - name: CloudFront 무효화
+        run: |
+          ID=$(aws cloudfront create-invalidation --distribution-id "$DISTRIBUTION_ID" \
+            --paths "/index.html" "/" --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed --distribution-id "$DISTRIBUTION_ID" --id "$ID"
+      - name: 요약
+        run: |
+          {
+            echo "### dev 웹 배포: \`${GITHUB_SHA::7}\`"
+            echo "- https://dev.orbi-t.com"
+            echo "- s3://$BUCKET (index.html 무효화 완료)"
+          } >> "$GITHUB_STEP_SUMMARY"
