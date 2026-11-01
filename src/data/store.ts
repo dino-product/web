@@ -20,7 +20,7 @@ import {
   saveSession,
   takePendingKakaoLogin,
 } from '@/api/token';
-import type { CreateWorkBody, ProfileDto, WorkBody } from '@/api/types';
+import type { CreateWorkBody, LoginDto, ProfileDto, WorkBody } from '@/api/types';
 import { TYPE_COLOR_ORDER } from '@/data/constants';
 import {
   cancelReasonCode,
@@ -130,7 +130,8 @@ export interface AppState {
   startKakaoLogin: (returnTo: string) => Promise<void>;
   /**
    * 카카오 웹 로그인 복귀(/login/kakao?code=… 또는 ?error=…). 교환 코드를 Access Token으로 바꾸고 프로필·소속을 읽는다.
-   * 가입을 마치지 않은 계정이면 status='onboarding' → 약관 동의 모달부터 진행. 교환하기 전에 이 탭의 이전 세션을 로그아웃한다.
+   * 가입을 마치지 않은 계정이면 status='onboarding' → 약관 동의 모달부터 진행. 교환에 성공하면 이 탭의 이전 세션을 로그아웃하고,
+   * 교환이 실패하면 이전 세션을 복원한다.
    */
   completeKakaoLogin: (callback: { code: string | null; error: string | null }) => Promise<KakaoLoginResult>;
   logout: () => void;
@@ -412,10 +413,21 @@ export const useAppStore = create<AppState>()((set, get) => {
       void restoreSession();
       return failed;
     }
-    // 이전 세션은 새 로그인으로 바꾼다(앱 시작에서 복원하지 않았다). 이전 Access Token은 서버에서도 폐기한다.
-    if (getAccessToken()) get().logout();
-    const login = await call('카카오 로그인', () => authApi.kakaoExchange({ code, codeVerifier: pending.codeVerifier }));
-    if (!login) return failed;
+    // 교환이 실패하면 이전 세션을 그대로 복원한다. call()은 401을 저장된 토큰 무효로 보고 세션을 지우므로
+    // (교환의 AUTH-007은 저장된 토큰과 무관) 교환만 직접 처리한다.
+    const previousToken = getAccessToken();
+    let login: LoginDto;
+    try {
+      login = await authApi.kakaoExchange({ code, codeVerifier: pending.codeVerifier });
+    } catch (exchangeError) {
+      if (exchangeError instanceof NetworkError) set({ network: 'offline' });
+      logError('카카오 로그인', exchangeError);
+      void restoreSession();
+      return failed;
+    }
+    // 교환에 성공하면 이전 세션을 새 로그인으로 바꾼다(앱 시작에서 복원하지 않았다). 이전 Access Token은 서버에서도 폐기한다.
+    if (previousToken) void authApi.logout(previousToken).catch((logoutError) => logError('로그아웃', logoutError));
+    resetSession();
     saveSession(login.accessToken, login.accountId);
     const profile = await call('내 프로필', () => profileApi.get(login.accountId));
     if (!profile) {

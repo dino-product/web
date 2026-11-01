@@ -55,7 +55,7 @@ npm run dev        # http://localhost:5173
 
 1. 버튼: PKCE `code_verifier`를 만들어 이 탭의 sessionStorage `orbit:kakaoLogin`에 두고 `GET /auth/kakao/authorize?client=web&code_challenge=…`로 이동합니다.
 2. 서버가 카카오 로그인과 콜백(`/auth/kakao/callback`)을 거쳐 복귀 주소 `/login/kakao?code=…`로 돌려보냅니다. 실패·취소는 `?error=AUTH-xxx`입니다.
-3. `/login/kakao`가 `POST /auth/kakao/exchange {code, codeVerifier}`로 Access Token을 받고 프로필·소속을 읽습니다. 가입을 마친 계정은 원래 경로 또는 `/timetable`, 가입 전 계정은 `/login` 위 약관 동의 모달로 갑니다. 실패·취소는 오류 안내 시안이 없어 원래 경로를 유지한 채 `/login`으로 돌아오고 오류 코드는 콘솔에 남깁니다(취소 `AUTH-008`은 남기지 않음). 교환을 시작하면 이 탭의 이전 세션은 로그아웃하고(서버 토큰 폐기 포함) 새 로그인으로 바꿉니다.
+3. `/login/kakao`가 `POST /auth/kakao/exchange {code, codeVerifier}`로 Access Token을 받고 프로필·소속을 읽습니다. 가입을 마친 계정은 원래 경로 또는 `/timetable`, 가입 전 계정은 `/login` 위 약관 동의 모달로 갑니다. 실패·취소는 오류 안내 시안이 없어 원래 경로를 유지한 채 `/login`으로 돌아오고 오류 코드는 콘솔에 남깁니다(취소 `AUTH-008`은 남기지 않음). 교환에 성공하면 이 탭의 이전 세션은 로그아웃하고(서버 토큰 폐기 포함) 새 로그인으로 바꾸며, 교환이 실패하면 이전 세션을 그대로 복원합니다.
 
 로컬 서버 `.env`의 카카오 값은 모두 필수이며 비우면 서버가 기동하지 않습니다.
 

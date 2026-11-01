@@ -56,7 +56,7 @@ if (result === 'stale') {
 | 액션 | 반환·동작 |
 | --- | --- |
 | `startKakaoLogin(returnTo)` | `Promise<void>`; PKCE를 만들어 이 탭에 두고 서버 `GET /auth/kakao/authorize`로 이동한다(실패하면 콘솔만) |
-| `completeKakaoLogin({ code, error })` | `Promise<KakaoLoginResult>`(`status`: `loggedIn`·`onboarding`·`failed`, `returnTo`); 복귀 주소 `/login/kakao`(`KAKAO_CALLBACK_PATH`)의 교환 코드를 `POST /auth/kakao/exchange`로 토큰으로 바꾸고 프로필·소속·데이터를 읽는다. 교환 전에 이 탭의 이전 세션을 로그아웃하고, 교환하지 않는 실패·취소는 이전 세션을 복원한다. 같은 코드는 한 번만 교환한다 |
+| `completeKakaoLogin({ code, error })` | `Promise<KakaoLoginResult>`(`status`: `loggedIn`·`onboarding`·`failed`, `returnTo`); 복귀 주소 `/login/kakao`(`KAKAO_CALLBACK_PATH`)의 교환 코드를 `POST /auth/kakao/exchange`로 토큰으로 바꾸고 프로필·소속·데이터를 읽는다. 교환에 성공하면 이 탭의 이전 세션을 로그아웃(서버 토큰 폐기)하고, 교환이 실패하거나 교환하지 않는 실패·취소는 이전 세션을 복원한다. 같은 코드는 한 번만 교환한다 |
 | `registerProfile`, `createCompany`, `withdrawAccount` | `Promise<boolean>`; 성공 여부로 다음 화면 진행을 결정한다 |
 | `createTask`, `addType` | `Promise<ID \| null>`; 생성 ID 또는 실패 |
 | `assignTask` | `Promise<AssignResult>`: `applied` / `stale` / `failed`. 서버 버전을 `expectedVersion`으로 보낸다 |

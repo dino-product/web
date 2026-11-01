@@ -38,7 +38,8 @@ export type MemberCategoryPath = 'staff-categories' | 'technician-categories';
 
 export const authApi = {
   me: () => http.get<AccountDto>('/auth/me'),
-  logout: () => http.post<void>('/auth/logout'),
+  /** 기본은 저장된 Access Token을 폐기한다. 새 로그인으로 바꾼 뒤 이전 토큰을 폐기할 때만 token을 넘긴다. */
+  logout: (token?: string) => http.post<void>('/auth/logout', undefined, token === undefined ? undefined : { token }),
   /** 카카오 웹 로그인 시작 주소. 브라우저로 열면 서버가 카카오 로그인을 거쳐 복귀 주소(/login/kakao)로 돌려보낸다. */
   kakaoAuthorizeUrl: (codeChallenge: string) =>
     apiUrl('/auth/kakao/authorize', { client: 'web', code_challenge: codeChallenge, code_challenge_method: 'S256' }),
