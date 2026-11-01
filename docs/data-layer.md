@@ -7,7 +7,7 @@
 | 파일 | 내용 |
 | --- | --- |
 | `src/api/http.ts` | `/api/v1`, Bearer 토큰, 공통 응답 봉투, `ApiError`·`NetworkError`, 파일 응답, 브라우저 이동용 `apiUrl` |
-| `src/api/token.ts` | 토큰·계정 ID·선택 발주사 localStorage 저장, 카카오 로그인 시작 정보(PKCE verifier·돌아갈 경로) sessionStorage 저장 |
+| `src/api/token.ts` | 토큰·계정 ID·선택 발주사 localStorage 저장(세션 정리는 저장소 값이 이 탭의 토큰일 때만 지워 다른 탭의 새 로그인을 남김), 카카오 로그인 시작 정보(PKCE verifier·돌아갈 경로) sessionStorage 저장 |
 | `src/api/endpoints.ts` | 인증·프로필·조직·작업·알림 API 경로와 요청 |
 | `src/api/types.ts` | 서버 DTO·요청 타입 |
 | `src/data/types.ts` | 화면 도메인 타입 |

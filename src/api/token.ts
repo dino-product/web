@@ -42,11 +42,17 @@ export function saveSession(accessToken: string, accountId: number): void {
   write(ACCOUNT_KEY, String(accountId));
 }
 
+/**
+ * 이 탭의 세션을 지운다. 저장소 값은 아직 이 탭의 토큰일 때만 지운다. 다른 탭이 그사이 새로 로그인했으면
+ * (이 탭의 만료·폐기된 토큰이 404·401을 받아도) 그 탭의 새 세션을 남겨 새로고침 뒤에도 유지되게 한다.
+ */
 export function clearSession(): void {
+  if (read(TOKEN_KEY) === memoryToken) {
+    write(TOKEN_KEY, null);
+    write(ACCOUNT_KEY, null);
+  }
   memoryToken = null;
   memoryAccountId = null;
-  write(TOKEN_KEY, null);
-  write(ACCOUNT_KEY, null);
 }
 
 /** 마지막으로 고른 발주사(사이드바 발주사 전환). 새로고침 뒤에도 같은 발주사로 연다. */
