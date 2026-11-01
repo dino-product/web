@@ -19,7 +19,7 @@
 - 레이아웃은 1920px 캔버스 기준입니다. Figma 오토레이아웃은 flex/grid로, 고정 배치는 Figma 수치로 옮깁니다. `vh`·`vw`는 쓰지 않고 높이는 `var(--app-height)`를 씁니다.
 - 모달·드롭다운 포털 대상은 `#overlay-root`입니다.
 - 화면은 `useAppStore`(`src/data/store.ts`)와 `src/data/selectors.ts`로 읽고, `src/data/sync.ts` 훅으로 동기화합니다. 쓰기는 스토어 액션을 호출하고 비동기 결과를 기다립니다.
-- 서버 호출은 `src/api/endpoints.ts`, DTO↔화면 도메인 변환은 `src/data/mappers.ts`에 모읍니다. 임시 개발 로그인(`src/api/devAuth.ts`)의 직접 인증 호출은 제거 예정인 예외입니다.
+- 서버 호출은 `src/api/endpoints.ts`, DTO↔화면 도메인 변환은 `src/data/mappers.ts`에 모읍니다.
 - `../server/` 코드가 API 계약의 기준이며 프론트 흐름에 맞추려고 서버 코드를 바꾸지 않습니다. 화면별 연결·제약은 [백엔드 연동 가이드](../api-integration-guide.html)를 참고합니다.
 - 작업 상태 표기는 `TASK_STATUS_LABEL`을 씁니다(등록·배정됨·작업전·작업중·완료·취소, 거절·지연은 배지).
 - 소유하지 않은 경로는 수정하지 않습니다([소유권](docs/ui-plan.md#6-공통-계약과-파일-소유권)).

@@ -40,11 +40,12 @@ export type QueryValue = string | number | boolean | null | undefined | readonly
 export interface RequestOptions {
   query?: Record<string, QueryValue>;
   body?: unknown;
-  /** 기본은 저장된 Access Token. 다른 계정 토큰으로 부를 때만 넘긴다(임시 개발 로그인). */
+  /** 기본은 저장된 Access Token. 로그인 교환처럼 토큰 없이 부를 때만 null을 넘긴다. */
   token?: string | null;
 }
 
-function buildUrl(path: string, query?: Record<string, QueryValue>): string {
+/** API 주소. fetch 대신 브라우저를 이동시키는 경로(카카오 웹 로그인 시작)도 이 주소로 연다. */
+export function apiUrl(path: string, query?: Record<string, QueryValue>): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value == null || value === '') continue;
@@ -77,7 +78,7 @@ export async function request<T>(method: string, path: string, options: RequestO
 
   let response: Response;
   try {
-    response = await fetch(buildUrl(path, options.query), {
+    response = await fetch(apiUrl(path, options.query), {
       method,
       headers,
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
@@ -111,7 +112,7 @@ export async function requestBlob(path: string, query?: Record<string, QueryValu
   const token = getAccessToken();
   let response: Response;
   try {
-    response = await fetch(buildUrl(path, query), { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    response = await fetch(apiUrl(path, query), { headers: token ? { Authorization: `Bearer ${token}` } : {} });
   } catch (error) {
     throw new NetworkError(error);
   }

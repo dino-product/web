@@ -2,10 +2,11 @@
 // VIEWPORT=1440x900 overrides the browser viewport. Services must already be running.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { createHmac, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { devAccessToken } from './dev-token.mjs';
 
 const started = Date.now();
 const root = fileURLToPath(new URL('..', import.meta.url));
@@ -41,8 +42,45 @@ async function option(page, trigger, name) {
   await page.locator(trigger).click();
   await page.getByRole('option', { name, exact: true }).click();
 }
-async function login(env, path = '/timetable', persona = '') {
-  await go(env.page, `/login${persona}`);
+// Real Kakao needs a real Kakao account, so only the server's Kakao web endpoints are stubbed: authorize
+// returns straight to the callback route, and exchange checks the PKCE pair and returns a locally signed
+// token for the given account. Everything from the login button to the session is the app's real flow.
+let exchangeCodes = 0;
+async function stubKakao(env, accountId) {
+  const { page } = env;
+  let challenge;
+  const exchanged = new Set();
+  env.expectedErrors.push({ method: 'GET', path: '/api/v1/auth/kakao/authorize', status: 302, code: '' });
+  await page.route((url) => url.pathname === '/api/v1/auth/kakao/authorize', (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    challenge = params.get('code_challenge');
+    if (params.get('client') !== 'web' || params.get('code_challenge_method') !== 'S256' || !/^[\w-]{43}$/.test(challenge ?? '')) {
+      env.errors.push(`Unexpected Kakao authorize query: ${params}`);
+    }
+    return route.fulfill({ status: 302, headers: { location: `${BASE}/login/kakao?code=check-flows-${++exchangeCodes}` } });
+  });
+  await page.route((url) => url.pathname === '/api/v1/auth/kakao/exchange', (route) => {
+    // Like the server, a code is single-use: a second exchange (e.g. a StrictMode double effect) gets AUTH-007 and fails the flow.
+    const { code, codeVerifier } = route.request().postDataJSON();
+    const valid = code === `check-flows-${exchangeCodes}` && !exchanged.has(code) && createHash('sha256').update(codeVerifier ?? '').digest('base64url') === challenge;
+    exchanged.add(code);
+    return route.fulfill(valid
+      ? { json: { success: true, code: 'COMMON-200', message: '요청에 성공했습니다.', result: { accountId, registered: false, accessToken: devAccessToken(accountId, 3600) } } }
+      : { status: 401, json: { success: false, code: 'AUTH-007', message: '로그인 교환 코드가 유효하지 않거나 만료되었습니다. 다시 로그인해 주세요.' } });
+  });
+}
+// First seeded account that has not finished signup (each onboarding run completes one).
+async function unfinishedAccountId() {
+  for (const id of seed.newAccountIds) {
+    const r = await fetch(`${BASE}/api/v1/profiles/${id}`, { headers: { Authorization: `Bearer ${devAccessToken(id, 60)}` } });
+    if (!r.ok) throw new Error(`GET /profiles/${id}: ${r.status} ${await r.text()}`);
+    if ((await r.json()).result?.nextStep !== 'COMPLETED') return id;
+  }
+  throw new Error('No unfinished seeded account left. Run npm run seed:local again.');
+}
+async function login(env, path = '/timetable', person = '오르빗') {
+  await stubKakao(env, seed.accountIds[person]);
+  await go(env.page, '/login');
   await button(env.page, '카카오 로그인').click();
   await env.page.waitForURL('**/timetable');
   await env.page.locator('main [aria-label="다음 날짜"]').waitFor();
@@ -80,14 +118,7 @@ async function drag(page, id, name, time) {
   await textIncludes(overlay(page), '배정 확인');
 }
 function staffToken() {
-  const values = Object.fromEntries(readFileSync(`${root}/.env.development.local`, 'utf8').split('\n').filter((line) => line.includes('=')).map((line) => {
-    const index = line.indexOf('=');
-    return [line.slice(0, index), line.slice(index + 1).trim().replace(/^["']|["']$/g, '')];
-  }));
-  const now = Math.floor(Date.now() / 1000);
-  const encode = (value) => Buffer.from(JSON.stringify(value)).toString('base64url');
-  const unsigned = `${encode({ alg: 'HS256' })}.${encode({ iss: values.VITE_DEV_AUTH_JWT_ISSUER ?? 'orbit', sub: String(seed.accountIds['김운영']), jti: randomUUID(), iat: now, exp: now + 3600, token_use: 'access' })}`;
-  return `${unsigned}.${createHmac('sha256', values.VITE_DEV_AUTH_JWT_SECRET).update(unsigned).digest('base64url')}`;
+  return devAccessToken(seed.accountIds['김운영'], 3600);
 }
 
 const flows = {
@@ -303,7 +334,7 @@ const flows = {
   },
   async staff(env) {
     const { page } = env;
-    await login(env, '/timetable', '?role=staff');
+    await login(env, '/timetable', '김운영');
     await textIncludes(page.locator('main'), '등록된 기사가 없어요');
     await go(page, '/mypage/withdraw');
     await page.locator('main label:has-text("탈퇴에 동의합니다")').click();
@@ -313,7 +344,8 @@ const flows = {
   },
   async onboarding(env) {
     const { page } = env;
-    await go(page, '/login?user=new');
+    await stubKakao(env, await unfinishedAccountId());
+    await go(page, '/login');
     await button(page, '카카오 로그인').click();
     await page.locator('#overlay-root label:has-text("전체 동의")').click();
     await button(page, '동의하고 계속하기').click();
