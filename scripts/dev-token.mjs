@@ -33,8 +33,16 @@ export function devAccessToken(accountId, ttlSeconds = 86400) {
   return `${unsigned}.${createHmac('sha256', secret).update(unsigned).digest('base64url')}`;
 }
 
-// Compare real paths so running through a symlink still counts as the CLI.
-if (process.argv[1] && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url))) {
+// Compare real paths so running through a symlink still counts as the CLI. A missing or virtual
+// argv[1] (some runners) just means this module was imported, not run.
+function isCli() {
+  try {
+    return Boolean(process.argv[1]) && realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url));
+  } catch {
+    return false;
+  }
+}
+if (isCli()) {
   const accountId = Number(process.argv[2]);
   if (!Number.isInteger(accountId) || accountId <= 0) throw new Error('Usage: node scripts/dev-token.mjs <accountId>');
   console.log(devAccessToken(accountId));
