@@ -13,7 +13,7 @@ import styles from './WithdrawPage.module.css';
  * 계정 탈퇴(/mypage/withdraw).
  * - 총관리자인 발주사가 있거나 서버 탈퇴 가능 여부가 '유일한 총관리자'(SOLE_OWNER)면 탈퇴 불가 화면(921:3702).
  *   서버는 아직 총관리자 탈퇴 차단을 판정하지 않으므로(organization HM-319 예정) 화면 규칙(총관리자 소속)도 함께 본다.
- * - 그 밖(직원, 개발 로그인 ?role=staff)은 동의 전(1230:5227)·동의 후(1325:8866) → 탈퇴 확인 모달(2277:12258) → withdrawAccount → /login
+ * - 그 밖(직원)은 동의 전(1230:5227)·동의 후(1325:8866) → 탈퇴 확인 모달(2277:12258) → withdrawAccount → /login
  */
 export default function WithdrawPage() {
   useWithdrawalEligibilitySync();

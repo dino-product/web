@@ -11,6 +11,14 @@ export interface AccountDto {
   accessTokenExpiresAt: string;
 }
 
+/** 로그인 결과(웹 로그인 교환 응답). registered는 이번 로그인으로 계정이 처음 만들어졌는지 */
+export interface LoginDto {
+  accountId: number;
+  registered: boolean;
+  accessToken: string;
+  accessTokenExpiresAt: string;
+}
+
 export type SignupStep = 'PROFILE' | 'TERMS' | 'COMPLETED';
 
 export interface ProfileDto {

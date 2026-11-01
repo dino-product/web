@@ -2,7 +2,7 @@
  * 백엔드 API 목록. 경로·쿼리·본문은 서버 OpenAPI(`/docs-json`) 그대로이며, 화면별 사용처는 저장소 루트의
  * api-integration-guide.html에 정리했다. 여기서는 형식만 맞추고 화면 도메인 변환은 src/data/mappers.ts가 한다.
  */
-import { http, requestBlob } from '@/api/http';
+import { apiUrl, http, requestBlob } from '@/api/http';
 import type {
   AccountDto,
   BacklogSummaryDto,
@@ -12,6 +12,7 @@ import type {
   CreateWorkBody,
   DecisionResultDto,
   IndustryCode,
+  LoginDto,
   MembershipDto,
   NotificationPageDto,
   OrganizationDto,
@@ -38,6 +39,12 @@ export type MemberCategoryPath = 'staff-categories' | 'technician-categories';
 export const authApi = {
   me: () => http.get<AccountDto>('/auth/me'),
   logout: () => http.post<void>('/auth/logout'),
+  /** 카카오 웹 로그인 시작 주소. 브라우저로 열면 서버가 카카오 로그인을 거쳐 복귀 주소(/login/kakao)로 돌려보낸다. */
+  kakaoAuthorizeUrl: (codeChallenge: string) =>
+    apiUrl('/auth/kakao/authorize', { client: 'web', code_challenge: codeChallenge, code_challenge_method: 'S256' }),
+  /** 복귀 주소의 일회성 교환 코드(60초)와 시작할 때 만든 code_verifier로 Access Token을 받는다. */
+  kakaoExchange: (body: { code: string; codeVerifier: string }) =>
+    http.post<LoginDto>('/auth/kakao/exchange', body, { token: null }),
 };
 
 export const profileApi = {
