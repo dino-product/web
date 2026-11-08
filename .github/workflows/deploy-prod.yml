@@ -43,7 +43,8 @@ jobs:
           # 해시 붙은 assets/ 는 1년 immutable, 나머지(index.html 등)는 매번 확인 → 배포 직후 새 index.html 이 새 assets 를 가리킨다
           aws s3 sync dist/assets "s3://$BUCKET/assets" --delete \
             --cache-control "public,max-age=31536000,immutable"
-          aws s3 sync dist "s3://$BUCKET" --delete --exclude "assets/*" \
+          # terms/ 는 약관 본문(서버 GET /api/v1/terms 가 주소를 준다). 웹 빌드에 없으므로 --delete 로 지우지 않는다
+          aws s3 sync dist "s3://$BUCKET" --delete --exclude "assets/*" --exclude "terms/*" \
             --cache-control "no-cache"
       - name: CloudFront 무효화
         run: |
