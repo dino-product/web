@@ -746,7 +746,7 @@ async function seedWork(spec) {
         if (i > 0) {
           // 같은 작업의 요청 간격 30분: 지금까지의 사건을 먼저 목표 시각(과거)으로 옮겨 마지막 요청을 30분 전보다 앞으로 보낸다
           await sleep(300);
-          await remapRows(workSpecs(workId), knotMapper(trace.knots));
+          await remapRows(workSpecs(workId), knotMapper(trace.knots), { from: cutoff });
           const { rows } = await db.query('SELECT id FROM work_completion_report_requests WHERE work_id = $1 ORDER BY id', [workId]);
           for (const [j, row] of rows.entries()) {
             await db.query('UPDATE work_completion_report_requests SET requested_at=$2, created_at=$2, updated_at=$2 WHERE id=$1',
