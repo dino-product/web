@@ -129,6 +129,8 @@ if (result === 'stale') {
 
 `workIds`의 `demo-pending`, `demo-accepted`, `demo-in-progress`, `demo-delayed`, `demo-completed`, `demo-no-report`, `demo-rejected`, `demo-conflict`, `demo-stale`, `task-01` 등은 **검색용 라벨이지 라우트 ID가 아니다**. `/tasks/<workIds의 숫자>`, `/board/<숫자>`로 연다. `demo-stale`은 일반 등록 작업이며 자동 충돌 트리거가 아니다. 동시 배정으로 서버 버전이 달라져야 변경정보 모달이 열린다.
 
+공용 dev DB에 목데이터를 더하는 `npm run seed:dev`는 TRUNCATE·FLUSHDB 없이 시드 범위만 다룬다. [dev-seed.md](dev-seed.md)를 본다.
+
 ## 5. 정의와 규칙
 
 - **작업 상태**: 기사·날짜·시작 시각·소요 시간이 모두 있어야 배정 상태다(`hasFullAssignment`). 등록은 대기함, 배정됨·작업전·작업중·완료는 격자·보드(`isScheduledStatus`). 거절은 `status: 'REGISTERED'` + `rejection`(기사·시간은 비워진다), 지연은 `delayed: true` 배지다. 표기는 `TASK_STATUS_LABEL`.

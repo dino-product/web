@@ -25,21 +25,7 @@ npm run dev        # http://localhost:5173
 
 **주의:** 서버 local 프로필은 `create-drop`이며, `seed:local`은 로컬 Postgres public 테이블 전체와 Redis DB를 초기화합니다. 보존할 데이터가 없는 로컬 환경에서만 실행합니다. 시드는 `.dev-seed.json`을 생성하고, 이전 시드가 `.env.development.local`에 쓴 `VITE_DEV_*` 값은 지웁니다. DB 기본 포트는 54321, Redis는 6379이며 별도 DB는 시드의 `DATABASE_*`/`PG*` 환경 변수를 맞춥니다.
 
-**배포 dev 시드(`npm run seed:dev`):** 실운영 전 초기화할 공용 dev DB(`orbit_dev`)에 목데이터를 **더합니다**. 기존 행은 지우지 않고, 시드가 만든 계정·발주사 식별자를 `.seed-dev.<target>.json`에 기록해 그 범위에서만 SQL을 씁니다.
-
-```bash
-# 1) 로컬 리허설: 위 서버(docker compose의 postgres·redis·localstack + bootRun)를 띄운 상태
-npm run seed:dev -- --target=local
-# 2) dev 적용: Orbit 계정 SSO 프로필, RDS 터널(Orbit-DevRdsPortForward, 127.0.0.1:15432)을 연 상태
-AWS_PROFILE=orbit-dev npm run seed:dev -- --target=dev --confirm-dev
-# 대조표만 다시 보기 / 시드 범위만 지우기(S3 사진 객체는 남음)
-AWS_PROFILE=orbit-dev npm run seed:dev -- --target=dev --confirm-dev --report
-AWS_PROFILE=orbit-dev npm run seed:dev -- --target=dev --confirm-dev --rollback
-```
-
-- 사진은 git에 없는 `.seed-assets/{site,before,after}/{install,inspect,repair,clean}-NN.jpg`(Codex imagegen 생성)를 업로드 주소 발급 → S3 PUT → 작업 저장으로 넣습니다. 폴더가 없으면 시드가 멈춥니다.
-- 지난 작업은 API로 끝까지 진행한 뒤 그 작업의 시각만 목표 날짜로 옮깁니다. 진행 보드 캐시가 60초라 직후 화면은 1분 뒤 확인합니다.
-- 시드 계정은 가짜 카카오·애플 ID라 카카오 로그인으로 들어갈 수 없습니다. 화면 확인은 `node scripts/dev-token.mjs <accountId>`(dev는 `AUTH_JWT_SECRET`을 dev 값으로)로 만든 토큰을 localStorage `orbit:accessToken`·`orbit:accountId`에 넣어 합니다.
+**배포 dev 목데이터(`npm run seed:dev`):** 공용 dev DB(`orbit_dev`)에 목데이터를 기존 행을 지우지 않고 더합니다. 들어 있는 데이터, 계정 전환, 실행·되돌리기는 [docs/dev-seed.md](docs/dev-seed.md)에 있습니다.
 
 - Vite는 `/api`를 `http://localhost:8080`으로 프록시합니다. 대상 변경은 `VITE_API_PROXY_TARGET`으로 지정합니다.
 - `npm run typecheck`: 타입 검사, `npm run build`: 타입 검사·프로덕션 빌드, `npm run preview`: 빌드 미리보기입니다.
