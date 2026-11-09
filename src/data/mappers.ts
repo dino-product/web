@@ -26,11 +26,13 @@ import type {
   ScheduledWorkDto,
   TechnicianRefDto,
   WorkDetailDto,
+  WorkHistoryDto,
+  WorkHistoryStatus,
   WorkStatus,
   WorkSummaryDto,
   WorkTypeDto,
 } from '@/api/types';
-import { dateTimeToMs, toHourMinute, toIsoDate, toIsoDateTime } from '@/lib/date';
+import { dateTimeToMs, parseIsoDate, startOfMonth, toHourMinute, toIsoDate, toIsoDateTime } from '@/lib/date';
 import { joinReportContent } from '@/lib/format';
 import { CANCEL_REASONS, HISTORY_LABEL, INDUSTRIES, PAYMENT_METHODS } from '@/data/constants';
 import type {
@@ -45,6 +47,7 @@ import type {
   NotificationType,
   Task,
   TaskHistoryEntry,
+  TechnicianHistoryRow,
   TypeCategory,
   TypeColor,
   TypeItem,
@@ -198,6 +201,25 @@ export function toUtcIso(date: IsoDate, time: HourMinute): string {
 export function dayRange(date: IsoDate): { from: string; to: string } {
   const start = dateTimeToMs(date, '00:00');
   return { from: new Date(start).toISOString(), to: new Date(start + 24 * 60 * 60 * 1000).toISOString() };
+}
+
+/** 그 달 다음 달 1일(Asia/Seoul 날짜) */
+function nextMonthStart(date: IsoDate): IsoDate {
+  const { year, month } = parseIsoDate(date);
+  return month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, '0')}-01`;
+}
+
+/**
+ * from이 속한 달부터 until이 속한 달까지를 Asia/Seoul 달마다 서버 구간 [from, to)로 나눈다(작업 이력 API는 한 번에
+ * 31일까지). month는 그 달 1일이며 이번 달 집계를 고를 때 쓴다.
+ */
+export function monthRanges(from: IsoDate, until: IsoDate): { month: IsoDate; from: string; to: string }[] {
+  const ranges = [];
+  const end = nextMonthStart(until);
+  for (let month = startOfMonth(from); month < end; month = nextMonthStart(month)) {
+    ranges.push({ month, from: toUtcIso(month, '00:00'), to: toUtcIso(nextMonthStart(month), '00:00') });
+  }
+  return ranges;
 }
 
 type ScheduleFields = Pick<Task, 'date' | 'startTime' | 'durationMinutes'>;
@@ -565,4 +587,20 @@ export function taskFromDetail(d: WorkDetailDto, lookup: MemberLookup): TaskPatc
         : null,
     },
   };
+}
+
+/** 기사 작업 이력 응답(GET /work-history, statuses=result로 거른 것) → 이력 줄 */
+export function technicianHistoryRows(dto: WorkHistoryDto, result: WorkHistoryStatus): TechnicianHistoryRow[] {
+  return dto.works.map((w) => ({
+    key: `${result}-${w.workId}-${w.assignmentNumber}`,
+    taskId: toId(ID_PREFIX.plain, w.workId),
+    title: w.name,
+    workTypeId: workTypeId(w.workType),
+    result,
+    date: toIsoDate(w.startTime),
+    durationMinutes:
+      (result === 'COMPLETED' ? minutesBetween(w.startedAt, w.completedAt) : null) ??
+      minutesBetween(w.startTime, w.endTime),
+    reportSubmitted: result === 'COMPLETED',
+  }));
 }

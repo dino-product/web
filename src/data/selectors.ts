@@ -12,10 +12,8 @@
  */
 import { useMemo } from 'react';
 
-import { clockNow, hmToMinutes, isSameMonth, toIsoDate, today } from '@/lib/date';
-import { HISTORY_LABEL } from '@/data/constants';
+import { hmToMinutes } from '@/lib/date';
 import {
-  actorName,
   getTaskEndMs,
   getTaskEndTime,
   getTaskStartMs,
@@ -38,6 +36,7 @@ import type {
   Member,
   Task,
   TaskAssignment,
+  TechnicianHistory,
   TypeCategory,
   TypeItem,
 } from '@/data/types';
@@ -248,56 +247,6 @@ export function getTechnicianOpenTasks(tasks: Task[], memberId: ID): TechnicianO
   };
 }
 
-/** 기사 작업이력 한 줄 */
-export interface TechnicianHistoryRow {
-  task: Task;
-  /** 이 기사 기준 결과 */
-  result: 'COMPLETED' | 'REJECTED';
-  /** 담당 날짜: 완료는 작업 날짜, 거절은 거절한 날짜 */
-  date: IsoDate;
-  /** 완료 보고 제출 여부(거절은 false → '-') */
-  reportSubmitted: boolean;
-}
-
-/** 기사 작업이력(Figma 1550:8288) */
-export interface TechnicianHistory {
-  /** 완료·거절 작업, 담당 날짜 최신순 */
-  rows: TechnicianHistoryRow[];
-  /** 전체 누적 완료 */
-  totalCompleted: number;
-  /** 이번 달 거절 */
-  monthRejected: number;
-  /** 이번 달 완료 */
-  monthCompleted: number;
-}
-
-/**
- * 기사 작업이력: 이 기사가 완료한 작업과 거절한 작업(다른 기사에게 다시 배정된 작업 포함, 상태 변경 이력 기준).
- * '이번 달'은 Asia/Seoul 오늘이 속한 달.
- */
-export function getTechnicianHistory(tasks: Task[], member: Member, now: number = clockNow()): TechnicianHistory {
-  const rejectedLabel = actorName(member);
-  const rows: TechnicianHistoryRow[] = [];
-  for (const task of tasks) {
-    if (task.technicianId === member.id && task.status === 'COMPLETED') {
-      rows.push({ task, result: 'COMPLETED', date: task.date ?? toIsoDate(task.updatedAt), reportSubmitted: Boolean(task.report) });
-    }
-    for (const entry of task.history) {
-      if (entry.label === HISTORY_LABEL.rejected && entry.actor === rejectedLabel) {
-        rows.push({ task, result: 'REJECTED', date: toIsoDate(entry.at), reportSubmitted: false });
-      }
-    }
-  }
-  rows.sort((a, b) => b.date.localeCompare(a.date));
-  const thisMonth = today(now);
-  return {
-    rows,
-    totalCompleted: rows.filter((r) => r.result === 'COMPLETED').length,
-    monthRejected: rows.filter((r) => r.result === 'REJECTED' && isSameMonth(r.date, thisMonth)).length,
-    monthCompleted: rows.filter((r) => r.result === 'COMPLETED' && isSameMonth(r.date, thisMonth)).length,
-  };
-}
-
 /** 작업을 등록한 인력 목록(작업 목록 '등록자' 필터), 이름순 */
 export function getRegistrants(tasks: Task[], members: Member[]): Member[] {
   const ids = new Set(tasks.filter((t) => t.status !== 'CANCELED').map((t) => t.registrantId));
@@ -423,11 +372,10 @@ export function useTechnicianOpenTasks(memberId: ID): TechnicianOpenTasks {
   return useMemo(() => getTechnicianOpenTasks(tasks, memberId), [tasks, memberId]);
 }
 
-/** 기사 작업이력. 인력이 없으면 undefined */
-export function useTechnicianHistory(memberId: ID): TechnicianHistory | undefined {
-  const tasks = useAppStore((s) => s.tasks);
-  const member = useMember(memberId);
-  return useMemo(() => (member ? getTechnicianHistory(tasks, member) : undefined), [tasks, member]);
+/** 기사 작업이력. from부터 읽은 이 기사의 이력이 아니면(읽기 전·다른 기사·다른 기간) undefined */
+export function useTechnicianHistory(memberId: ID, from: IsoDate): TechnicianHistory | undefined {
+  const history = useAppStore((s) => s.technicianHistory);
+  return history?.memberId === memberId && history.from === from ? history : undefined;
 }
 
 /** 작업 등록자 목록(작업 목록 '등록자' 필터) */

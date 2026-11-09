@@ -7,6 +7,7 @@
  *   발주사에서도 등록할 수 있게 필수에서 뺐다.
  * - 저장: createTask. 시작 시간을 고르면 날짜는 TaskRegisterDateContext(타임테이블이 보고 있는 날짜, 없으면 오늘).
  *   기사·시작 시간·소요 시간이 모두 있으면 배정됨, 하나라도 없으면 등록(대기함).
+ * - 현장 사진: 최대 6장. 저장하면 장마다 업로드 주소를 받아 올린 뒤 등록에 붙인다(store createTask).
  * - 주소 검색: 팝업 시안이 없어 샘플 주소를 채우는 동작만 한다(주소 검색 API 없음).
  */
 import clsx from 'clsx';
@@ -51,7 +52,8 @@ interface FormState {
   addressDetail: string;
   price: string;
   paymentMethod: string | null;
-  photos: string[];
+  /** 고른 현장 사진(파일과 미리보기 data URL). 등록할 때 파일을 올린다 */
+  photos: { file: File; preview: string }[];
 }
 
 const EMPTY_FORM: FormState = {
@@ -115,8 +117,10 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
     event.target.value = '';
     if (!files.length) return;
     const room = MAX_SITE_PHOTOS - form.photos.length;
-    const urls = await Promise.all(files.slice(0, Math.max(0, room)).map(readAsDataUrl));
-    setForm((prev) => ({ ...prev, photos: [...prev.photos, ...urls].slice(0, MAX_SITE_PHOTOS) }));
+    const picked = files.slice(0, Math.max(0, room));
+    const previews = await Promise.all(picked.map(readAsDataUrl));
+    const added = picked.map((file, index) => ({ file, preview: previews[index] }));
+    setForm((prev) => ({ ...prev, photos: [...prev.photos, ...added].slice(0, MAX_SITE_PHOTOS) }));
   };
 
   const handleSave = () =>
@@ -145,9 +149,9 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
         customer,
         price: priceDigits ? Number(priceDigits) : null,
         paymentMethod: form.paymentMethod,
-        sitePhotoUrls: form.photos,
+        sitePhotos: form.photos.map((photo) => photo.file),
       });
-      // 등록에 실패하면(서버 오류) 입력값을 지우지 않도록 모달을 닫지 않는다. 오류 코드는 콘솔에 남는다.
+      // 등록·사진 업로드에 실패하면(서버 오류) 입력값을 지우지 않도록 모달을 닫지 않는다. 오류 코드는 콘솔에 남는다.
       if (!id) return;
       onCreated?.(id);
       onClose();
@@ -317,8 +321,13 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
                     <span className="t-caption-m-medium">사진 첨부</span>
                   </button>
                 )}
-                {form.photos.map((url, index) => (
-                  <img key={`${index}-${url.length}`} className={styles.photo} src={url} alt={`현장 사진 ${index + 1}`} />
+                {form.photos.map((photo, index) => (
+                  <img
+                    key={`${index}-${photo.file.name}`}
+                    className={styles.photo}
+                    src={photo.preview}
+                    alt={`현장 사진 ${index + 1}`}
+                  />
                 ))}
                 {Array.from({ length: photoSlots }, (_, index) => (
                   <span key={`slot-${index}`} className={styles.photoSlot}>

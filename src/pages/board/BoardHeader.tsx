@@ -12,6 +12,7 @@ interface BoardHeaderProps {
 
 /**
  * 진행 보드 머리말(1892:12832): 제목, 날짜 + '실시간 갱신 중', 오른쪽 '연결 끊김 안내'(560:2862).
+ * 작업이 저장되면 실시간 연결(src/data/realtime.ts)이 보드를 다시 읽는다. 서버에 닿지 못하면 보드 대신 연결 실패 화면이 뜬다.
  * '연결 끊김 안내'는 목적지 시안이 없어 동작하지 않는 문구로 둔다.
  */
 export default function BoardHeader({ dateLabel }: BoardHeaderProps) {

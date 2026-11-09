@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 
 import { Avatar, Icon, MemberStatusChip, StateMessage, StatusChip } from '@/design-system';
-import { addDays, today } from '@/lib/date';
+import { addDays, toIsoDate, today } from '@/lib/date';
 import { formatDuration, formatJoinDate } from '@/lib/format';
 import { useActiveTypes, useMember, useTechnicianHistory } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
@@ -39,6 +39,8 @@ const PERIOD_DAYS: Record<PeriodKey, number | null> = { '1m': 30, '3m': 90, all:
  * - 상단 경로 '기사 관리 / 작업이력'('기사 관리' → 인력관리), 인력 카드(이니셜·이름·구분·유형·참여일·상태), 통계 3개
  * - 필터 3개(작업유형·기간·상태). 시안 표기(설치·최근 1개월·완료)를 처음 값으로 쓰고, 목록 패널은 DS Menu.
  * - 표: 작업명·작업유형·상태(완료/거절)·담당 날짜·소요시간·완료보고, 10건씩 페이지.
+ * - 이력·통계는 서버 기사 작업 이력(GET /work-history)을 기간 시작 달부터 이번 달까지 달마다 읽는다. 기간을 바꾸면 다시 읽고,
+ *   작업유형·상태는 읽은 줄을 화면에서 거른다.
  */
 export default function MemberHistoryPage() {
   const { memberId = '' } = useParams();
@@ -52,8 +54,6 @@ export default function MemberHistoryPage() {
 
 function MemberHistory({ member }: { member: Member }) {
   const navigate = useNavigate();
-  useTechnicianHistorySync(member.id);
-  const history = useTechnicianHistory(member.id);
   const typeName = useTypeName(member.typeId);
   const workTypes = useActiveTypes('WORK');
 
@@ -66,17 +66,21 @@ function MemberHistory({ member }: { member: Member }) {
   const [result, setResult] = useState<ResultKey>('COMPLETED');
   const [page, setPage] = useState(1);
 
+  // 기간의 시작 날짜. 전체 기간은 이 인력이 발주사에 참여한 날부터 읽는다.
+  const days = PERIOD_DAYS[period];
+  const from = days === null ? toIsoDate(member.joinedAt) : addDays(today(), -days);
+  useTechnicianHistorySync(member.id, from);
+  const history = useTechnicianHistory(member.id, from);
+
   const rows = useMemo(() => {
     if (!history) return [];
-    const days = PERIOD_DAYS[period];
-    const from = days === null ? null : addDays(today(), -days);
     return history.rows.filter(
       (row) =>
-        (workType === 'ALL' || row.task.workTypeId === workType) &&
+        (workType === 'ALL' || row.workTypeId === workType) &&
         (result === 'ALL' || row.result === result) &&
-        (from === null || row.date >= from),
+        row.date >= from,
     );
-  }, [history, workType, period, result]);
+  }, [history, workType, result, from]);
 
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
@@ -90,7 +94,8 @@ function MemberHistory({ member }: { member: Member }) {
     };
 
   const subtitle = `${MEMBER_KIND_LABEL[member.kind]} · ${typeName} · ${formatJoinDate(member.joinedAt)} 참여`;
-  const empty = pageRows.length === 0;
+  // 읽기 전에는 '작업이력이 없습니다.'를 띄우지 않는다.
+  const empty = Boolean(history) && pageRows.length === 0;
 
   return (
     <div className={styles.page}>
@@ -149,12 +154,12 @@ function MemberHistory({ member }: { member: Member }) {
           </span>
         </div>
         {pageRows.map((row) => (
-          <div key={`${row.task.id}-${row.result}`} className={styles.row} role="row">
+          <div key={row.key} className={styles.row} role="row">
             <span role="cell" style={{ left: 35 }}>
-              {row.task.title}
+              {row.title}
             </span>
             <span role="cell" style={{ left: 246 }}>
-              <TypeName typeId={row.task.workTypeId} />
+              <TypeName typeId={row.workTypeId} />
             </span>
             <span role="cell" className={styles.chip}>
               <StatusChip status={row.result} />
@@ -163,7 +168,7 @@ function MemberHistory({ member }: { member: Member }) {
               {row.date}
             </span>
             <span role="cell" style={{ left: 1144 }}>
-              {row.task.durationMinutes != null ? formatDuration(row.task.durationMinutes) : '-'}
+              {row.durationMinutes != null ? formatDuration(row.durationMinutes) : '-'}
             </span>
             <span role="cell" className={styles.report}>
               {row.reportSubmitted ? '제출됨' : '-'}

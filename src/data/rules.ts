@@ -62,9 +62,3 @@ export function isAssignableTechnician(member: Member): boolean {
 export function rangesOverlap(aStart: number, aEnd: number, bStart: number, bEnd: number): boolean {
   return aStart < bEnd && bStart < aEnd;
 }
-
-/** 이력 처리자 표기. 기사는 '김민준 기사', 직원은 이름 그대로 */
-export function actorName(member: Pick<Member, 'name' | 'kind'> | undefined): string | null {
-  if (!member) return null;
-  return member.kind === 'TECHNICIAN' ? `${member.name} 기사` : member.name;
-}
