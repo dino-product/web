@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
-import { useLocation, useMatch, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useMatch, useNavigate } from 'react-router-dom';
 
 import { Icon, Logo } from '@/design-system';
 import { KAKAO_CALLBACK_PATH, useAppStore } from '@/data/store';
@@ -41,12 +41,14 @@ function HelpBox({ title, description, linkLabel }: HelpBoxProps) {
  *   가입을 마친 계정 → 원래 경로 또는 /timetable. 가입 전 계정 → /login 위 약관 동의 모달(1453:7505).
  *   실패·취소(?error=…)는 오류 안내 시안이 없어 원래 경로를 유지한 채 /login으로 돌아온다(오류 코드는 콘솔).
  * - '이용약관'·'개인정보처리방침'·'프로필 입력 안내 보기'·'소속 없는 계정 안내'는 목적지 시안이 없어 동작하지 않는다.
+ * - 이미 로그인한 상태로 들어오면 원래 경로 또는 /timetable로 바로 보낸다.
  */
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const isKakaoCallback = useMatch(KAKAO_CALLBACK_PATH) !== null;
   const [termsOpen, setTermsOpen] = useState(false);
+  const loggedIn = useAppStore((s) => s.session.loggedIn);
 
   // 카카오 복귀를 처리한 뒤 주소에서 일회성 교환 코드를 지운다. 약관 동의 모달은 같은 화면(/login)에 띄운다.
   useEffect(() => {
@@ -80,6 +82,12 @@ export default function LoginPage() {
     setTermsOpen(false);
     navigate('/onboarding/profile');
   };
+
+  // 이미 로그인한 사용자(랜딩 'Orbit 열기'·'로그인 하기', 주소 직접 입력)는 로그인 화면 대신 앱으로 보낸다.
+  // 카카오 복귀 주소는 위 교환 처리가 이동을 맡는다.
+  if (loggedIn && !isKakaoCallback) {
+    return <Navigate to={redirectTarget((location.state as { from?: unknown } | null)?.from)} replace />;
+  }
 
   return (
     <main className={styles.page}>
