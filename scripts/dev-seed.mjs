@@ -1,7 +1,7 @@
-import { readFile, writeFile } from 'node:fs/promises';
-import { createHmac, randomUUID } from 'node:crypto';
+import { readFile, rm, writeFile } from 'node:fs/promises';
 import { createConnection } from 'node:net';
 import pg from 'pg';
+import { devAccessToken } from './dev-token.mjs';
 
 // Snapshot of the 52 scenarios in src/mocks/seed.ts; dates are KST day offsets.
 const PEOPLE = {
@@ -240,18 +240,6 @@ const SPECS = [
 ];
 
 const root = new URL('../', import.meta.url);
-let serverEnv = {};
-try {
-  const text = await readFile(new URL('../server/.env', root), 'utf8');
-  serverEnv = Object.fromEntries(text.split(/\r?\n/).flatMap(line => {
-    const match = line.match(/^\s*(AUTH_JWT_SECRET|AUTH_JWT_ISSUER)\s*=\s*(.*?)\s*$/);
-    return match ? [[match[1], match[2].replace(/^(['"])(.*)\1$/, '$2')]] : [];
-  }));
-} catch (error) {
-  if (error.code !== 'ENOENT') throw error;
-}
-const secret = process.env.AUTH_JWT_SECRET ?? serverEnv.AUTH_JWT_SECRET ?? 'local-only-secret-key-with-at-least-32-bytes';
-const issuer = process.env.AUTH_JWT_ISSUER ?? serverEnv.AUTH_JWT_ISSUER ?? 'orbit';
 const apiBase = process.env.API_BASE ?? 'http://localhost:8080';
 const dbHost = process.env.DATABASE_HOST ?? process.env.PGHOST ?? 'localhost';
 if (!['localhost', '127.0.0.1'].includes(dbHost)) {
@@ -282,14 +270,6 @@ const ids = {
   categoryIds: { staff: {}, technician: {}, work: {} }, workIds: {},
   pendingParticipationRequestIds: {}, newAccountIds: [],
 };
-function token(accountId) {
-  const encode = value => Buffer.from(JSON.stringify(value)).toString('base64url');
-  const iat = Math.floor(Date.now() / 1000);
-  const unsigned = `${encode({ alg: 'HS256' })}.${encode({
-    iss: issuer, sub: String(accountId), jti: randomUUID(), iat, exp: iat + 86400, token_use: 'access',
-  })}`;
-  return `${unsigned}.${createHmac('sha256', secret).update(unsigned).digest('base64url')}`;
-}
 async function api(person, method, path, body) {
   const response = await fetch(`${apiBase}/api/v1${path}`, {
     method, headers: { Authorization: `Bearer ${tokens[person]}`, 'Content-Type': 'application/json' },
@@ -324,7 +304,7 @@ async function account(name, signup = true) {
   const id = Number(row.id);
   await db.query("INSERT INTO oauth_credentials (account_id, provider, oauth_uid) VALUES ($1, 'KAKAO', $2)", [id, `dev-${id}`]);
   ids.accountIds[name] = id;
-  tokens[name] = token(id);
+  tokens[name] = devAccessToken(id);
   if (signup) {
     await api(name, 'PUT', `/profiles/${id}`, { name, phoneNumber: `010${String(id).padStart(8, '0')}` });
     await api(name, 'POST', `/profiles/${id}/terms-agreements`, { serviceTerms: true, privacyPolicy: true, marketing: false });
@@ -522,14 +502,17 @@ try {
   await db.query(`UPDATE notifications SET status='UNREAD', read_at=NULL WHERE id IN (
     SELECT id FROM (SELECT id, row_number() OVER (PARTITION BY member_id ORDER BY notified_at DESC,id DESC) AS n
       FROM notifications WHERE type IN ('WORK_ACCEPTED','WORK_REJECTED','COMPLETION_REPORT_SUBMITTED')) ranked WHERE n<=2)`);
-  await writeFile(new URL('.env.development.local', root), [
-    `VITE_DEV_AUTH_JWT_SECRET=${secret}`, `VITE_DEV_AUTH_JWT_ISSUER=${issuer}`,
-    `VITE_DEV_OWNER_ACCOUNT_ID=${ids.accountIds['오르빗']}`, `VITE_DEV_STAFF_ACCOUNT_ID=${ids.accountIds['김운영']}`,
-    `VITE_DEV_NEW_ACCOUNT_IDS=${ids.newAccountIds.join(',')}`, '',
-  ].join('\n'), { mode: 0o600 });
+  // Earlier seeds wrote the removed dev login's JWT key here as VITE_DEV_*; drop it so it no longer reaches the Vite bundle.
+  const devEnv = new URL('.env.development.local', root);
+  const lines = await readFile(devEnv, 'utf8').then(text => text.split('\n'), () => null);
+  const kept = lines?.filter(line => !/^\s*(export\s+)?VITE_DEV_/.test(line));
+  if (kept && kept.length !== lines.length) {
+    if (kept.some(line => line.trim())) await writeFile(devEnv, kept.join('\n'));
+    else await rm(devEnv);
+  }
   await writeFile(new URL('.dev-seed.json', root), `${JSON.stringify(ids, null, 2)}\n`, { mode: 0o600 });
   console.log(`Seeded ${Object.keys(ids.accountIds).length} accounts, 2 organizations, ${SPECS.length} works, 7 pending requests (${today} Asia/Seoul).`);
-  console.log('Wrote .env.development.local and .dev-seed.json. Local database and Redis were reset.');
+  console.log('Wrote .dev-seed.json. Local database and Redis were reset.');
 } finally {
   await db.end();
 }

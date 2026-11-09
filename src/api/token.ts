@@ -1,10 +1,11 @@
 /**
- * 로그인 세션 저장소. 서버가 발급한(또는 임시 개발 로그인이 만든) Access Token과 계정 ID를 localStorage에 둔다.
+ * 로그인 세션 저장소. 서버가 발급한 Access Token과 계정 ID를 localStorage에 둔다.
  * 새로고침해도 로그인 상태가 유지되고, 만료·폐기된 토큰은 첫 API 호출의 404·401로 걸러 로그아웃한다.
  */
 const TOKEN_KEY = 'orbit:accessToken';
 const ACCOUNT_KEY = 'orbit:accountId';
 const COMPANY_KEY = 'orbit:companyId';
+const KAKAO_LOGIN_KEY = 'orbit:kakaoLogin';
 
 function read(key: string): string | null {
   try {
@@ -41,11 +42,17 @@ export function saveSession(accessToken: string, accountId: number): void {
   write(ACCOUNT_KEY, String(accountId));
 }
 
+/**
+ * 이 탭의 세션을 지운다. 저장소 값은 아직 이 탭의 토큰일 때만 지운다. 다른 탭이 그사이 새로 로그인했으면
+ * (이 탭의 만료·폐기된 토큰이 404·401을 받아도) 그 탭의 새 세션을 남겨 새로고침 뒤에도 유지되게 한다.
+ */
 export function clearSession(): void {
+  if (read(TOKEN_KEY) === memoryToken) {
+    write(TOKEN_KEY, null);
+    write(ACCOUNT_KEY, null);
+  }
   memoryToken = null;
   memoryAccountId = null;
-  write(TOKEN_KEY, null);
-  write(ACCOUNT_KEY, null);
 }
 
 /** 마지막으로 고른 발주사(사이드바 발주사 전환). 새로고침 뒤에도 같은 발주사로 연다. */
@@ -55,4 +62,34 @@ export function getSavedCompanyId(): string | null {
 
 export function saveCompanyId(companyId: string | null): void {
   write(COMPANY_KEY, companyId);
+}
+
+/** 카카오 웹 로그인을 시작할 때 만든 PKCE code_verifier와 로그인 뒤 갈 경로 */
+export interface PendingKakaoLogin {
+  codeVerifier: string;
+  returnTo: string;
+}
+
+/** 카카오를 다녀오는 동안 이 탭(sessionStorage)에만 둔다. 저장하지 못하면 false */
+export function savePendingKakaoLogin(pending: PendingKakaoLogin): boolean {
+  try {
+    window.sessionStorage.setItem(KAKAO_LOGIN_KEY, JSON.stringify(pending));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** 시작 정보를 꺼내며 지운다. 교환 코드와 code_verifier는 한 번만 쓴다. */
+export function takePendingKakaoLogin(): PendingKakaoLogin | null {
+  try {
+    const raw = window.sessionStorage.getItem(KAKAO_LOGIN_KEY);
+    window.sessionStorage.removeItem(KAKAO_LOGIN_KEY);
+    const pending = raw ? (JSON.parse(raw) as Partial<PendingKakaoLogin>) : null;
+    return typeof pending?.codeVerifier === 'string' && typeof pending.returnTo === 'string'
+      ? { codeVerifier: pending.codeVerifier, returnTo: pending.returnTo }
+      : null;
+  } catch {
+    return null;
+  }
 }

@@ -1,6 +1,6 @@
+import { matchPath } from 'react-router-dom';
 import { create } from 'zustand';
 
-import { devLogin } from '@/api/devAuth';
 import {
   authApi,
   type MemberCategoryPath,
@@ -10,8 +10,17 @@ import {
   scheduleApi,
 } from '@/api/endpoints';
 import { ApiError, isApiError, NetworkError } from '@/api/http';
-import { clearSession, getAccessToken, getAccountId, getSavedCompanyId, saveCompanyId, saveSession } from '@/api/token';
-import type { CreateWorkBody, ProfileDto, WorkBody } from '@/api/types';
+import {
+  clearSession,
+  getAccessToken,
+  getAccountId,
+  getSavedCompanyId,
+  saveCompanyId,
+  savePendingKakaoLogin,
+  saveSession,
+  takePendingKakaoLogin,
+} from '@/api/token';
+import type { CreateWorkBody, LoginDto, ProfileDto, WorkBody } from '@/api/types';
 import { TYPE_COLOR_ORDER } from '@/data/constants';
 import {
   cancelReasonCode,
@@ -58,6 +67,17 @@ import type {
 } from '@/data/types';
 import { formatPhone } from '@/lib/format';
 import { addDays, toIsoDateTime, today } from '@/lib/date';
+import { createPkcePair } from '@/lib/pkce';
+
+/** 카카오 웹 로그인 복귀 주소(서버 KAKAO_WEB_RETURN_URI의 경로) */
+export const KAKAO_CALLBACK_PATH = '/login/kakao';
+
+/** 카카오 웹 로그인 복귀 결과. returnTo는 로그인을 시작할 때 넘긴 경로(시작 정보가 없으면 null) */
+export interface KakaoLoginResult {
+  /** loggedIn: 로그인 완료, onboarding: 가입 전 계정(약관 동의부터), failed: 실패·취소 */
+  status: 'loggedIn' | 'onboarding' | 'failed';
+  returnTo: string | null;
+}
 
 /** 배정 변경 결과. 'stale'은 화면을 본 뒤 다른 사람이 작업을 바꿔 서버가 거부한 경우(SCHEDULE-016 '변경된 정보입니다') */
 export type AssignResult = 'applied' | 'stale' | 'failed';
@@ -106,8 +126,14 @@ export interface AppState {
   withdrawalEligibility: { withdrawable: boolean; soleOwner: boolean } | null;
 
   // 인증·온보딩
-  /** 카카오 로그인. 가입을 마치지 않은 계정이면 needsOnboarding=true → 약관 동의 모달부터 진행 */
-  loginWithKakao: () => Promise<{ needsOnboarding: boolean }>;
+  /** 카카오 웹 로그인 시작. PKCE를 만들어 이 탭에 두고 서버 authorize(→ 카카오 로그인 페이지)로 이동한다. returnTo: 로그인 뒤 갈 경로 */
+  startKakaoLogin: (returnTo: string) => Promise<void>;
+  /**
+   * 카카오 웹 로그인 복귀(/login/kakao?code=… 또는 ?error=…). 교환 코드를 Access Token으로 바꾸고 프로필·소속을 읽는다.
+   * 가입을 마치지 않은 계정이면 status='onboarding' → 약관 동의 모달부터 진행. 교환에 성공하면 이 탭의 이전 세션을 로그아웃하고,
+   * 교환이 실패하면 이전 세션을 복원한다.
+   */
+  completeKakaoLogin: (callback: { code: string | null; error: string | null }) => Promise<KakaoLoginResult>;
   logout: () => void;
   /** 약관 동의 선택값을 기억한다. 서버는 프로필 입력 뒤에만 약관 동의를 받으므로 registerProfile이 함께 보낸다. */
   agreeTerms: (marketingAgreed: boolean) => void;
@@ -200,6 +226,8 @@ const hiddenNotificationIds = new Set<ID>();
 let pendingMarketingAgreed = false;
 /** 로그인 사용자 프로필(연락처·이름) */
 let myProfile: ProfileDto | null = null;
+/** 처리 중인 카카오 복귀. 같은 복귀 주소를 두 번 처리해도(StrictMode 효과 재실행) 일회성 교환 코드는 한 번만 보낸다. */
+let kakaoCompletion: { key: string; result: Promise<KakaoLoginResult> } | null = null;
 
 const LOGGED_OUT_SESSION: Session = {
   loggedIn: false,
@@ -367,6 +395,57 @@ export const useAppStore = create<AppState>()((set, get) => {
     await loadCompanyData();
   }
 
+  /** completeKakaoLogin 본체. 서버가 실패를 error(AUTH-xxx)로 돌려보냈으면 교환하지 않는다. */
+  async function finishKakaoLogin({
+    code,
+    error,
+  }: {
+    code: string | null;
+    error: string | null;
+  }): Promise<KakaoLoginResult> {
+    const pending = takePendingKakaoLogin();
+    const failed: KakaoLoginResult = { status: 'failed', returnTo: pending?.returnTo ?? null };
+    if (!code || !pending) {
+      // 사용자가 카카오 로그인을 취소한 경우(AUTH-008)는 오류로 남기지 않는다.
+      if (code) logError('카카오 로그인', new Error('이 탭에서 시작한 로그인 정보가 없습니다.'));
+      else if (error !== 'AUTH-008') logError('카카오 로그인', new Error(error ?? '복귀 주소에 교환 코드가 없습니다.'));
+      // 교환하지 않으므로 앱 시작에서 미룬 이전 세션 복원을 이어서 한다.
+      void restoreSession();
+      return failed;
+    }
+    // 교환이 실패하면 이전 세션을 그대로 복원한다. call()은 401을 저장된 토큰 무효로 보고 세션을 지우므로
+    // (교환의 AUTH-007은 저장된 토큰과 무관) 교환만 직접 처리한다.
+    const previousToken = getAccessToken();
+    let login: LoginDto;
+    try {
+      login = await authApi.kakaoExchange({ code, codeVerifier: pending.codeVerifier });
+    } catch (exchangeError) {
+      if (exchangeError instanceof NetworkError) set({ network: 'offline' });
+      logError('카카오 로그인', exchangeError);
+      void restoreSession();
+      return failed;
+    }
+    // 교환에 성공하면 이전 세션을 새 로그인으로 바꾼다(앱 시작에서 복원하지 않았다). 이전 Access Token은 서버에서도 폐기한다.
+    if (previousToken) void authApi.logout(previousToken).catch((logoutError) => logError('로그아웃', logoutError));
+    resetSession();
+    saveSession(login.accessToken, login.accountId);
+    const profile = await call('내 프로필', () => profileApi.get(login.accountId));
+    if (!profile) {
+      // 화면은 로그아웃 상태로 돌아가므로 저장한 토큰도 지워 새로고침 뒤와 어긋나지 않게 한다.
+      resetSession();
+      return failed;
+    }
+    myProfile = profile;
+    if (profile.nextStep !== 'COMPLETED') {
+      set({ session: { ...LOGGED_OUT_SESSION, isNewUser: true, termsAgreed: false } });
+      return { status: 'onboarding', returnTo: pending.returnTo };
+    }
+    set({ session: { ...LOGGED_OUT_SESSION, loggedIn: true, termsAgreed: true } });
+    await loadMemberships();
+    void loadCompanyData();
+    return { status: 'loggedIn', returnTo: pending.returnTo };
+  }
+
   async function reloadWork(taskId: ID) {
     await get().loadTaskDetail(taskId);
     await get().loadTaskList();
@@ -396,8 +475,9 @@ export const useAppStore = create<AppState>()((set, get) => {
   const categoryPath = (category: Exclude<TypeCategory, 'WORK'>): MemberCategoryPath =>
     category === 'EMPLOYEE' ? 'staff-categories' : 'technician-categories';
 
-  // 앱 시작: 저장된 토큰이 있으면 로그인 상태로 그리고 서버로 확인한다.
-  queueMicrotask(() => void restoreSession());
+  // 앱 시작: 저장된 토큰이 있으면 로그인 상태로 그리고 서버로 확인한다. 카카오 복귀 주소는 이전 토큰을 복원하지 않는다
+  // (복원 응답이 새 로그인보다 늦게 와 새 세션을 덮거나 지우지 않게 한다). 복원·정리는 finishKakaoLogin이 이어서 한다.
+  if (!matchPath(KAKAO_CALLBACK_PATH, window.location.pathname)) queueMicrotask(() => void restoreSession());
 
   return {
     session: { ...LOGGED_OUT_SESSION, loggedIn: Boolean(getAccessToken()), termsAgreed: Boolean(getAccessToken()) },
@@ -410,22 +490,26 @@ export const useAppStore = create<AppState>()((set, get) => {
     withdrawalEligibility: null,
 
     // ── 인증·온보딩 ──
-    loginWithKakao: async () => {
-      // TEMP-DEV-AUTH: 카카오 OAuth 설정 전 임시 로그인(src/api/devAuth.ts). 실제 연동 시 카카오 id_token → authApi.kakaoLogin으로 바꾼다.
-      const login = await call('로그인', () => devLogin());
-      if (!login) return { needsOnboarding: false };
-      saveSession(login.accessToken, login.accountId);
-      const profile = await call('내 프로필', () => profileApi.get(login.accountId));
-      if (!profile) return { needsOnboarding: false };
-      myProfile = profile;
-      if (profile.nextStep !== 'COMPLETED') {
-        set({ session: { ...LOGGED_OUT_SESSION, isNewUser: true, termsAgreed: false } });
-        return { needsOnboarding: true };
+    startKakaoLogin: async (returnTo) => {
+      try {
+        const { codeVerifier, codeChallenge } = await createPkcePair();
+        if (!savePendingKakaoLogin({ codeVerifier, returnTo })) throw new Error('로그인 시작 정보를 저장할 수 없습니다.');
+        window.location.assign(authApi.kakaoAuthorizeUrl(codeChallenge));
+      } catch (error) {
+        logError('카카오 로그인', error);
       }
-      set({ session: { ...LOGGED_OUT_SESSION, loggedIn: true, termsAgreed: true } });
-      await loadMemberships();
-      void loadCompanyData();
-      return { needsOnboarding: false };
+    },
+
+    completeKakaoLogin: (callback) => {
+      const key = callback.code ?? `error:${callback.error}`;
+      if (kakaoCompletion?.key !== key) {
+        const result = finishKakaoLogin(callback).catch((error: unknown): KakaoLoginResult => {
+          logError('카카오 로그인', error);
+          return { status: 'failed', returnTo: null };
+        });
+        kakaoCompletion = { key, result };
+      }
+      return kakaoCompletion.result;
     },
 
     logout: () => {

@@ -6,11 +6,10 @@
 
 | 파일 | 내용 |
 | --- | --- |
-| `src/api/http.ts` | `/api/v1`, Bearer 토큰, 공통 응답 봉투, `ApiError`·`NetworkError`, 파일 응답 |
-| `src/api/token.ts` | 토큰·계정 ID·선택 발주사 localStorage 저장 |
+| `src/api/http.ts` | `/api/v1`, Bearer 토큰, 공통 응답 봉투, `ApiError`·`NetworkError`, 파일 응답, 브라우저 이동용 `apiUrl` |
+| `src/api/token.ts` | 토큰·계정 ID·선택 발주사 localStorage 저장(세션 정리는 저장소 값이 이 탭의 토큰일 때만 지워 다른 탭의 새 로그인을 남김), 카카오 로그인 시작 정보(PKCE verifier·돌아갈 경로) sessionStorage 저장 |
 | `src/api/endpoints.ts` | 인증·프로필·조직·작업·알림 API 경로와 요청 |
 | `src/api/types.ts` | 서버 DTO·요청 타입 |
-| `src/api/devAuth.ts` | TEMP 개발 로그인: 로컬 JWT 서명·페르소나 선택. 실제 카카오 연결 시 제거 |
 | `src/data/types.ts` | 화면 도메인 타입 |
 | `src/data/store.ts` | `AppState`, `useAppStore`, 비동기 액션·읽기·오류 처리·캐시 |
 | `src/data/mappers.ts` | DTO↔도메인, ID·시각·코드·색 변환 |
@@ -18,6 +17,8 @@
 | `src/data/selectors.ts` | `select*`·`get*`·`use*` |
 | `src/data/rules.ts` · `constants.ts` | 순수 상태 규칙·이력 문구·선택지 |
 | `src/lib/date.ts` · `format.ts` | Asia/Seoul 날짜·실제 현재 시각·화면 포맷 |
+| `src/lib/pkce.ts` | 웹 로그인 PKCE S256 code_verifier·code_challenge |
+| `scripts/dev-token.mjs` | 로컬 서버 JWT 키로 시드 계정 Access Token 서명(시드·check-flows·수동 열기 CLI) |
 | `scripts/dev-seed.mjs` | 로컬 DB·Redis 초기화, API와 SQL로 개발 데이터 구성 |
 | `src/app/RequireAuth.tsx` | 로그인 가드 |
 
@@ -54,7 +55,8 @@ if (result === 'stale') {
 
 | 액션 | 반환·동작 |
 | --- | --- |
-| `loginWithKakao()` | `Promise<{ needsOnboarding: boolean }>`; 현재는 devAuth로 토큰을 만든 뒤 프로필·소속·데이터를 읽는다 |
+| `startKakaoLogin(returnTo)` | `Promise<void>`; PKCE를 만들어 이 탭에 두고 서버 `GET /auth/kakao/authorize`로 이동한다(실패하면 콘솔만) |
+| `completeKakaoLogin({ code, error })` | `Promise<KakaoLoginResult>`(`status`: `loggedIn`·`onboarding`·`failed`, `returnTo`); 복귀 주소 `/login/kakao`(`KAKAO_CALLBACK_PATH`)의 교환 코드를 `POST /auth/kakao/exchange`로 토큰으로 바꾸고 프로필·소속·데이터를 읽는다. 교환에 성공하면 이 탭의 이전 세션을 로그아웃(서버 토큰 폐기)하고, 교환이 실패하거나 교환하지 않는 실패·취소는 이전 세션을 복원한다. 같은 코드는 한 번만 교환한다 |
 | `registerProfile`, `createCompany`, `withdrawAccount` | `Promise<boolean>`; 성공 여부로 다음 화면 진행을 결정한다 |
 | `createTask`, `addType` | `Promise<ID \| null>`; 생성 ID 또는 실패 |
 | `assignTask` | `Promise<AssignResult>`: `applied` / `stale` / `failed`. 서버 버전을 `expectedVersion`으로 보낸다 |
@@ -90,7 +92,7 @@ if (result === 'stale') {
 - `agreeTerms`는 선택을 잠시 기억하고 `registerProfile`이 프로필 저장 후 동의 API를 보낸다. `setJoinRequestKind`도 승인 전 선택값이며 승인 요청에 함께 보낸다.
 - 사진 업로드 API가 없어 신규 현장 사진은 등록 요청에 보내지 않는다. 응답 사진의 `fake-photo://` 접두어는 매퍼에서 제거한다.
 
-## 3. ID·시각·개발 로그인
+## 3. ID·시각·로그인
 
 | 대상 | 화면 ID 예 | 서버 ID |
 | --- | --- | --- |
@@ -102,11 +104,11 @@ if (result === 'stale') {
 
 `toId`·`fromId`·`typeIdNumber`를 사용한다. 서버 테이블별 숫자가 겹치므로 접두어를 임의로 없애지 않는다. 서버 UTC ISO는 화면에서 `+09:00` ISO·`YYYY-MM-DD`·`HH:mm`으로 바꾼다. 요청은 `toUtcIso`, 날짜 조회 범위는 `dayRange`의 KST 자정부터 다음 날 자정까지 `[from, to)`를 쓴다. 현재 시각은 실제 `Date.now()`이며 시연 시계는 없다.
 
-개발 로그인은 기본 오르빗(OWNER), `?role=staff` 김운영(STAFF), `?user=new` 미가입 계정, `?reset=1` 기본 선택이다. 선택은 sessionStorage `orbit:devLogin`, 인증 토큰·계정 ID·선택 발주사는 localStorage에 남는다. 이미 로그인했다면 로그아웃 후 쿼리로 다시 로그인한다. 선택 초기화는 서버 데이터를 지우지 않는다. devAuth는 서버의 로컬 JWT 키로 HS256 토큰을 만드는 개발 서버 전용 임시 구현이다. 실제 카카오는 nonce 발급 → SDK → login API로 교체해야 한다.
+로그인은 서버의 카카오 웹 로그인이다(authorize → 카카오 → callback → `/login/kakao?code=…` → exchange). PKCE verifier와 돌아갈 경로는 sessionStorage `orbit:kakaoLogin`에 두고 복귀하면 바로 지운다. 인증 토큰·계정 ID·선택 발주사는 localStorage에 남는다. refresh token은 아직 보관하지 않는다. 시드 계정은 가짜 카카오 식별자라 실제 카카오로 들어갈 수 없으며, `node scripts/dev-token.mjs <accountId>`로 만든 로컬 토큰을 localStorage에 넣어 연다.
 
 ## 4. 시드
 
-`npm run seed:local`은 **로컬 Postgres public 테이블 전체를 TRUNCATE하고 Redis DB를 FLUSHDB**한다. 서버를 먼저 실행하고 보존할 데이터가 없는 로컬 환경에서만 쓴다. 로컬 이외 DB·API 호스트는 거부한다. DB 기본 연결은 `localhost:54321/postgres`, Redis는 `127.0.0.1:6379`, API는 `http://localhost:8080`이다. DB는 `DATABASE_*`/`PG*`, API는 `API_BASE`로 지정한다. JWT 키·issuer는 환경 변수 또는 `../server/.env`에서 읽는다.
+`npm run seed:local`은 **로컬 Postgres public 테이블 전체를 TRUNCATE하고 Redis DB를 FLUSHDB**한다. 서버를 먼저 실행하고 보존할 데이터가 없는 로컬 환경에서만 쓴다. 로컬 이외 DB·API 호스트는 거부한다. DB 기본 연결은 `localhost:54321/postgres`, Redis는 `127.0.0.1:6379`, API는 `http://localhost:8080`이다. DB는 `DATABASE_*`/`PG*`, API는 `API_BASE`로 지정한다. JWT 키·issuer는 환경 변수 또는 `../server/.env`에서 읽는다(`scripts/dev-token.mjs`, 시드와 `check-flows.mjs`가 함께 쓴다).
 
 계정은 SQL로 만들고 프로필·약관·회사·참여·유형·작업 등록 등은 API로 처리한다. 기사 수락·거절·작업 시작·완료 보고·과거 시각·작업유형 연결은 SQL로 보완한다. 날짜는 실행 시점의 Asia/Seoul 오늘 기준이며 과거 사건 시각은 현재보다 뒤가 되지 않게 제한한다. 서버 재시작 시 local 프로필의 create-drop으로 데이터가 사라질 수 있다.
 
@@ -126,6 +128,8 @@ if (result === 'stale') {
 `.env.development.local`에 개발 JWT 설정·계정 ID를, `.dev-seed.json`에 숫자 ID 매핑을 쓴다. 주요 키는 `organizationIds`, `accountIds`, `membershipIds`, `technicianIds`, `categoryIds`(`staff`·`technician`·`work`), `workIds`, `pendingParticipationRequestIds`, `newAccountIds`다. 파일의 값은 시드 결과이며 코드에 하드코딩하지 않는다.
 
 `workIds`의 `demo-pending`, `demo-accepted`, `demo-in-progress`, `demo-delayed`, `demo-completed`, `demo-no-report`, `demo-rejected`, `demo-conflict`, `demo-stale`, `task-01` 등은 **검색용 라벨이지 라우트 ID가 아니다**. `/tasks/<workIds의 숫자>`, `/board/<숫자>`로 연다. `demo-stale`은 일반 등록 작업이며 자동 충돌 트리거가 아니다. 동시 배정으로 서버 버전이 달라져야 변경정보 모달이 열린다.
+
+공용 dev DB에 목데이터를 더하는 `npm run seed:dev`는 TRUNCATE·FLUSHDB 없이 시드 범위만 다룬다. [dev-seed.md](dev-seed.md)를 본다.
 
 ## 5. 정의와 규칙
 
