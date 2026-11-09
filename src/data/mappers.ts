@@ -24,6 +24,7 @@ import type {
   RejectionReasonCode,
   RequestChannel,
   ScheduledWorkDto,
+  TechnicianRefDto,
   WorkDetailDto,
   WorkStatus,
   WorkSummaryDto,
@@ -236,6 +237,24 @@ export function memberFromParticipant(p: ParticipantDto): Member {
     isOwner: p.role === 'OWNER',
     status: p.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
     joinedAt: toIsoDateTime(p.joinedAt),
+    avatarUrl: null,
+  };
+}
+
+/**
+ * 타임테이블 기사 행(GET /timetable technicians) → 기사 Member. 참여 인원 API가 총관리자 전용이라 직원은 이것으로 기사 목록을 채운다.
+ * 활성 기사만 오고 참여일·연락처는 주지 않는다(참여일은 인력관리 화면에서만 쓰는데, 그 화면은 총관리자 전용이다).
+ */
+export function memberFromTechnician(t: TechnicianRefDto): Member {
+  return {
+    id: toId(ID_PREFIX.technician, t.technicianId),
+    name: t.name ?? UNNAMED_MEMBER,
+    phone: '',
+    kind: 'TECHNICIAN',
+    typeId: t.technicianType ? toId(ID_PREFIX.technicianType, t.technicianType.id) : null,
+    isOwner: false,
+    status: 'ACTIVE',
+    joinedAt: toIsoDateTime(0),
     avatarUrl: null,
   };
 }

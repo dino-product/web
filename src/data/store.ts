@@ -33,6 +33,7 @@ import {
   joinRequestFromDto,
   MEMBER_CATEGORY_COLOR,
   memberFromParticipant,
+  memberFromTechnician,
   notificationFromDto,
   paymentCode,
   type TaskPatch,
@@ -871,16 +872,24 @@ export const useAppStore = create<AppState>()((set, get) => {
       const membership = get().memberships.find((m) => m.companyId === get().session.currentCompanyId);
       if (org == null || !membership) return;
       const owner = membership.role === 'OWNER';
-      const [staffTypes, technicianTypes, workTypes, organization, code, participants, requests] = await Promise.all([
-        call('직원 유형', () => organizationApi.categories(org, 'staff-categories')),
-        call('기사 유형', () => organizationApi.categories(org, 'technician-categories')),
-        call('작업 유형', () => organizationApi.workTypes(org)),
-        // 아래 넷은 총관리자만 볼 수 있다(직원이면 ORGANIZATION-003).
-        owner ? call('발주사 정보', () => organizationApi.get(org)) : undefined,
-        owner ? call('회사 코드', () => organizationApi.companyCode(org)) : undefined,
-        owner ? call('참여 인원', () => organizationApi.participants(org)) : undefined,
-        owner ? call('승인 대기', () => organizationApi.pendingRequests(org)) : undefined,
-      ]);
+      const [staffTypes, technicianTypes, workTypes, organization, code, participants, requests, timetable] =
+        await Promise.all([
+          call('직원 유형', () => organizationApi.categories(org, 'staff-categories')),
+          call('기사 유형', () => organizationApi.categories(org, 'technician-categories')),
+          call('작업 유형', () => organizationApi.workTypes(org)),
+          // 아래 넷은 총관리자만 볼 수 있다(직원이면 ORGANIZATION-003).
+          owner ? call('발주사 정보', () => organizationApi.get(org)) : undefined,
+          owner ? call('회사 코드', () => organizationApi.companyCode(org)) : undefined,
+          owner ? call('참여 인원', () => organizationApi.participants(org)) : undefined,
+          owner ? call('승인 대기', () => organizationApi.pendingRequests(org)) : undefined,
+          // 직원은 참여 인원을 못 읽으므로 배정할 기사 목록을 타임테이블 기사 행(활성 기사)에서 얻는다.
+          owner
+            ? undefined
+            : call('기사 목록', () => {
+                const { from, to } = dayRange(today());
+                return scheduleApi.timetable(org, from, to);
+              }),
+        ]);
       const myAccount = accountId();
       const types = [
         ...typesFromCategories('EMPLOYEE', staffTypes?.categories ?? []),
@@ -895,6 +904,7 @@ export const useAppStore = create<AppState>()((set, get) => {
         return p === mine ? { ...member, phone } : member;
       });
       if (!mine) members = [...members, selfMember()];
+      if (timetable) members = [...members, ...timetable.technicians.map(memberFromTechnician)];
       const userId = mine ? toId(ID_PREFIX.staff, mine.memberId) : SELF_MEMBER_ID;
       set((s) => ({
         types,
@@ -964,11 +974,21 @@ export const useAppStore = create<AppState>()((set, get) => {
       if (!result) return;
       set((s) => {
         const byId = new Map(s.tasks.map((t) => [t.id, t]));
+        const owner = s.memberships.find((m) => m.companyId === s.session.currentCompanyId)?.role === 'OWNER';
         return {
           tasks: applyPatches(s.tasks, [
             ...result.scheduledWorks.map(taskFromScheduled),
             ...result.backlog.map((w) => taskFromBacklog(w, byId.get(toId(ID_PREFIX.plain, w.workId)))),
           ]),
+          // 총관리자는 참여 인원(비활성 기사 포함)이 기사 목록이다. 직원은 타임테이블 기사 행으로 기사 목록을 새로 고친다.
+          ...(owner
+            ? {}
+            : {
+                members: [
+                  ...s.members.filter((m) => m.kind !== 'TECHNICIAN'),
+                  ...result.technicians.map(memberFromTechnician),
+                ],
+              }),
         };
       });
     },
