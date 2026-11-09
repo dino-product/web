@@ -1,7 +1,10 @@
+import clsx from 'clsx';
 import { type ReactNode, useEffect, useState } from 'react';
 
 import { profileApi } from '@/api/endpoints';
 import type { TermsDocumentDto } from '@/api/types';
+
+import styles from './TermsLink.module.css';
 
 type TermsType = TermsDocumentDto['type'];
 type TermsUrls = Partial<Record<TermsType, string>>;
@@ -45,9 +48,9 @@ export default function TermsLink({ type, label, className, children }: TermsLin
     };
   }, [type]);
 
-  if (!url) return <span className={className}>{children}</span>;
+  if (!url) return <span className={clsx(styles.link, className)}>{children}</span>;
   return (
-    <a className={className} href={url} target="_blank" rel="noreferrer" aria-label={label}>
+    <a className={clsx(styles.link, className)} href={url} target="_blank" rel="noreferrer" aria-label={label}>
       {children}
     </a>
   );
