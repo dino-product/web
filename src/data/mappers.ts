@@ -216,11 +216,17 @@ function minutesBetween(start: string | null, end: string | null): number | null
 
 // ── 인력·유형·발주사 ────────────────────────────────────────────────
 
+/**
+ * 서버가 이름을 주지 않는 인원(가입 전·프로필 없음·탈퇴한 계정)의 표시 이름. 빈 칸으로 두면 목록·타임테이블 행에서
+ * 누구인지 가릴 수 없다. 시안에 해당 상태가 없어 정한 문구다.
+ */
+export const UNNAMED_MEMBER = '이름 없음';
+
 export function memberFromParticipant(p: ParticipantDto): Member {
   const technician = p.role === 'TECHNICIAN';
   return {
     id: toId(technician ? ID_PREFIX.technician : ID_PREFIX.staff, p.memberId),
-    name: p.name ?? '',
+    name: p.name ?? UNNAMED_MEMBER,
     // 참여 인원 API는 연락처를 주지 않는다(로그인 사용자만 프로필 API로 채운다).
     phone: '',
     kind: technician ? 'TECHNICIAN' : 'EMPLOYEE',
