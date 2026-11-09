@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import AppLayout from '@/app/layouts/AppLayout';
 import PublicLayout from '@/app/layouts/PublicLayout';
 import RequireAuth from '@/app/RequireAuth';
+import RequireOwner from '@/app/RequireOwner';
 
 /** 섹션별 코드 분할. 한 섹션의 오류가 다른 섹션 화면을 깨뜨리지 않도록 lazy로 불러온다. */
 function lazyPage(load: () => Promise<{ default: ComponentType }>) {
@@ -36,7 +37,8 @@ export const router = createBrowserRouter([
       { path: '/timetable/*', element: lazyPage(() => import('@/pages/timetable')) },
       { path: '/tasks/*', element: lazyPage(() => import('@/pages/tasks')) },
       { path: '/board/*', element: lazyPage(() => import('@/pages/board')) },
-      { path: '/org/*', element: lazyPage(() => import('@/pages/org')) },
+      // 조직 설정은 총관리자 전용이다(직원은 사이드바에서 숨기고 주소로 들어와도 타임테이블로 보낸다).
+      { path: '/org/*', element: <RequireOwner>{lazyPage(() => import('@/pages/org'))}</RequireOwner> },
       { path: '/notifications/*', element: lazyPage(() => import('@/pages/notifications')) },
       { path: '/mypage/*', element: lazyPage(() => import('@/pages/mypage')) },
     ],

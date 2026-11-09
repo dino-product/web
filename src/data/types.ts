@@ -205,7 +205,8 @@ export interface TaskInput {
   customer: TaskCustomer | null;
   price: number | null;
   paymentMethod: string | null;
-  sitePhotoUrls: string[];
+  /** 고른 현장 사진 파일(최대 6장, 고른 순서). 등록할 때 올린 뒤 파일 식별자로 붙인다 */
+  sitePhotos: File[];
 }
 
 /** 격자 배정 입력값(배정 확인 모달) */
@@ -214,6 +215,38 @@ export interface TaskAssignment {
   date: IsoDate;
   startTime: HourMinute;
   durationMinutes: number;
+}
+
+/** 기사 작업이력 한 줄(GET /work-history의 작업 하나를 이 기사 기준 결과로) */
+export interface TechnicianHistoryRow {
+  /** 줄 키(결과·작업·배정 순번) */
+  key: string;
+  taskId: ID;
+  title: string;
+  workTypeId: ID | null;
+  /** 이 기사 기준 결과. 거절했다가 다시 배정받아 완료한 작업은 두 줄(완료·거절)이다 */
+  result: 'COMPLETED' | 'REJECTED';
+  /** 담당 날짜: 이 기사 배정의 시작 날짜 */
+  date: IsoDate;
+  /** 소요시간(분): 완료는 실제 시작~완료, 거절은 배정 일정 길이 */
+  durationMinutes: number | null;
+  /** 완료 보고 제출 여부(완료는 보고를 제출해야 완료되므로 true, 거절은 false → '-') */
+  reportSubmitted: boolean;
+}
+
+/** 기사 작업이력(Figma 1550:8288) */
+export interface TechnicianHistory {
+  memberId: ID;
+  /** 읽은 구간의 시작(그 달 1일부터 이번 달 끝까지 읽는다) */
+  from: IsoDate;
+  /** 완료·거절 줄, 담당 날짜 최신순 */
+  rows: TechnicianHistoryRow[];
+  /** 전체 누적 완료 */
+  totalCompleted: number;
+  /** 이번 달 거절 */
+  monthRejected: number;
+  /** 이번 달 완료 */
+  monthCompleted: number;
 }
 
 export type NotificationType =

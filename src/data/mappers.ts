@@ -24,12 +24,15 @@ import type {
   RejectionReasonCode,
   RequestChannel,
   ScheduledWorkDto,
+  TechnicianRefDto,
   WorkDetailDto,
+  WorkHistoryDto,
+  WorkHistoryStatus,
   WorkStatus,
   WorkSummaryDto,
   WorkTypeDto,
 } from '@/api/types';
-import { dateTimeToMs, toHourMinute, toIsoDate, toIsoDateTime } from '@/lib/date';
+import { dateTimeToMs, parseIsoDate, startOfMonth, toHourMinute, toIsoDate, toIsoDateTime } from '@/lib/date';
 import { joinReportContent } from '@/lib/format';
 import { CANCEL_REASONS, HISTORY_LABEL, INDUSTRIES, PAYMENT_METHODS } from '@/data/constants';
 import type {
@@ -44,6 +47,7 @@ import type {
   NotificationType,
   Task,
   TaskHistoryEntry,
+  TechnicianHistoryRow,
   TypeCategory,
   TypeColor,
   TypeItem,
@@ -199,6 +203,25 @@ export function dayRange(date: IsoDate): { from: string; to: string } {
   return { from: new Date(start).toISOString(), to: new Date(start + 24 * 60 * 60 * 1000).toISOString() };
 }
 
+/** 그 달 다음 달 1일(Asia/Seoul 날짜) */
+function nextMonthStart(date: IsoDate): IsoDate {
+  const { year, month } = parseIsoDate(date);
+  return month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, '0')}-01`;
+}
+
+/**
+ * from이 속한 달부터 until이 속한 달까지를 Asia/Seoul 달마다 서버 구간 [from, to)로 나눈다(작업 이력 API는 한 번에
+ * 31일까지). month는 그 달 1일이며 이번 달 집계를 고를 때 쓴다.
+ */
+export function monthRanges(from: IsoDate, until: IsoDate): { month: IsoDate; from: string; to: string }[] {
+  const ranges = [];
+  const end = nextMonthStart(until);
+  for (let month = startOfMonth(from); month < end; month = nextMonthStart(month)) {
+    ranges.push({ month, from: toUtcIso(month, '00:00'), to: toUtcIso(nextMonthStart(month), '00:00') });
+  }
+  return ranges;
+}
+
 type ScheduleFields = Pick<Task, 'date' | 'startTime' | 'durationMinutes'>;
 
 function scheduleFields(start: string | null | undefined, durationMinutes: number | null | undefined): ScheduleFields {
@@ -216,11 +239,17 @@ function minutesBetween(start: string | null, end: string | null): number | null
 
 // ── 인력·유형·발주사 ────────────────────────────────────────────────
 
+/**
+ * 서버가 이름을 주지 않는 인원(가입 전·프로필 없음·탈퇴한 계정)의 표시 이름. 빈 칸으로 두면 목록·타임테이블 행에서
+ * 누구인지 가릴 수 없다. 시안에 해당 상태가 없어 정한 문구다.
+ */
+export const UNNAMED_MEMBER = '이름 없음';
+
 export function memberFromParticipant(p: ParticipantDto): Member {
   const technician = p.role === 'TECHNICIAN';
   return {
     id: toId(technician ? ID_PREFIX.technician : ID_PREFIX.staff, p.memberId),
-    name: p.name ?? '',
+    name: p.name ?? UNNAMED_MEMBER,
     // 참여 인원 API는 연락처를 주지 않는다(로그인 사용자만 프로필 API로 채운다).
     phone: '',
     kind: technician ? 'TECHNICIAN' : 'EMPLOYEE',
@@ -230,6 +259,24 @@ export function memberFromParticipant(p: ParticipantDto): Member {
     isOwner: p.role === 'OWNER',
     status: p.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
     joinedAt: toIsoDateTime(p.joinedAt),
+    avatarUrl: null,
+  };
+}
+
+/**
+ * 타임테이블 기사 행(GET /timetable technicians) → 기사 Member. 참여 인원 API가 총관리자 전용이라 직원은 이것으로 기사 목록을 채운다.
+ * 활성 기사만 오고 참여일·연락처는 주지 않는다(참여일은 인력관리 화면에서만 쓰는데, 그 화면은 총관리자 전용이다).
+ */
+export function memberFromTechnician(t: TechnicianRefDto): Member {
+  return {
+    id: toId(ID_PREFIX.technician, t.technicianId),
+    name: t.name ?? UNNAMED_MEMBER,
+    phone: '',
+    kind: 'TECHNICIAN',
+    typeId: t.technicianType ? toId(ID_PREFIX.technicianType, t.technicianType.id) : null,
+    isOwner: false,
+    status: 'ACTIVE',
+    joinedAt: toIsoDateTime(0),
     avatarUrl: null,
   };
 }
@@ -540,4 +587,20 @@ export function taskFromDetail(d: WorkDetailDto, lookup: MemberLookup): TaskPatc
         : null,
     },
   };
+}
+
+/** 기사 작업 이력 응답(GET /work-history, statuses=result로 거른 것) → 이력 줄 */
+export function technicianHistoryRows(dto: WorkHistoryDto, result: WorkHistoryStatus): TechnicianHistoryRow[] {
+  return dto.works.map((w) => ({
+    key: `${result}-${w.workId}-${w.assignmentNumber}`,
+    taskId: toId(ID_PREFIX.plain, w.workId),
+    title: w.name,
+    workTypeId: workTypeId(w.workType),
+    result,
+    date: toIsoDate(w.startTime),
+    durationMinutes:
+      (result === 'COMPLETED' ? minutesBetween(w.startedAt, w.completedAt) : null) ??
+      minutesBetween(w.startTime, w.endTime),
+    reportSubmitted: result === 'COMPLETED',
+  }));
 }

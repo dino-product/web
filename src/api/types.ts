@@ -17,6 +17,24 @@ export interface LoginDto {
   registered: boolean;
   accessToken: string;
   accessTokenExpiresAt: string;
+  refreshToken: string;
+  refreshTokenExpiresAt: string;
+}
+
+/** POST /auth/refresh 응답. 보낸 refresh token은 더 쓸 수 없어 refreshToken으로 바꿔 둔다 */
+export interface RefreshedTokensDto {
+  accessToken: string;
+  accessTokenExpiresAt: string;
+  refreshToken: string;
+  refreshTokenExpiresAt: string;
+}
+
+/** GET /terms 한 줄. SERVICE 이용약관, PRIVACY 개인정보 수집·이용, MARKETING 마케팅 수신, PRIVACY_POLICY 개인정보처리방침 */
+export interface TermsDocumentDto {
+  type: 'SERVICE' | 'PRIVACY' | 'MARKETING' | 'PRIVACY_POLICY';
+  version: string;
+  /** 본문 주소(UTF-8 텍스트) */
+  url: string;
 }
 
 export type SignupStep = 'PROFILE' | 'TERMS' | 'COMPLETED';
@@ -310,6 +328,44 @@ export interface CreateWorkBody extends WorkBody {
     expectedDurationMinutes: number | null;
     conflictConfirmed?: boolean;
   };
+}
+
+/** POST /site-photo-uploads 응답. uploadUrl로 사진 바이트를 PUT한 뒤 fileId를 sitePhotoIds에 넣는다 */
+export interface PhotoUploadDto {
+  fileId: string;
+  uploadUrl: string;
+  /** 업로드 요청에 그대로 붙일 서명된 헤더(content-type·content-length) */
+  requiredHeaders: Record<string, string>;
+  expiresAt: string;
+}
+
+/** 기사 작업 이력의 상태 조건(작업 상태가 아니라 그 기사 기준 결과) */
+export type WorkHistoryStatus = 'COMPLETED' | 'REJECTED';
+
+/** GET /work-history 응답 */
+export interface WorkHistoryDto {
+  technicianId: number;
+  /** 구간과 그 기사의 배정 일정이 겹친 작업. 마지막 배정 시작 시각 내림차순 */
+  works: {
+    workId: number;
+    name: string;
+    status: WorkStatus;
+    /** 이 배정이 작업의 마지막 배정이고 일정이 남아 있는지 */
+    current: boolean;
+    assignmentNumber: number;
+    startTime: string;
+    endTime: string;
+    result: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN';
+    endReason: AssignmentDto['endReason'];
+    workType: LabelDto | null;
+    /** 실제 시작·완료 시각. 그 기사가 지금 담당인 채 완료한 작업만 */
+    startedAt: string | null;
+    completedAt: string | null;
+  }[];
+  /** 구간의 집계(배정 시작 시각이 구간 안인 것만). 목록 조건(statuses·workTypeIds)과 관계없다 */
+  statistics: { assigned: number; completed: number; rejected: number; cancelled: number };
+  /** 구간과 관계없이 지금 담당인 채 완료한 작업 수(누적 완료) */
+  totalCompleted: number;
 }
 
 // ── notification ────────────────────────────────────────────────────

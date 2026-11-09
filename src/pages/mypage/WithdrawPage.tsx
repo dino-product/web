@@ -6,6 +6,7 @@ import { useOwnedMemberships } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
 import { useWithdrawalEligibilitySync } from '@/data/sync';
 import { COMPANY_ROLE_LABEL, type CompanyMembership } from '@/data/types';
+import { useSingleFlight } from '@/lib/useSingleFlight';
 
 import styles from './WithdrawPage.module.css';
 
@@ -41,6 +42,14 @@ const SOLUTIONS = [
 /** 921:3702 — 총관리자는 탈퇴할 수 없다. 사유(총관리자인 발주사)와 해결 방법을 보여 준다. */
 function WithdrawBlocked({ memberships }: { memberships: CompanyMembership[] }) {
   const navigate = useNavigate();
+  // 조직 설정은 총관리자 전용(RequireOwner)이라, 지금 발주사에서 직원이면 총관리자인 발주사로 바꾼 뒤 연다.
+  const goToOrgSettings = () => {
+    const { session, switchCompany } = useAppStore.getState();
+    if (memberships.length && !memberships.some((m) => m.companyId === session.currentCompanyId)) {
+      switchCompany(memberships[0].companyId);
+    }
+    navigate('/org/members');
+  };
   return (
     <div className={`${styles.card} ${styles.blockedCard}`}>
       <div className={styles.banner}>
@@ -79,7 +88,7 @@ function WithdrawBlocked({ memberships }: { memberships: CompanyMembership[] }) 
           <Button variant="secondary" className={`${styles.actionButton} ${styles.ghostButton}`} onClick={() => navigate('/mypage')}>
             마이페이지로
           </Button>
-          <Button className={styles.actionButton} onClick={() => navigate('/org/members')}>
+          <Button className={styles.actionButton} onClick={goToOrgSettings}>
             조직 설정으로
           </Button>
         </div>
@@ -97,12 +106,14 @@ function WithdrawForm() {
   const [reason, setReason] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [withdrawing, withdrawOnce] = useSingleFlight();
 
-  const handleWithdraw = async () => {
-    // 실패하면(예: PROFILE-006 탈퇴 차단) 확인 모달만 닫고 이 화면에 남는다. 오류 코드는 콘솔에 남는다.
-    if (await withdrawAccount(reason.trim())) navigate('/login', { replace: true });
-    else setConfirmOpen(false);
-  };
+  const handleWithdraw = () =>
+    withdrawOnce(async () => {
+      // 실패하면(예: PROFILE-006 탈퇴 차단) 확인 모달만 닫고 이 화면에 남는다. 오류 코드는 콘솔에 남는다.
+      if (await withdrawAccount(reason.trim())) navigate('/login', { replace: true });
+      else setConfirmOpen(false);
+    });
 
   return (
     <div className={`${styles.card} ${styles.formCard}`}>
@@ -169,7 +180,7 @@ function WithdrawForm() {
             <Button variant="secondary" className={styles.dialogCancel} onClick={() => setConfirmOpen(false)}>
               취소
             </Button>
-            <Button variant="danger" style={{ width: 120 }} onClick={handleWithdraw}>
+            <Button variant="danger" style={{ width: 120 }} disabled={withdrawing} onClick={handleWithdraw}>
               탈퇴
             </Button>
           </>

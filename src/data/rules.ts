@@ -2,8 +2,20 @@
  * 작업·인력 도메인 규칙(순수 함수). 스토어 액션과 셀렉터가 함께 쓴다.
  * 상태 정의는 types.ts 주석과 docs/ui-plan.md §3을 따른다.
  */
+import { SITE_PHOTO_CONTENT_TYPES } from '@/data/constants';
 import { clockNow, dateTimeToMs, hmToMinutes, minutesToHm } from '@/lib/date';
 import type { HourMinute, Member, Task, TaskStatus } from '@/data/types';
+
+const PHOTO_TYPE_BY_EXTENSION: Record<string, string> = { heic: 'image/heic', heif: 'image/heif' };
+
+/**
+ * 현장 사진으로 올릴 수 있는 파일의 형식. 서버가 받지 않는 형식이면 null.
+ * 일부 브라우저는 HEIC·HEIF 파일의 형식을 비워 주므로 확장자로 채운다.
+ */
+export function sitePhotoContentType(file: Pick<File, 'type' | 'name'>): string | null {
+  const type = file.type || PHOTO_TYPE_BY_EXTENSION[file.name.split('.').pop()?.toLowerCase() ?? ''] || '';
+  return (SITE_PHOTO_CONTENT_TYPES as readonly string[]).includes(type) ? type : null;
+}
 
 /** 배정 판단에 쓰는 작업 필드 */
 type AssignmentFields = Pick<Task, 'technicianId' | 'date' | 'startTime' | 'durationMinutes'>;
@@ -61,10 +73,4 @@ export function isAssignableTechnician(member: Member): boolean {
 /** 두 시간 구간[start, end)이 겹치는지(분 단위) */
 export function rangesOverlap(aStart: number, aEnd: number, bStart: number, bEnd: number): boolean {
   return aStart < bEnd && bStart < aEnd;
-}
-
-/** 이력 처리자 표기. 기사는 '김민준 기사', 직원은 이름 그대로 */
-export function actorName(member: Pick<Member, 'name' | 'kind'> | undefined): string | null {
-  if (!member) return null;
-  return member.kind === 'TECHNICIAN' ? `${member.name} 기사` : member.name;
 }
