@@ -283,6 +283,9 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
                       suffix="원"
                       value={form.price}
                       onChange={(e) => {
+                        // 숫자만 남긴다. 다만 음수 부호가 든 입력(붙여넣기 포함)은 받지 않아 '-150000'이
+                        // 조용히 150,000으로 바뀌어 금액 의미가 달라지지 않게 한다.
+                        if (e.target.value.includes('-')) return;
                         const digits = e.target.value.replace(/\D/g, '').slice(0, 12);
                         set('price', digits ? formatNumber(Number(digits)) : '');
                       }}
