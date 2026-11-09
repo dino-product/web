@@ -42,6 +42,8 @@ export interface SidebarProps {
   hrefs: Record<SidebarMenuKey, string>;
   /** 메뉴 클릭 시 호출(새 탭 열기 등 수정 키를 누른 클릭은 브라우저 기본 동작) */
   onNavigate: (href: string) => void;
+  /** 그리지 않을 메뉴(권한이 없는 메뉴, 예: 직원의 '조직 설정') */
+  hiddenMenus?: readonly SidebarMenuKey[];
   /** 사용자 카드 이름(18/700 흰색) */
   userName: string;
   /** 현재 발주사에서의 역할 표기(16/500 Primary100). 예: '총 관리자' */
@@ -77,6 +79,7 @@ export function Sidebar({
   onLogout,
   searchValue,
   onSearchChange,
+  hiddenMenus = [],
   className,
 }: SidebarProps) {
   const [switcherOpen, setSwitcherOpen] = useState(false);
@@ -142,7 +145,7 @@ export function Sidebar({
       </label>
 
       <nav className={styles.menu} aria-label="주 메뉴">
-        {TOP_MENU.map((item) => renderItem(item, false))}
+        {TOP_MENU.filter((item) => !hiddenMenus.includes(item.key)).map((item) => renderItem(item, false))}
       </nav>
 
       <div className={styles.bottom}>

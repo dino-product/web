@@ -15,6 +15,10 @@ const MENU_HREF: Record<SidebarMenuKey, string> = {
   mypage: '/mypage',
 };
 
+/** 직원에게 숨기는 메뉴. 조직 설정의 조회·변경 API는 총관리자만 쓸 수 있다(서버 ORGANIZATION-003). */
+const STAFF_HIDDEN_MENUS: readonly SidebarMenuKey[] = ['org'];
+const NO_HIDDEN_MENUS: readonly SidebarMenuKey[] = [];
+
 /** 현재 경로의 섹션 → 선택 메뉴. /org/* 는 조직 설정. */
 function activeMenu(pathname: string): SidebarMenuKey | null {
   const section = pathname.split('/')[1];
@@ -70,6 +74,7 @@ export default function AppLayout() {
         active={activeMenu(location.pathname)}
         hrefs={MENU_HREF}
         onNavigate={handleNavigate}
+        hiddenMenus={membership?.role === 'STAFF' ? STAFF_HIDDEN_MENUS : NO_HIDDEN_MENUS}
         userName={user?.name ?? ''}
         roleLabel={membership ? COMPANY_ROLE_LABEL[membership.role] : ''}
         companyName={company?.name ?? membership?.companyName ?? ''}

@@ -58,7 +58,8 @@ interface TimeGridProps {
   onDragEnd: () => void;
   /** 격자에 놓음. x = 시간 축 기준 위치(px, 00:00 = 0) */
   onDropAt: (technicianId: ID, x: number) => void;
-  onGoToOrgSettings: () => void;
+  /** 기사 0명 안내의 '조직 설정으로'. 없으면(직원) 버튼을 그리지 않는다 */
+  onGoToOrgSettings?: () => void;
 }
 
 interface ScrollMetrics {
@@ -347,9 +348,11 @@ export default function TimeGrid({
             title="등록된 기사가 없어요"
             description="기사를 등록하면 타임테이블에서 일정을 배정할 수 있어요"
             actions={
-              <Button icon="arrow-back" iconSize={24} onClick={onGoToOrgSettings}>
-                조직 설정으로
-              </Button>
+              onGoToOrgSettings && (
+                <Button icon="arrow-back" iconSize={24} onClick={onGoToOrgSettings}>
+                  조직 설정으로
+                </Button>
+              )
             }
           />
         </div>
