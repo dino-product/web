@@ -6,6 +6,7 @@ import { useOwnedMemberships } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
 import { useWithdrawalEligibilitySync } from '@/data/sync';
 import { COMPANY_ROLE_LABEL, type CompanyMembership } from '@/data/types';
+import { useSingleFlight } from '@/lib/useSingleFlight';
 
 import styles from './WithdrawPage.module.css';
 
@@ -97,12 +98,14 @@ function WithdrawForm() {
   const [reason, setReason] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [withdrawing, withdrawOnce] = useSingleFlight();
 
-  const handleWithdraw = async () => {
-    // 실패하면(예: PROFILE-006 탈퇴 차단) 확인 모달만 닫고 이 화면에 남는다. 오류 코드는 콘솔에 남는다.
-    if (await withdrawAccount(reason.trim())) navigate('/login', { replace: true });
-    else setConfirmOpen(false);
-  };
+  const handleWithdraw = () =>
+    withdrawOnce(async () => {
+      // 실패하면(예: PROFILE-006 탈퇴 차단) 확인 모달만 닫고 이 화면에 남는다. 오류 코드는 콘솔에 남는다.
+      if (await withdrawAccount(reason.trim())) navigate('/login', { replace: true });
+      else setConfirmOpen(false);
+    });
 
   return (
     <div className={`${styles.card} ${styles.formCard}`}>
@@ -169,7 +172,7 @@ function WithdrawForm() {
             <Button variant="secondary" className={styles.dialogCancel} onClick={() => setConfirmOpen(false)}>
               취소
             </Button>
-            <Button variant="danger" style={{ width: 120 }} onClick={handleWithdraw}>
+            <Button variant="danger" style={{ width: 120 }} disabled={withdrawing} onClick={handleWithdraw}>
               탈퇴
             </Button>
           </>

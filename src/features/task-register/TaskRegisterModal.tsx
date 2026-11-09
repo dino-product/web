@@ -15,6 +15,7 @@ import { type ChangeEvent, type ReactNode, useContext, useId, useRef, useState }
 import { Button, Field, Icon, Modal, ModalPanel, TextField } from '@/design-system';
 import { today } from '@/lib/date';
 import { formatNumber, formatPhone } from '@/lib/format';
+import { useSingleFlight } from '@/lib/useSingleFlight';
 import { MAX_SITE_PHOTOS, PAYMENT_METHODS } from '@/data/constants';
 import { useActiveTechnicians, useActiveTypes } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
@@ -96,6 +97,8 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
   const [wasOpen, setWasOpen] = useState(open);
   const fileRef = useRef<HTMLInputElement>(null);
   const uid = useId();
+  // 저장 응답 전에 다시 누르면 같은 작업이 두 건 등록돼 진행 중 저장은 거른다.
+  const [saving, saveOnce] = useSingleFlight();
 
   // 열 때마다 빈 양식에서 시작한다(미입력 시안). 렌더 중에 맞춰 이전 입력값이 한 프레임도 보이지 않게 한다.
   if (open !== wasOpen) {
@@ -116,38 +119,39 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
     setForm((prev) => ({ ...prev, photos: [...prev.photos, ...urls].slice(0, MAX_SITE_PHOTOS) }));
   };
 
-  const handleSave = async () => {
-    if (!canSave) return;
-    const hasCustomer = [form.customerName, form.customerPhone, form.zipCode, form.address, form.addressDetail].some(
-      (v) => v.trim() !== '',
-    );
-    const customer: TaskCustomer | null = hasCustomer
-      ? {
-          name: form.customerName.trim(),
-          phone: form.customerPhone,
-          zipCode: form.zipCode,
-          address: form.address,
-          addressDetail: form.addressDetail.trim(),
-        }
-      : null;
-    const priceDigits = form.price.replace(/\D/g, '');
-    const id = await createTask({
-      title: form.title,
-      workTypeId: form.workTypeId,
-      technicianId: form.technicianId,
-      date: form.startTime ? (contextDate ?? today()) : null,
-      startTime: form.startTime,
-      durationMinutes: form.duration ? Number(form.duration) : null,
-      customer,
-      price: priceDigits ? Number(priceDigits) : null,
-      paymentMethod: form.paymentMethod,
-      sitePhotoUrls: form.photos,
+  const handleSave = () =>
+    saveOnce(async () => {
+      if (!canSave) return;
+      const hasCustomer = [form.customerName, form.customerPhone, form.zipCode, form.address, form.addressDetail].some(
+        (v) => v.trim() !== '',
+      );
+      const customer: TaskCustomer | null = hasCustomer
+        ? {
+            name: form.customerName.trim(),
+            phone: form.customerPhone,
+            zipCode: form.zipCode,
+            address: form.address,
+            addressDetail: form.addressDetail.trim(),
+          }
+        : null;
+      const priceDigits = form.price.replace(/\D/g, '');
+      const id = await createTask({
+        title: form.title,
+        workTypeId: form.workTypeId,
+        technicianId: form.technicianId,
+        date: form.startTime ? (contextDate ?? today()) : null,
+        startTime: form.startTime,
+        durationMinutes: form.duration ? Number(form.duration) : null,
+        customer,
+        price: priceDigits ? Number(priceDigits) : null,
+        paymentMethod: form.paymentMethod,
+        sitePhotoUrls: form.photos,
+      });
+      // 등록에 실패하면(서버 오류) 입력값을 지우지 않도록 모달을 닫지 않는다. 오류 코드는 콘솔에 남는다.
+      if (!id) return;
+      onCreated?.(id);
+      onClose();
     });
-    // 등록에 실패하면(서버 오류) 입력값을 지우지 않도록 모달을 닫지 않는다. 오류 코드는 콘솔에 남는다.
-    if (!id) return;
-    onCreated?.(id);
-    onClose();
-  };
 
   const photoSlots = MAX_SITE_PHOTOS - (form.photos.length < MAX_SITE_PHOTOS ? 1 : 0) - form.photos.length;
 
@@ -336,7 +340,7 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
             <Button size="lg" variant="secondary" style={{ width: 97 }} onClick={onClose}>
               취소
             </Button>
-            <Button size="lg" style={{ width: 173 }} disabled={!canSave} onClick={handleSave}>
+            <Button size="lg" style={{ width: 173 }} disabled={!canSave || saving} onClick={handleSave}>
               저장
             </Button>
           </div>
