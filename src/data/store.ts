@@ -23,6 +23,7 @@ import {
 } from '@/api/token';
 import type { CreateWorkBody, LoginDto, ProfileDto, WorkBody, WorkHistoryStatus } from '@/api/types';
 import { TYPE_COLOR_ORDER } from '@/data/constants';
+import { sitePhotoContentType } from '@/data/rules';
 import {
   cancelReasonCode,
   dayRange,
@@ -792,7 +793,8 @@ export const useAppStore = create<AppState>()((set, get) => {
       const sitePhotoIds = await call('현장 사진 업로드', () =>
         Promise.all(
           input.sitePhotos.map(async (file) => {
-            const ticket = await scheduleApi.issueSitePhotoUpload(org, { contentType: file.type, sizeBytes: file.size });
+            const contentType = sitePhotoContentType(file) ?? file.type;
+            const ticket = await scheduleApi.issueSitePhotoUpload(org, { contentType, sizeBytes: file.size });
             await uploadFile(ticket.uploadUrl, file, ticket.requiredHeaders);
             return ticket.fileId;
           }),

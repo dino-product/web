@@ -17,7 +17,8 @@ import { Button, Field, Icon, Modal, ModalPanel, TextField } from '@/design-syst
 import { today } from '@/lib/date';
 import { formatNumber, formatPhone } from '@/lib/format';
 import { useSingleFlight } from '@/lib/useSingleFlight';
-import { MAX_SITE_PHOTOS, PAYMENT_METHODS } from '@/data/constants';
+import { MAX_SITE_PHOTOS, PAYMENT_METHODS, SITE_PHOTO_CONTENT_TYPES } from '@/data/constants';
+import { sitePhotoContentType } from '@/data/rules';
 import { useActiveTechnicians, useActiveTypes } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
 import type { TaskCustomer } from '@/data/types';
@@ -38,6 +39,9 @@ export interface TaskRegisterModalProps {
 const SAMPLE_ADDRESS = { zipCode: '06236', address: '서울시 강남구 테헤란로 152' } as const;
 
 const PAYMENT_OPTIONS = PAYMENT_METHODS.map((method) => ({ value: method, label: method }));
+
+/** 파일 선택 창이 보여 줄 형식. 형식을 비워 주는 브라우저를 위해 HEIC·HEIF 확장자도 넣는다 */
+const SITE_PHOTO_ACCEPT = [...SITE_PHOTO_CONTENT_TYPES, '.heic', '.heif'].join(',');
 
 interface FormState {
   title: string;
@@ -113,7 +117,8 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
   const canSave = form.title.trim().length > 0;
 
   const handlePhotos = async (event: ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files ?? []).filter((file) => file.type.startsWith('image/'));
+    // 서버가 받지 않는 형식(GIF·SVG 등)은 고르지 않는다. 섞이면 등록 전체가 실패한다.
+    const files = Array.from(event.target.files ?? []).filter((file) => sitePhotoContentType(file) !== null);
     event.target.value = '';
     if (!files.length) return;
     const room = MAX_SITE_PHOTOS - form.photos.length;
@@ -339,7 +344,7 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
                 ref={fileRef}
                 className={styles.fileInput}
                 type="file"
-                accept="image/*"
+                accept={SITE_PHOTO_ACCEPT}
                 multiple
                 tabIndex={-1}
                 aria-hidden
