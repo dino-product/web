@@ -167,6 +167,7 @@ if (result === 'stale') {
 | `selectJoinRequestCount` · `useJoinRequestCount()` | 승인대기 수 |
 | `selectWaitingTaskCount` | 대기함 작업 수 |
 | `useMembers()` / `sortMembers` | 인력 전체(정렬) |
+| `useMemberNames()` / `getMemberNames`(rules) | 인력 ID별 이름. 인력 목록에 없는 담당 기사·등록자(역할을 바꾸기 전 계약·소속 등)는 작업 응답의 이름으로 채운다 |
 | `useEmployees()` / `getEmployees` | 직원 |
 | `useTechnicians()` / `getTechnicians` | 기사 전체(비활성 포함, 인력관리용) |
 | `useActiveTechnicians()` / `getActiveTechnicians` | 활성 기사(배정 선택지·타임테이블 행) |

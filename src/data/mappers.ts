@@ -333,6 +333,7 @@ export function emptyTask(id: ID): Task {
     workTypeId: null,
     status: 'REGISTERED',
     technicianId: null,
+    technicianName: null,
     date: null,
     startTime: null,
     durationMinutes: null,
@@ -341,6 +342,7 @@ export function emptyTask(id: ID): Task {
     paymentMethod: null,
     sitePhotoUrls: [],
     registrantId: '',
+    registrantName: null,
     createdAt: '',
     updatedAt: '',
     rejection: null,
@@ -373,8 +375,10 @@ export function taskFromSummary(w: WorkSummaryDto): TaskPatch {
       status: w.status,
       workTypeId: workTypeId(w.workType),
       technicianId: technicianId(w.technician?.technicianId),
+      technicianName: w.technician?.name ?? null,
       ...scheduleFields(w.startTime, minutesBetween(w.startTime, w.endTime)),
       registrantId: staffId(w.registrar?.membershipId),
+      registrantName: w.registrar?.name ?? null,
       createdAt: toIsoDateTime(w.registeredAt),
       updatedAt: toIsoDateTime(w.lastModifiedAt),
       delayed: w.delayed,
@@ -392,8 +396,10 @@ export function taskFromScheduled(w: ScheduledWorkDto): TaskPatch {
       status: w.status,
       workTypeId: workTypeId(w.workType),
       technicianId: technicianId(w.technician?.technicianId),
+      technicianName: w.technician?.name ?? null,
       ...scheduleFields(w.startTime, minutesBetween(w.startTime, w.endTime)),
       registrantId: staffId(w.registrar?.membershipId),
+      registrantName: w.registrar?.name ?? null,
       delayed: w.delayed,
     },
   };
@@ -413,8 +419,10 @@ export function taskFromBacklog(w: BacklogWorkDto, previous: Task | undefined): 
       status: 'REGISTERED',
       workTypeId: workTypeId(w.workType),
       technicianId: w.technicianMissing ? null : technicianId(w.plannedTechnician?.technicianId),
+      technicianName: w.technicianMissing ? null : (w.plannedTechnician?.name ?? null),
       ...(w.timeMissing ? { date: null, startTime: null, durationMinutes: null } : planned),
       registrantId: staffId(w.registrar?.membershipId),
+      registrantName: w.registrar?.name ?? null,
       createdAt: toIsoDateTime(w.registeredAt),
       rejection: w.returnedByRejection
         ? {
@@ -435,6 +443,7 @@ export function taskFromBoardCard(card: BoardCardDto, status: WorkStatus, previo
       title: card.name,
       status,
       technicianId: technicianId(card.technician?.technicianId),
+      technicianName: card.technician?.name ?? null,
       ...scheduleFields(card.startTime, minutesBetween(card.startTime, card.endTime)),
       customer: card.customerName
         ? { name: card.customerName, phone: '', zipCode: '', address: '', addressDetail: '', ...previous?.customer }
@@ -444,16 +453,16 @@ export function taskFromBoardCard(card: BoardCardDto, status: WorkStatus, previo
   };
 }
 
-/** 이름 찾기(이력 처리자). 직원 소속 ID·기사 계약 ID를 화면 인력으로 */
-export type MemberLookup = (id: ID) => Member | undefined;
+/** 이름 찾기(이력 처리자). 직원 소속 ID·기사 계약 ID로 화면 이름을(getMemberNames) */
+export type NameLookup = (id: ID) => string | undefined;
 
-function staffName(lookup: MemberLookup, membershipId: number | null): string | null {
-  return membershipId == null ? null : (lookup(staffId(membershipId))?.name ?? null);
+function staffName(lookup: NameLookup, membershipId: number | null): string | null {
+  return membershipId == null ? null : (lookup(staffId(membershipId)) ?? null);
 }
 
-function technicianActor(lookup: MemberLookup, assignment: AssignmentDto): string | null {
-  const id = technicianId(assignment.schedule.technician?.technicianId);
-  const name = id ? lookup(id)?.name : null;
+function technicianActor(lookup: NameLookup, assignment: AssignmentDto): string | null {
+  const technician = assignment.schedule.technician;
+  const name = technician ? (lookup(toId(ID_PREFIX.technician, technician.technicianId)) ?? technician.name) : null;
   return name ? `${name} 기사` : null;
 }
 
@@ -461,10 +470,9 @@ function technicianActor(lookup: MemberLookup, assignment: AssignmentDto): strin
  * 상태 변경 이력. 서버는 이력 표를 따로 주지 않고 등록·배정 이력·완료보고 요청·시작·완료·취소 시각을 주므로
  * 그 시각들로 화면 이력 문구(HISTORY_LABEL)를 오래된 순으로 만든다.
  */
-function buildHistory(d: WorkDetailDto, lookup: MemberLookup): TaskHistoryEntry[] {
-  const entries: TaskHistoryEntry[] = [
-    { at: toIsoDateTime(d.registeredAt), label: HISTORY_LABEL.registered, actor: staffName(lookup, d.registrar?.membershipId ?? null) },
-  ];
+function buildHistory(d: WorkDetailDto, lookup: NameLookup): TaskHistoryEntry[] {
+  const registrar = staffName(lookup, d.registrar?.membershipId ?? null) ?? d.registrar?.name ?? null;
+  const entries: TaskHistoryEntry[] = [{ at: toIsoDateTime(d.registeredAt), label: HISTORY_LABEL.registered, actor: registrar }];
   const assignments = [...d.assignments].sort((a, b) => a.assignmentNumber - b.assignmentNumber);
   assignments.forEach((a, index) => {
     const rescheduled = assignments[index - 1]?.endReason === 'RESCHEDULED';
@@ -515,7 +523,7 @@ function photoUrl(photo: PhotoDto): string {
 }
 
 /** 작업 상세(GET /works/{id}) → 화면 작업 전체 */
-export function taskFromDetail(d: WorkDetailDto, lookup: MemberLookup): TaskPatch {
+export function taskFromDetail(d: WorkDetailDto, lookup: NameLookup): TaskPatch {
   const schedule = d.schedule?.startTime ? d.schedule : null;
   const planned = d.plannedSchedule;
   const lastAssignment = [...d.assignments].sort((a, b) => b.assignmentNumber - a.assignmentNumber)[0];
@@ -534,6 +542,7 @@ export function taskFromDetail(d: WorkDetailDto, lookup: MemberLookup): TaskPatc
       delayed: d.delayed,
       workTypeId: workTypeId(d.workType),
       technicianId: technicianId(scheduleSource?.technician?.technicianId),
+      technicianName: scheduleSource?.technician?.name ?? null,
       ...scheduleFields(scheduleSource?.startTime, scheduleSource?.expectedDurationMinutes),
       customer: d.customer
         ? {
@@ -556,6 +565,7 @@ export function taskFromDetail(d: WorkDetailDto, lookup: MemberLookup): TaskPatc
         uploadedAt: registeredAt,
       })),
       registrantId: staffId(d.registrar?.membershipId),
+      registrantName: d.registrar?.name ?? null,
       createdAt: registeredAt,
       updatedAt: history.at(-1)?.at ?? registeredAt,
       rejection: rejected

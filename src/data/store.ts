@@ -30,7 +30,7 @@ import type {
   WorkHistoryStatus,
 } from '@/api/types';
 import { TYPE_COLOR_ORDER } from '@/data/constants';
-import { sitePhotoContentType } from '@/data/rules';
+import { getMemberNames, sitePhotoContentType } from '@/data/rules';
 import {
   cancelReasonCode,
   dayRange,
@@ -365,8 +365,6 @@ export const useAppStore = create<AppState>()((set, get) => {
       technicianHistory: null,
     });
   }
-
-  const memberLookup = (id: ID) => get().members.find((m) => m.id === id);
 
   function selfMember(): Member {
     return {
@@ -1100,7 +1098,10 @@ export const useAppStore = create<AppState>()((set, get) => {
       const detail = await call('작업 상세', () => scheduleApi.detail(org, workId));
       if (!detail) return;
       detailedTaskIds.add(taskId);
-      set((s) => ({ tasks: applyPatches(s.tasks, [taskFromDetail(detail, memberLookup)]) }));
+      set((s) => {
+        const names = getMemberNames(s.members, s.tasks);
+        return { tasks: applyPatches(s.tasks, [taskFromDetail(detail, (id) => names.get(id))]) };
+      });
     },
 
     loadTechnicianHistory: async (memberId, from) => {

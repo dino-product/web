@@ -14,6 +14,7 @@ import { useMemo } from 'react';
 
 import { hmToMinutes } from '@/lib/date';
 import {
+  getMemberNames,
   getTaskEndMs,
   getTaskEndTime,
   getTaskStartMs,
@@ -304,6 +305,13 @@ export function useOwnedMemberships(): CompanyMembership[] {
 export function useMembers(): Member[] {
   const members = useAppStore((s) => s.members);
   return useMemo(() => sortMembers(members), [members]);
+}
+
+/** 인력 ID별 이름. 인력 목록에 없는 담당 기사·등록자는 작업 응답의 이름으로 채운다(getMemberNames) */
+export function useMemberNames(): Map<ID, string> {
+  const members = useAppStore((s) => s.members);
+  const tasks = useAppStore((s) => s.tasks);
+  return useMemo(() => getMemberNames(members, tasks), [members, tasks]);
 }
 
 /** 직원 전체 */
