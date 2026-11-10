@@ -231,18 +231,27 @@ export function findScheduleConflicts(tasks: Task[], assignment: TaskAssignment,
   });
 }
 
-/** 기사에게 남아 있는 작업: 작업중(역할 변경 불가 사유)과 시작 전 배정(배정됨·작업전, 변경 시 대기함으로) */
-export interface TechnicianOpenTasks {
-  inProgress: Task[];
+/**
+ * 역할 변경 모달용 작업 현황(Figma 2008:31376, 2008:31713). 각 목록은 일정 순.
+ * - blocking: 변경 불가 사유. 기사는 작업중 작업, 직원은 등록한 작업 중 끝나지 않은 작업(완료·취소 제외)
+ * - scheduled: 기사의 시작 전 배정(배정됨·작업전). 바꾸면 배정이 풀려 대기함으로 돌아간다
+ */
+export interface RoleChangeTasks {
+  blocking: Task[];
   scheduled: Task[];
 }
 
-/** 역할 변경 모달용 기사 작업 현황(Figma 2008:31376, 2008:31713). 각 목록은 일정 순 */
-export function getTechnicianOpenTasks(tasks: Task[], memberId: ID): TechnicianOpenTasks {
+export function getRoleChangeTasks(tasks: Task[], member: Member): RoleChangeTasks {
   const byStart = (a: Task, b: Task) => (getTaskStartMs(a) ?? 0) - (getTaskStartMs(b) ?? 0);
-  const own = tasks.filter((t) => t.technicianId === memberId);
+  if (member.kind === 'EMPLOYEE') {
+    const unfinished = tasks.filter(
+      (t) => t.registrantId === member.id && t.status !== 'COMPLETED' && t.status !== 'CANCELED',
+    );
+    return { blocking: unfinished.sort(byStart), scheduled: [] };
+  }
+  const own = tasks.filter((t) => t.technicianId === member.id);
   return {
-    inProgress: own.filter((t) => t.status === 'IN_PROGRESS').sort(byStart),
+    blocking: own.filter((t) => t.status === 'IN_PROGRESS').sort(byStart),
     scheduled: own.filter((t) => UNSTARTED_ASSIGNED_STATUSES.includes(t.status)).sort(byStart),
   };
 }
@@ -364,12 +373,6 @@ export function useTasksByDate(date: IsoDate): Task[] {
 export function useBoardSummary(date: IsoDate): BoardSummary {
   const tasks = useAppStore((s) => s.tasks);
   return useMemo(() => getBoardSummary(tasks, date), [tasks, date]);
-}
-
-/** 기사 작업 현황(역할 변경 모달) */
-export function useTechnicianOpenTasks(memberId: ID): TechnicianOpenTasks {
-  const tasks = useAppStore((s) => s.tasks);
-  return useMemo(() => getTechnicianOpenTasks(tasks, memberId), [tasks, memberId]);
 }
 
 /** 기사 작업이력. from부터 읽은 이 기사의 이력이 아니면(읽기 전·다른 기사·다른 기간) undefined */

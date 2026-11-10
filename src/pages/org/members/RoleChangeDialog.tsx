@@ -14,10 +14,13 @@ import styles from './RoleChangeDialog.module.css';
 export interface RoleChangeDialogProps {
   member: Member;
   toKind: MemberKind;
-  /** 작업중 작업(있으면 변경 불가 2008:31376) */
-  inProgress: Task[];
+  /** 변경 불가(2008:31376). 사유 작업은 blocking(기사의 작업중 작업, 직원이 등록한 끝나지 않은 작업) */
+  blocked: boolean;
+  blocking: Task[];
   /** 시작 전 배정 작업(있으면 예정 작업 안내 2008:31713) */
   scheduled: Task[];
+  /** 역할 변경 요청 중(버튼 잠금) */
+  submitting: boolean;
   onClose: () => void;
   onConfirm: (typeId: ID | null) => void;
   /** 변경 불가 '작업 목록 보기' */
@@ -31,14 +34,17 @@ const taskTime = (task: Task, separator: string) =>
  * 역할 변경 확인 모달(직원유형 선택을 바꾸면 띄운다).
  * - 기본: 유형 미선택 2008:30734(안내 한 문단, 취소 글자 버튼) → 유형 선택 2008:31040(안내 두 항목, 취소 테두리 버튼)
  * - 예정 작업이 있는 기사: 2008:31713(배정 해제 안내 + 작업 목록)
- * - 작업중 작업이 있는 기사: 변경 불가 2008:31376(닫기, 작업 목록 보기)
- * 시안은 기사 → 직원만 있다. 직원 → 기사는 같은 모달에 구분·유형 이름만 바꿔 쓴다.
+ * - 변경 불가 2008:31376(닫기, 작업 목록 보기): 작업중 작업이 있는 기사. 시안은 기사 → 직원만 있어
+ *   직원 → 기사의 거부(등록한 작업 중 끝나지 않은 작업)는 같은 창에 사유 문구만 바꿔 쓴다.
+ * 직원 → 기사 확인은 같은 모달에 구분·유형 이름만 바꿔 쓴다.
  */
 export function RoleChangeDialog({
   member,
   toKind,
-  inProgress,
+  blocked,
+  blocking,
   scheduled,
+  submitting,
   onClose,
   onConfirm,
   onShowTasks,
@@ -48,7 +54,11 @@ export function RoleChangeDialog({
   const targetTypes = useActiveTypes(toKind);
   const options = useMemo(() => targetTypes.map((t) => ({ value: t.id, label: t.name })), [targetTypes]);
 
-  if (inProgress.length > 0) {
+  if (blocked) {
+    const reason =
+      member.kind === 'TECHNICIAN'
+        ? `${member.name} 님에게 작업중인 작업이 있어요. 작업을 완료한 뒤 변경해 주세요.\n예정된 작업만 있으면 배정을 풀고 변경할 수 있어요.`
+        : `${member.name} 님이 등록한 작업 중 끝나지 않은 작업이 있어요. 작업을 완료하거나 취소한 뒤 변경해 주세요.`;
     return (
       <Dialog
         className={dialogStyles.dialog}
@@ -69,17 +79,15 @@ export function RoleChangeDialog({
         <div className={styles.stack}>
           <div className={styles.alert}>
             <Icon name="error-fill" size={28} color="var(--color-type-red)" />
-            <p>
-              {`${member.name} 님에게 작업중인 작업이 있어요. 작업을 완료한 뒤 변경해 주세요.\n예정된 작업만 있으면 배정을 풀고 변경할 수 있어요.`}
-            </p>
+            <p>{reason}</p>
           </div>
-          {inProgress.map((task) => (
+          {blocking.map((task) => (
             <div key={task.id} className={styles.taskCard}>
               <div className={styles.taskText}>
                 <p className={styles.taskTitle}>{task.title}</p>
                 <p className={styles.taskTime}>{taskTime(task, '-')}</p>
               </div>
-              <StatusChip status="IN_PROGRESS" />
+              {task.status !== 'CANCELED' && <StatusChip status={task.status} />}
             </div>
           ))}
         </div>
@@ -152,7 +160,7 @@ export function RoleChangeDialog({
           <Button variant={detailed ? 'secondary' : 'ghost'} style={{ width: 97 }} onClick={onClose}>
             취소
           </Button>
-          <Button style={{ width: 129 }} onClick={() => onConfirm(typeId)}>
+          <Button style={{ width: 129 }} disabled={submitting} onClick={() => onConfirm(typeId)}>
             역할 변경
           </Button>
         </>

@@ -114,6 +114,17 @@ export interface ParticipantsDto {
 }
 
 export type ParticipationType = 'STAFF' | 'TECHNICIAN';
+
+/** 역할 변경 결과(POST …/staff-memberships/{id}/role-change, …/technicians/{id}/role-change) */
+export interface ParticipantRoleChangeDto {
+  /** 바뀐 뒤 역할 */
+  role: ParticipationType;
+  /** 바뀐 뒤 역할의 식별자. STAFF면 직원 소속, TECHNICIAN이면 기사 계약 ID(참여 인원 memberId) */
+  memberId: number;
+  /** 기사를 직원으로 바꾸며 대기함으로 돌린 작업 ID. 없으면 빈 목록 */
+  releasedWorkIds: number[];
+}
+
 export type RequestChannel = 'COMPANY_CODE' | 'JOIN_LINK' | 'QR_CODE';
 
 export interface PendingRequestDto {

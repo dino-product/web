@@ -21,7 +21,14 @@ import {
   saveSession,
   takePendingKakaoLogin,
 } from '@/api/token';
-import type { CreateWorkBody, LoginDto, ProfileDto, WorkBody, WorkHistoryStatus } from '@/api/types';
+import type {
+  CreateWorkBody,
+  LoginDto,
+  ParticipantRoleChangeDto,
+  ProfileDto,
+  WorkBody,
+  WorkHistoryStatus,
+} from '@/api/types';
 import { TYPE_COLOR_ORDER } from '@/data/constants';
 import { sitePhotoContentType } from '@/data/rules';
 import {
@@ -88,6 +95,12 @@ export interface KakaoLoginResult {
 
 /** 배정 변경 결과. 'stale'은 화면을 본 뒤 다른 사람이 작업을 바꿔 서버가 거부한 경우(SCHEDULE-016 '변경된 정보입니다') */
 export type AssignResult = 'applied' | 'stale' | 'failed';
+
+/**
+ * 역할 변경 결과. 'blocked'는 서버가 끝나지 않은 작업으로 거부한 경우
+ * (기사의 작업중 작업 ORGANIZATION-027, 직원이 등록한 끝나지 않은 작업 ORGANIZATION-028)
+ */
+export type RoleChangeResult = 'changed' | 'blocked' | 'failed';
 
 /** 작업내역 출력 조건(작업 목록 필터). 비운 조건은 거르지 않는다 */
 export interface TaskExportFilter {
@@ -170,8 +183,11 @@ export interface AppState {
   regenerateJoinCode: () => Promise<void>;
 
   // 인력
-  /** 직원↔기사 역할 변경. 서버 API가 없어 화면 안에서만 */
-  changeMemberKind: (memberId: ID, kind: MemberKind, typeId: ID | null) => void;
+  /**
+   * 직원↔기사 역할 변경. 방향은 memberId(직원 소속·기사 계약)로 정해지고 typeId는 바뀐 뒤 역할의 유형이다.
+   * 끝나면 인력을 다시 읽는다(바뀐 역할은 새 memberId). 대기함으로 돌아간 작업이나 거부 사유를 보이려고 작업도 다시 읽는다.
+   */
+  changeMemberKind: (memberId: ID, typeId: ID | null) => Promise<RoleChangeResult>;
   setMemberType: (memberId: ID, typeId: ID | null) => Promise<void>;
   /** 총관리자 지정(기존 총관리자는 해제) */
   assignOwner: (memberId: ID) => Promise<void>;
@@ -660,12 +676,35 @@ export const useAppStore = create<AppState>()((set, get) => {
     },
 
     // ── 인력 ──
-    changeMemberKind: (memberId, kind, typeId) =>
-      set((s) => ({
-        members: s.members.map((m) =>
-          m.id === memberId ? { ...m, kind, typeId, isOwner: kind === 'EMPLOYEE' ? m.isOwner : false } : m,
-        ),
-      })),
+    changeMemberKind: async (memberId, typeId) => {
+      const staff = fromId(memberId, ID_PREFIX.staff);
+      const technician = fromId(memberId, ID_PREFIX.technician);
+      const categoryId = typeIdNumber(typeId);
+      let result: RoleChangeResult;
+      try {
+        const org = requireOrg();
+        let changed: ParticipantRoleChangeDto;
+        if (staff != null) changed = await organizationApi.changeStaffToTechnician(org, staff, categoryId);
+        else if (technician != null) changed = await organizationApi.changeTechnicianToStaff(org, technician, categoryId);
+        else return 'failed';
+        if (changed.releasedWorkIds.length > 0) {
+          await get().loadTaskList();
+          bump();
+        }
+        result = 'changed';
+      } catch (error) {
+        if (isApiError(error, 'ORGANIZATION-027') || isApiError(error, 'ORGANIZATION-028')) {
+          await get().loadTaskList();
+          result = 'blocked';
+        } else {
+          handleFailure('역할 변경', error);
+          result = 'failed';
+        }
+      }
+      // 거부돼도 그 사이 바뀐 상태(비활성화·총관리자 지정 등)를 보이도록 다시 읽는다.
+      await get().loadOrganization();
+      return result;
+    },
 
     setMemberType: async (memberId, typeId) => {
       const staff = fromId(memberId, ID_PREFIX.staff);
