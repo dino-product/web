@@ -2,7 +2,7 @@
  * Figma "DesignSystem 웹" 페이지(0:1)와 화면 공통 패턴을 옮긴 공통 컴포넌트 배럴.
  * 사용법·props·Figma 노드 매핑은 docs/design-system.md 를 본다.
  */
-export { Avatar, type AvatarProps, type AvatarVariant } from './Avatar/Avatar';
+export { Avatar, type AvatarProps } from './Avatar/Avatar';
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from './Button/Button';
 export { Checkbox, type CheckboxProps } from './Checkbox/Checkbox';
 export { Chip, type ChipProps, type ChipSize, type ChipTone } from './Chip/Chip';

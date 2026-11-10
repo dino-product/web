@@ -68,7 +68,6 @@ export const ICON_NAMES = [
   'sidebar-left',
   'trash',
   'user',
-  'user-fill',
   'users',
   'users-circle',
   'warning-circle-fill',

@@ -38,49 +38,24 @@
   letter-spacing: var(--letter-spacing-base);
 }
 
-/* 463:5655: Background/3, radius 16, 높이 349 — 내용 1439px(463:5719)이 위아래 40에 놓인다 */
+/* 463:5655: Background/3, radius 16, 최소 높이 349(오류 헬퍼 텍스트가 보이면 늘어난다) — 내용이 위아래 40에 놓인다 */
 .profileCard {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 20px;
-  height: 349px;
+  min-height: 349px;
   padding: 40px 50px;
   border-radius: 16px;
   background: var(--color-background-3);
 }
 
-/* 463:5714: 사진 열 + 입력 열, 간격 60 */
-.profileRow {
-  display: flex;
-  align-items: flex-start;
-  gap: 60px;
-  width: 100%;
-}
-
-/* 463:5712: 130px 열, 사진과 버튼 간격 19 */
-.photoColumn {
-  display: flex;
-  flex: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 19px;
-  width: 130px;
-}
-
-/* 463:5695 '사진 업로드': 흰 배경 + Gray200 테두리 + Primary 글자 */
-.photoColumn .uploadButton {
-  border-color: var(--color-gray-200);
-  background: var(--color-gray-0);
-}
-
-/* 463:5713: 입력 열 1242px, 필드 간격 17 */
+/* 463:5713: 입력 열(시안의 사진 열 130 + 간격 60은 그리지 않고 카드 너비를 채운다), 필드 간격 17 */
 .fields {
   display: flex;
-  flex: none;
   flex-direction: column;
   gap: 17px;
-  width: 1242px;
+  width: 100%;
 }
 
 /* 463:5755 · 463:5756: 제목 + 목록, 간격 16 */

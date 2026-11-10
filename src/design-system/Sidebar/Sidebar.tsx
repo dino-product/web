@@ -171,18 +171,12 @@ export function Sidebar({
               aria-expanded={switcherOpen}
               onClick={() => setSwitcherOpen((v) => !v)}
             >
-              <span className={styles.userInfo}>
-                <Avatar variant="user" size={50} />
-                {userTexts}
-              </span>
+              <span className={styles.userInfo}>{userTexts}</span>
               <Icon name="selector" size={30} color="var(--color-support-sidebar-icon)" />
             </button>
           ) : (
             <>
-              <span className={styles.userInfo}>
-                <Avatar variant="user" size={50} />
-                {userTexts}
-              </span>
+              <span className={styles.userInfo}>{userTexts}</span>
               <button
                 type="button"
                 className={styles.logoutButton}
@@ -222,7 +216,7 @@ export function Sidebar({
                   }}
                 >
                   <span className={styles.companyInfo}>
-                    <Avatar variant="initial" size={36} text={company.name} />
+                    <Avatar size={36} text={company.name} />
                     <span className={styles.companyTexts}>
                       <span className={styles.companyName}>{company.name}</span>
                       <span className={styles.companyRole}>{company.roleLabel}</span>

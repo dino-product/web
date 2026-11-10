@@ -5,23 +5,7 @@
   justify-content: center;
   overflow: hidden;
   border-radius: 50%;
-}
-
-.user,
-.initial {
   background: var(--color-accepted-2);
-}
-
-.initial {
   color: var(--color-secondary);
   font-weight: 500;
-}
-
-.profile {
-  background: #e2e2f0;
-}
-
-.image {
-  display: block;
-  object-fit: cover;
 }
