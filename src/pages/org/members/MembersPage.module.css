@@ -83,7 +83,13 @@
   top: 18px;
 }
 
-/* 세부 유형(375)·참여일(1217) Gray700 */
+/* 세부 유형 선택 (375,18): 직원유형 선택과 같은 줄·높이 */
+.subtype {
+  left: 375px;
+  top: 18px;
+}
+
+/* 참여일(1217) Gray700 */
 .text {
   top: 25px;
   color: var(--color-gray-700);

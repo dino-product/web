@@ -1,15 +1,24 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Icon, MemberStatusChip, type PillTab, PillTabs, SearchInput, StateMessage } from '@/design-system';
+import {
+  CompactSelect,
+  type CompactSelectOption,
+  Icon,
+  MemberStatusChip,
+  type PillTab,
+  PillTabs,
+  SearchInput,
+  StateMessage,
+} from '@/design-system';
 import { formatJoinDate } from '@/lib/format';
 import { useSingleFlight } from '@/lib/useSingleFlight';
-import { getRoleChangeTasks, selectIsOwner, useMembers } from '@/data/selectors';
+import { getRoleChangeTasks, selectIsOwner, useActiveTypes, useMembers } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
 import type { ID, Member, MemberKind } from '@/data/types';
 
 import { KindSelect } from '../components/KindSelect';
-import { useTypeName } from '../useTypeName';
+import { NO_TYPE_LABEL, useTypeName } from '../useTypeName';
 import styles from './MembersPage.module.css';
 import { OwnerAssignDialog, OwnerReleaseDialog } from './OwnerDialogs';
 import { RoleChangeDialog } from './RoleChangeDialog';
@@ -29,6 +38,8 @@ interface RoleChange {
  * - 이름 검색, 전체·직원·기사 필터(건수는 검색과 무관). 시안의 모든 인력관리 프레임이 '직원' 선택 상태라 기본값을 직원으로 둔다.
  * - 직원유형 선택을 바꾸면 즉시 저장하지 않고 역할 변경 모달 → changeMemberKind(서버 역할 변경). 총관리자 행은 읽기 전용.
  *   서버가 끝나지 않은 작업으로 거부하면 다시 읽은 작업으로 변경 불가 창을 보인다.
+ * - 세부 유형(직원 세부유형·기사 세부유형) 드롭다운: 역할에 맞는 활성 유형 + '유형 없음'. 고르면 바로 setMemberType으로 저장한다.
+ *   서버가 총관리자만 허용하고 비활성 인력은 거절(ORGANIZATION-021)하므로 그 외에는 읽기 전용.
  * - 상세보기 → /org/members/:memberId(기사 작업이력).
  * - 총관리자 지정·해제: 인력관리 이전 시안(1951:18412 등) 오른쪽 아래 버튼 → 총관리자 지정(직원 선택) → 지정 해제 확인 → assignOwner.
  */
@@ -129,6 +140,7 @@ export default function MembersPage() {
           <MemberRow
             key={member.id}
             member={member}
+            canAssignType={isOwner && member.status === 'ACTIVE'}
             onKindChange={(kind) => requestKindChange(member, kind)}
             onDetail={() => navigate(`/org/members/${member.id}`)}
           />
@@ -188,12 +200,30 @@ export default function MembersPage() {
 
 interface MemberRowProps {
   member: Member;
+  /** 세부 유형 드롭다운을 열 수 있는지(보는 사람이 총관리자이고 대상이 활성) */
+  canAssignType: boolean;
   onKindChange: (kind: MemberKind) => void;
   onDetail: () => void;
 }
 
-function MemberRow({ member, onKindChange, onDetail }: MemberRowProps) {
+/** CompactSelect 값은 문자열이라 '유형 없음'(typeId null)을 빈 문자열로 나타낸다 */
+const NO_TYPE = '';
+
+function MemberRow({ member, canAssignType, onKindChange, onDetail }: MemberRowProps) {
   const typeName = useTypeName(member.typeId);
+  const activeTypes = useActiveTypes(member.kind);
+  const typeOptions = useMemo(() => {
+    const options: CompactSelectOption<string>[] = [
+      { value: NO_TYPE, label: NO_TYPE_LABEL },
+      ...activeTypes.map((type) => ({ value: type.id, label: type.name })),
+    ];
+    // 비활성·삭제된 유형이 지정돼 있으면 선택지에 없으므로 현재 값으로만 보여 준다.
+    if (member.typeId && !activeTypes.some((type) => type.id === member.typeId)) {
+      options.push({ value: member.typeId, label: typeName });
+    }
+    return options;
+  }, [activeTypes, member.typeId, typeName]);
+
   return (
     <div className={styles.row} role="row">
       <span role="cell" className={styles.name}>
@@ -207,8 +237,15 @@ function MemberRow({ member, onKindChange, onDetail }: MemberRowProps) {
       <span role="cell" className={styles.kind}>
         <KindSelect value={member.kind} onChange={onKindChange} readOnly={member.isOwner} aria-label="직원유형" />
       </span>
-      <span role="cell" className={styles.text} style={{ left: 375 }}>
-        {typeName}
+      <span role="cell" className={styles.subtype}>
+        <CompactSelect
+          value={member.typeId ?? NO_TYPE}
+          options={typeOptions}
+          onChange={(value) => void useAppStore.getState().setMemberType(member.id, value || null)}
+          readOnly={!canAssignType}
+          width={200}
+          aria-label={member.kind === 'EMPLOYEE' ? '직원 세부유형' : '기사 세부유형'}
+        />
       </span>
       <span role="cell" className={styles.status}>
         <MemberStatusChip status={member.status} />
