@@ -456,8 +456,9 @@ export function taskFromBoardCard(card: BoardCardDto, status: WorkStatus, previo
 /** 이름 찾기(이력 처리자). 직원 소속 ID·기사 계약 ID로 화면 이름을(getMemberNames) */
 export type NameLookup = (id: ID) => string | undefined;
 
-function staffName(lookup: NameLookup, membershipId: number | null): string | null {
-  return membershipId == null ? null : (lookup(staffId(membershipId)) ?? null);
+/** 처리한 직원 이름. 인력 목록의 이름을 먼저 쓰고, 없으면 응답에 담긴 이름(역할을 바꾼 직원 등)을 쓴다 */
+function staffName(lookup: NameLookup, membershipId: number | null, responseName: string | null): string | null {
+  return (membershipId == null ? undefined : lookup(staffId(membershipId))) ?? responseName;
 }
 
 function technicianActor(lookup: NameLookup, assignment: AssignmentDto): string | null {
@@ -471,7 +472,7 @@ function technicianActor(lookup: NameLookup, assignment: AssignmentDto): string 
  * 그 시각들로 화면 이력 문구(HISTORY_LABEL)를 오래된 순으로 만든다.
  */
 function buildHistory(d: WorkDetailDto, lookup: NameLookup): TaskHistoryEntry[] {
-  const registrar = staffName(lookup, d.registrar?.membershipId ?? null) ?? d.registrar?.name ?? null;
+  const registrar = staffName(lookup, d.registrar?.membershipId ?? null, d.registrar?.name ?? null);
   const entries: TaskHistoryEntry[] = [{ at: toIsoDateTime(d.registeredAt), label: HISTORY_LABEL.registered, actor: registrar }];
   const assignments = [...d.assignments].sort((a, b) => a.assignmentNumber - b.assignmentNumber);
   assignments.forEach((a, index) => {
@@ -479,7 +480,7 @@ function buildHistory(d: WorkDetailDto, lookup: NameLookup): TaskHistoryEntry[] 
     entries.push({
       at: toIsoDateTime(a.assignedAt),
       label: rescheduled ? HISTORY_LABEL.rescheduled : HISTORY_LABEL.assigned,
-      actor: staffName(lookup, a.assignedBy),
+      actor: staffName(lookup, a.assignedBy, a.assignedByName),
     });
     if (a.decidedAt && (a.result === 'ACCEPTED' || a.result === 'REJECTED')) {
       entries.push({
@@ -489,11 +490,19 @@ function buildHistory(d: WorkDetailDto, lookup: NameLookup): TaskHistoryEntry[] 
       });
     }
     if (a.endReason === 'UNASSIGNED' && a.endedAt) {
-      entries.push({ at: toIsoDateTime(a.endedAt), label: HISTORY_LABEL.unassigned, actor: staffName(lookup, a.endedBy) });
+      entries.push({
+        at: toIsoDateTime(a.endedAt),
+        label: HISTORY_LABEL.unassigned,
+        actor: staffName(lookup, a.endedBy, a.endedByName),
+      });
     }
   });
   for (const r of d.completionReportRequests) {
-    entries.push({ at: toIsoDateTime(r.requestedAt), label: HISTORY_LABEL.reportRequested, actor: staffName(lookup, r.requestedBy) });
+    entries.push({
+      at: toIsoDateTime(r.requestedAt),
+      label: HISTORY_LABEL.reportRequested,
+      actor: staffName(lookup, r.requestedBy, r.requestedByName),
+    });
   }
   const current = assignments.at(-1);
   if (d.startedAt) {
@@ -506,7 +515,7 @@ function buildHistory(d: WorkDetailDto, lookup: NameLookup): TaskHistoryEntry[] 
     entries.push({
       at: toIsoDateTime(d.cancellation.cancelledAt),
       label: HISTORY_LABEL.canceled,
-      actor: staffName(lookup, d.cancellation.cancelledBy),
+      actor: staffName(lookup, d.cancellation.cancelledBy, d.cancellation.cancelledByName),
     });
   }
   return entries.sort((a, b) => a.at.localeCompare(b.at));
