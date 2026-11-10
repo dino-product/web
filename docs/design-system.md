@@ -41,6 +41,7 @@ Figma에서 line-height가 `auto`인 글자(작업 유형 배지 15px, 대기함
 - 모달·드롭다운은 모두 `#overlay-root`(AppStage 캔버스 안)로 포털합니다. `Modal`·`Popover`가 처리하므로 화면에서 `createPortal`을 직접 쓰지 않아도 됩니다.
 - `Popover`는 AppStage의 `zoom`을 계산해 트리거 아래·위에 붙입니다. 스크롤·창 크기 변경 때 다시 계산하고, 바깥 클릭·Esc로 닫힙니다. Esc는 캡처 단계에서 처리하므로 모달 안의 드롭다운을 닫을 때 모달까지 닫히지 않습니다.
 - 첫 렌더에서 바로 열린 모달(예: `/tasks/:taskId` 직접 진입)도 그려집니다(`useOverlayRoot`).
+- `OverflowTooltip`은 AppStage에 한 번만 둡니다. 한 줄로 잘린 글자(`white-space: nowrap` + `overflow: hidden|clip`이고 실제로 넘친 요소)에 마우스를 올리면 120ms 뒤 기준 상자 바로 위(8px, 공간이 없으면 아래)에 왼쪽을 맞춰 말풍선(꼬리 없음, Primary 72%·흰색 불투명 배경, Gray0 Body/XS/Medium, padding 8/12, radius 8, 최대 너비 400)으로 전체 글자를 보여 줍니다. 기준 상자는 `data-overflow-tooltip-anchor`가 있는 가장 가까운 조상이고(`ScheduleCard`는 블록 전체), 없으면 잘린 글자 자신입니다. 클릭·드래그·스크롤·창 크기 변경 때 닫힙니다.
 
 ## 3. 컴포넌트 한눈에 보기
 

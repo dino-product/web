@@ -1,0 +1,25 @@
+/*
+ * 잘린 글자 전체 보기(사용자 첨부 시안): 꼬리 없는 둥근 상자, Primary 72% + 흰색을 섞은 불투명 배경(윗행 블록이 비치지 않게),
+ * Gray0 Body/XS/Medium(16/500, 줄 22),
+ * padding 8/12, radius 8. 기준 상자 왼쪽 위에 8px 띄워 붙는다. 최대 너비 400에서 줄바꿈.
+ */
+.bubble {
+  position: absolute;
+  z-index: 20;
+  max-width: 400px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--color-primary) 72%, var(--color-gray-0));
+  color: var(--color-gray-0);
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+  animation: tooltip-in 120ms ease-out;
+}
+
+@keyframes tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+}

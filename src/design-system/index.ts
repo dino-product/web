@@ -21,6 +21,7 @@ export { MemberStatusChip, type MemberStatusChipProps } from './MemberStatusChip
 export { Menu, MenuItem, type MenuItemProps, type MenuItemTone } from './Menu/Menu';
 export { Modal, type ModalProps } from './Modal/Modal';
 export { ModalPanel, type ModalPanelProps } from './ModalPanel/ModalPanel';
+export { OverflowTooltip } from './OverflowTooltip/OverflowTooltip';
 export { Pagination, type PaginationProps } from './Pagination/Pagination';
 export { type PillTab, PillTabs, type PillTabsProps } from './PillTabs/PillTabs';
 export { Popover, type PopoverPlacement, type PopoverProps } from './Popover/Popover';

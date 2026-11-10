@@ -1,5 +1,7 @@
 import { type CSSProperties, type ReactNode, useLayoutEffect, useState } from 'react';
 
+import { OverflowTooltip } from '@/design-system';
+
 const DESIGN_WIDTH = 1920;
 
 interface StageSize {
@@ -35,6 +37,7 @@ export default function AppStage({ children }: { children: ReactNode }) {
     <div className="app-stage" style={style}>
       {children}
       <div id="overlay-root" />
+      <OverflowTooltip />
     </div>
   );
 }

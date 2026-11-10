@@ -1,11 +1,11 @@
 /**
- * 타임테이블 격자 치수(Figma 443:1156). 1시간 = 156px(10분 칸 26px x 6), 행 = 111px(블록 110 + 아래선 1).
+ * 타임테이블 격자 치수(Figma 443:1156 기준, 10분 칸만 26 → 38px로 넓힘). 1시간 = 228px(10분 칸 38px x 6), 행 = 111px(블록 110 + 아래선 1).
  * 시간 축은 00:00–24:00(1시간 간격, 24시간 표기)이고 처음에는 시안 첫 칸인 09:00이 왼쪽에 오도록 스크롤한다.
  */
 import { SLOT_MINUTES } from '@/features/task-register/scheduleOptions';
 
-export const HOUR_WIDTH = 156;
-export const TEN_MINUTE_WIDTH = 26;
+export const HOUR_WIDTH = 228;
+export const TEN_MINUTE_WIDTH = 38;
 export const AXIS_HOURS = 24;
 export const AXIS_WIDTH = HOUR_WIDTH * AXIS_HOURS;
 export const INITIAL_SCROLL_HOUR = 9;
