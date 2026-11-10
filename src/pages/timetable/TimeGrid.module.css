@@ -68,13 +68,13 @@
   display: flex;
 }
 
-/* 시간 칸 443:1286 — 156x60, 글자 가운데, 아래 Gray300(마지막 칸은 오른쪽도) */
+/* 시간 칸 443:1286 — 228x60(10분 칸 38 x 6), 글자 가운데, 아래 Gray300(마지막 칸은 오른쪽도) */
 .hour {
   display: flex;
   flex: none;
   align-items: center;
   justify-content: center;
-  width: 156px;
+  width: 228px;
   height: 60px;
   border-bottom: 1px solid var(--color-gray-300);
 }
@@ -113,17 +113,17 @@
 }
 
 /*
- * 시간 칸 443:1301 — 10분 칸 26px 오른쪽 Gray100 선, 1시간(6번째 칸) Gray300 선, 행 111px 아래 Gray300 선.
+ * 시간 칸 443:1301 — 10분 칸 38px 오른쪽 Gray100 선, 1시간(6번째 칸) Gray300 선, 행 111px 아래 Gray300 선.
  * 위 레이어부터 행 선 → 시간 선 → 10분 선.
  */
 .lanes {
   position: relative;
   flex: none;
-  width: 3744px;
+  width: 5472px;
   background:
     linear-gradient(to bottom, transparent 110px, var(--color-gray-300) 110px) 0 0 / 100% 111px,
-    linear-gradient(to right, transparent 155px, var(--color-gray-300) 155px) 0 0 / 156px 100%,
-    linear-gradient(to right, transparent 25px, var(--color-gray-100) 25px) 0 0 / 26px 100%;
+    linear-gradient(to right, transparent 227px, var(--color-gray-300) 227px) 0 0 / 228px 100%,
+    linear-gradient(to right, transparent 37px, var(--color-gray-100) 37px) 0 0 / 38px 100%;
 }
 
 /* 현재 시각선 443:1673 — Secondary 1px, 행 전체 높이, 블록 위 */

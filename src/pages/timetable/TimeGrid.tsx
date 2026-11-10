@@ -253,7 +253,7 @@ export default function TimeGrid({
     <div className={clsx(styles.frame, editing && styles.frameEditing)} style={{ width, height: frameHeight }}>
       <div ref={scrollerRef} className={styles.scroller} onScroll={editing ? measure : undefined}>
         <div className={styles.canvas} style={{ width: driverWidth + AXIS_WIDTH, height: HEADER_HEIGHT + bodyHeight }}>
-          {/* 머리줄 577:3006 — Gray50, 기사 184 + 시간 칸 156 */}
+          {/* 머리줄 577:3006 — Gray50, 기사 184 + 시간 칸 228 */}
           <div className={styles.header}>
             <div className={styles.corner}>
               <span className={clsx('t-body-m-medium', styles.headerText)}>기사</span>
@@ -280,7 +280,7 @@ export default function TimeGrid({
               ))}
             </div>
 
-            {/* 시간 칸 443:1300 — 10분 칸 26px(Gray100 선), 1시간 156px(Gray300 선), 행 111px(Gray300 아래선) */}
+            {/* 시간 칸 443:1300 — 10분 칸 38px(Gray100 선), 1시간 228px(Gray300 선), 행 111px(Gray300 아래선) */}
             <div
               ref={lanesRef}
               className={styles.lanes}
