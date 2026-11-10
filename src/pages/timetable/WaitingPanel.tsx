@@ -1,13 +1,71 @@
 import clsx from 'clsx';
-import { type DragEvent, useEffect, useMemo, useRef } from 'react';
+import { type DragEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
-import { Icon, IconButton, WorkCard } from '@/design-system';
+import { Icon, IconButton, WorkCard, type WorkCardProps } from '@/design-system';
 import { formatElapsedSinceRegistered } from '@/lib/format';
 import { useMemberNames } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
 import type { ID, Task } from '@/data/types';
 
 import styles from './WaitingPanel.module.css';
+
+type CardContent = Pick<WorkCardProps, 'workType' | 'title' | 'assigneeLabel' | 'meta'>;
+
+/** 드래그 중인 카드 미리보기. grab = 카드 왼쪽 위에서 잡은 위치(캔버스 px), client = 시작 포인터 위치 */
+interface DragGhost {
+  card: CardContent;
+  grabX: number;
+  grabY: number;
+  clientX: number;
+  clientY: number;
+}
+
+/** 브라우저 기본 드래그 고스트를 숨기는 1x1 투명 이미지. 드래그 시작 전에 디코딩되도록 미리 만든다. */
+const EMPTY_DRAG_IMAGE = new Image();
+EMPTY_DRAG_IMAGE.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+/**
+ * 드래그 미리보기 카드. 브라우저 기본 고스트는 요소 사각형을 그대로 찍어 둥근 모서리 바깥을 패널 배경(Primary)으로
+ * 채우므로(검은 직사각형), 기본 고스트를 숨기고 #overlay-root에 카드를 직접 그려 포인터를 따라가게 한다.
+ * 놓거나(drop) 드래그가 끝나면(dragend, Esc 취소 포함) onEnd로 지운다.
+ */
+function CardDragGhost({ ghost, onEnd }: { ghost: DragGhost; onEnd: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const root = document.getElementById('overlay-root');
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || !root) return;
+    // AppStage zoom을 고려해 포인터 위치를 캔버스 좌표로 바꾼다.
+    const place = (clientX: number, clientY: number) => {
+      const rootRect = root.getBoundingClientRect();
+      const scale = root.offsetWidth ? rootRect.width / root.offsetWidth : 1;
+      const x = (clientX - rootRect.left) / scale - ghost.grabX;
+      const y = (clientY - rootRect.top) / scale - ghost.grabY;
+      el.style.transform = `translate(${x}px, ${y}px)`;
+    };
+    place(ghost.clientX, ghost.clientY);
+    const onDragOver = (event: globalThis.DragEvent) => place(event.clientX, event.clientY);
+    document.addEventListener('dragover', onDragOver, true);
+    // 배정되면 원본 카드가 목록에서 빠져 dragend가 오지 않을 수 있으므로 drop에서도 지운다.
+    document.addEventListener('drop', onEnd, true);
+    document.addEventListener('dragend', onEnd, true);
+    return () => {
+      document.removeEventListener('dragover', onDragOver, true);
+      document.removeEventListener('drop', onEnd, true);
+      document.removeEventListener('dragend', onEnd, true);
+    };
+  }, [ghost, onEnd, root]);
+
+  if (!root) return null;
+  return createPortal(
+    <div ref={ref} className={styles.dragGhost} aria-hidden>
+      <WorkCard {...ghost.card} />
+    </div>,
+    root,
+  );
+}
 
 interface WaitingPanelProps {
   /** 대기함 작업(등록 상태, 작업 유형 필터 적용) */
@@ -45,6 +103,8 @@ export default function WaitingPanel({
   const types = useAppStore((s) => s.types);
   const typeById = useMemo(() => new Map(types.map((t) => [t.id, t])), [types]);
   const selectedInPanel = editing && tasks.some((t) => t.id === selectedTaskId);
+  const [dragGhost, setDragGhost] = useState<DragGhost | null>(null);
+  const clearDragGhost = useCallback(() => setDragGhost(null), []);
 
   useEffect(() => {
     if (!revealTaskId || collapsed) return;
@@ -72,9 +132,30 @@ export default function WaitingPanel({
     );
   }
 
+  const cardContent = (task: Task): CardContent => {
+    const type = task.workTypeId ? typeById.get(task.workTypeId) : undefined;
+    return {
+      workType: type ? { name: type.name, color: type.color } : null,
+      title: task.title,
+      assigneeLabel: task.technicianId ? (memberName.get(task.technicianId) ?? '기사 미정') : '기사 미정',
+      meta: formatElapsedSinceRegistered(task.createdAt),
+    };
+  };
+
   const handleDragStart = (task: Task, event: DragEvent<HTMLDivElement>) => {
+    const card = event.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const scale = card.offsetWidth ? rect.width / card.offsetWidth : 1;
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', task.id);
+    event.dataTransfer.setDragImage(EMPTY_DRAG_IMAGE, 0, 0);
+    setDragGhost({
+      card: cardContent(task),
+      grabX: (event.clientX - rect.left) / scale,
+      grabY: (event.clientY - rect.top) / scale,
+      clientX: event.clientX,
+      clientY: event.clientY,
+    });
     onCardDragStart(task.id);
   };
 
@@ -99,7 +180,6 @@ export default function WaitingPanel({
       ) : (
         <div ref={listRef} className={styles.list}>
           {tasks.map((task) => {
-            const type = task.workTypeId ? typeById.get(task.workTypeId) : undefined;
             const selected = editing && task.id === selectedTaskId;
             return (
               <WorkCard
@@ -111,10 +191,7 @@ export default function WaitingPanel({
                   selected && styles.cardSelected,
                   selectedInPanel && !selected && styles.cardDimmed,
                 )}
-                workType={type ? { name: type.name, color: type.color } : null}
-                title={task.title}
-                assigneeLabel={task.technicianId ? (memberName.get(task.technicianId) ?? '기사 미정') : '기사 미정'}
-                meta={formatElapsedSinceRegistered(task.createdAt)}
+                {...cardContent(task)}
                 draggable={editing}
                 onClick={() => {
                   if (editing) onSelectTask(selected ? null : task.id);
@@ -126,6 +203,7 @@ export default function WaitingPanel({
           })}
         </div>
       )}
+      {dragGhost && <CardDragGhost ghost={dragGhost} onEnd={clearDragGhost} />}
     </aside>
   );
 }
