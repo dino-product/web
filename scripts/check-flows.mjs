@@ -279,6 +279,23 @@ const flows = {
     await page.waitForURL(`**/org/members/t${seed.technicianIds['김민수']}`);
     await textIncludes(page.locator('main'), '완료');
   },
+  async 'org-member-types'(env) {
+    const { page } = env;
+    await login(env, '/org/members');
+    await page.getByRole('tab', { name: /^기사/ }).click();
+    const select = page.locator('main [role="row"]:has-text("김민수")').getByRole('button', { name: '기사 세부유형', exact: true });
+    const original = (await select.innerText()).trim();
+    const target = original === '보조 기사' ? '설치 기사' : '보조 기사';
+    const path = apiPath(`/technicians/${seed.technicianIds['김민수']}/category`);
+    await select.click();
+    const r = await response(env, 'PUT', path, 204, () => page.getByRole('option', { name: target, exact: true }).click());
+    assert.equal(r.request().postDataJSON().categoryId, seed.categoryIds.technician[target]);
+    await select.filter({ hasText: target }).waitFor();
+    // --no-seed로 다시 돌려도 같은 상태에서 시작하도록 원래 유형으로 되돌린다.
+    await select.click();
+    await response(env, 'PUT', path, 204, () => page.getByRole('option', { name: original, exact: true }).click());
+    await select.filter({ hasText: original }).waitFor();
+  },
   async 'org-types'(env) {
     const { page } = env;
     await login(env, '/org/types?tab=work');

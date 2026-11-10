@@ -19,10 +19,10 @@ import type { HourMinute, IsoDate } from '@/data/types';
 
 const pad2 = (n: number) => String(n).padStart(2, '0');
 
-/** 타임테이블 날짜. 예: '2026-10-21' → '2026. 10.21 (수)' */
+/** 타임테이블 날짜. 예: '2026-10-21' → '2026.10.21 (수)' */
 export function formatTimetableDate(date: IsoDate): string {
   const { year, month, day } = parseIsoDate(date);
-  return `${year}. ${pad2(month)}.${pad2(day)} (${weekdayLabel(date)})`;
+  return `${year}.${pad2(month)}.${pad2(day)} (${weekdayLabel(date)})`;
 }
 
 /** 진행 보드 날짜. 오늘이면 '(오늘)', 아니면 요일. 예: '2026년 12월 18일 (오늘)', '2026년 12월 19일 (토)' */

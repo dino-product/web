@@ -52,10 +52,15 @@
   height: 50px;
 }
 
-/* 18/500 Primary 80% */
+/*
+ * 18/500 Primary 80%. 날짜마다 숫자 폭이 달라 날짜 이동 상자가 흔들리지 않도록 숫자를 고정 폭(tabular-nums)으로 그린다.
+ * 모든 숫자가 가장 넓은 숫자 폭을 쓰므로 어떤 날짜든 같은 너비(126px, 'YYYY.MM.DD (요일)')가 된다.
+ */
 .dateText {
+  flex: none;
   color: var(--color-primary);
   opacity: 0.8;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 

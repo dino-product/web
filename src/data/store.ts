@@ -172,8 +172,8 @@ export interface AppState {
   /** 온보딩 마지막 단계 완료(건너뛰기 포함) */
   finishOnboarding: () => void;
   switchCompany: (companyId: ID) => void;
-  /** 이름·연락처 저장. 프로필 사진은 서버 API가 없어 화면 안에서만 */
-  updateProfile: (input: { name: string; phone: string; avatarUrl: string | null }) => Promise<void>;
+  /** 이름·연락처 저장 */
+  updateProfile: (input: { name: string; phone: string }) => Promise<void>;
   /** 탈퇴. 성공하면 true */
   withdrawAccount: (reason: string) => Promise<boolean>;
 
@@ -376,7 +376,6 @@ export const useAppStore = create<AppState>()((set, get) => {
       isOwner: false,
       status: 'ACTIVE',
       joinedAt: toIsoDateTime(myProfile?.signedUpAt ?? Date.now()),
-      avatarUrl: null,
     };
   }
 
@@ -615,7 +614,7 @@ export const useAppStore = create<AppState>()((set, get) => {
       void loadCompanyData().then(bump);
     },
 
-    updateProfile: async ({ name, phone, avatarUrl }) => {
+    updateProfile: async ({ name, phone }) => {
       const id = accountId();
       if (id == null) return;
       const saved = await call('프로필 수정', () =>
@@ -626,7 +625,7 @@ export const useAppStore = create<AppState>()((set, get) => {
       const userId = get().session.userId;
       set((s) => ({
         members: s.members.map((m) =>
-          m.id === userId ? { ...m, name: saved.name ?? m.name, phone: formatPhone(saved.phoneNumber ?? ''), avatarUrl } : m,
+          m.id === userId ? { ...m, name: saved.name ?? m.name, phone: formatPhone(saved.phoneNumber ?? '') } : m,
         ),
       }));
     },
@@ -988,10 +987,7 @@ export const useAppStore = create<AppState>()((set, get) => {
       const userId = mine ? toId(ID_PREFIX.staff, mine.memberId) : SELF_MEMBER_ID;
       set((s) => ({
         types,
-        members: members.map((m) => {
-          const previous = s.members.find((p) => p.id === m.id);
-          return previous?.avatarUrl ? { ...m, avatarUrl: previous.avatarUrl } : m;
-        }),
+        members,
         joinRequests: (requests?.requests ?? []).map((r) => {
           const request = joinRequestFromDto(r);
           const previous = s.joinRequests.find((p) => p.id === request.id);

@@ -1,7 +1,8 @@
-import { type ChangeEvent, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { Avatar, Button, Field, Icon, TextField } from '@/design-system';
+import { Button, Field, Icon, TextField } from '@/design-system';
+import { useProfileValidation } from '@/features/profile/useProfileValidation';
 import { formatPhone } from '@/lib/format';
 import { useCurrentUser } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
@@ -10,9 +11,9 @@ import { COMPANY_ROLE_LABEL } from '@/data/types';
 import styles from './MyPage.module.css';
 
 /**
- * 마이페이지(Figma 460:5226). 프로필 사진 요소는 1802:6229(130px 원형).
- * - 사진 업로드: 파일 선택 → 미리보기(저장 전까지 화면에만 반영)
- * - 저장: 이름·연락처·사진을 updateProfile로 반영(인사말·사이드바 이름이 바뀐다)
+ * 마이페이지(Figma 460:5226). 시안의 프로필 사진 원·사진 업로드(1802:6229, 463:5695)는 요청에 따라 그리지 않는다.
+ * - 저장: 이름·연락처를 updateProfile로 반영(인사말·사이드바 이름이 바뀐다).
+ *   형식이 틀리면 저장하지 않고 칸 아래 오류 헬퍼 텍스트를 보인다(입력칸을 벗어날 때도 검사).
  * - 알림센터 → /notifications, 로그아웃 → /login, 계정 탈퇴 → /mypage/withdraw
  */
 export default function MyPage() {
@@ -24,24 +25,11 @@ export default function MyPage() {
 
   const [name, setName] = useState(user?.name ?? '');
   const [phone, setPhone] = useState(user?.phone ?? '');
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(user?.avatarUrl ?? null);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const handleFile = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') setAvatarUrl(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
+  const validation = useProfileValidation(name, phone);
 
   const handleSave = () => {
-    // 이름이 비면 사이드바·인사말이 깨지므로 반영하지 않는다(시안에 오류 상태 없음).
-    if (!name.trim()) return;
-    updateProfile({ name, phone, avatarUrl });
+    if (validation.submit()) return;
+    updateProfile({ name, phone });
   };
 
   const handleLogout = () => {
@@ -56,39 +44,46 @@ export default function MyPage() {
         <section className={styles.profileSection}>
           <p className={styles.greeting}>{user?.name ?? ''}님, 반가워요!</p>
           <div className={styles.profileCard}>
-            <div className={styles.profileRow}>
-              <div className={styles.photoColumn}>
-                {avatarUrl ? (
-                  <Avatar variant="image" size={130} src={avatarUrl} alt="프로필 사진" />
-                ) : (
-                  <Avatar variant="profile" size={130} />
-                )}
-                <Button variant="outline" className={styles.uploadButton} onClick={() => fileRef.current?.click()}>
-                  사진 업로드
-                </Button>
-                <input ref={fileRef} type="file" accept="image/*" hidden onChange={handleFile} />
-              </div>
-              <div className={styles.fields}>
-                <Field label="이름" labelStyle="profile" htmlFor="mypage-name">
-                  <TextField
-                    id="mypage-name"
-                    appearance="profile"
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    autoComplete="name"
-                  />
-                </Field>
-                <Field label="연락처" labelStyle="profile" htmlFor="mypage-phone">
-                  <TextField
-                    id="mypage-phone"
-                    appearance="profile"
-                    value={phone}
-                    inputMode="tel"
-                    onChange={(event) => setPhone(formatPhone(event.target.value))}
-                    autoComplete="tel"
-                  />
-                </Field>
-              </div>
+            <div className={styles.fields}>
+              <Field
+                label="이름"
+                labelStyle="profile"
+                htmlFor="mypage-name"
+                error={validation.nameError}
+                errorId="mypage-name-error"
+              >
+                <TextField
+                  id="mypage-name"
+                  appearance="profile"
+                  value={name}
+                  invalid={!!validation.nameError}
+                  aria-invalid={validation.nameError ? true : undefined}
+                  aria-describedby={validation.nameError ? 'mypage-name-error' : undefined}
+                  onChange={(event) => setName(event.target.value)}
+                  onBlur={() => validation.touch('name')}
+                  autoComplete="name"
+                />
+              </Field>
+              <Field
+                label="연락처"
+                labelStyle="profile"
+                htmlFor="mypage-phone"
+                error={validation.phoneError}
+                errorId="mypage-phone-error"
+              >
+                <TextField
+                  id="mypage-phone"
+                  appearance="profile"
+                  value={phone}
+                  invalid={!!validation.phoneError}
+                  aria-invalid={validation.phoneError ? true : undefined}
+                  aria-describedby={validation.phoneError ? 'mypage-phone-error' : undefined}
+                  inputMode="tel"
+                  onChange={(event) => setPhone(formatPhone(event.target.value))}
+                  onBlur={() => validation.touch('phone')}
+                  autoComplete="tel"
+                />
+              </Field>
             </div>
             <Button style={{ width: 173 }} onClick={handleSave}>
               저장

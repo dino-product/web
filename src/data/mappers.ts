@@ -259,7 +259,6 @@ export function memberFromParticipant(p: ParticipantDto): Member {
     isOwner: p.role === 'OWNER',
     status: p.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
     joinedAt: toIsoDateTime(p.joinedAt),
-    avatarUrl: null,
   };
 }
 
@@ -277,7 +276,6 @@ export function memberFromTechnician(t: TechnicianRefDto): Member {
     isOwner: false,
     status: 'ACTIVE',
     joinedAt: toIsoDateTime(0),
-    avatarUrl: null,
   };
 }
 

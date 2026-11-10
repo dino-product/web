@@ -21,7 +21,7 @@ Figma `DesignSystem 웹` 페이지(`0:1`)의 컴포넌트와 웹 화면에서 �
 | `--shadow-dropdown` | `0 0 8.2px 0 rgba(0,0,0,0.17)` | 드롭다운·더보기 메뉴(Menu) |
 | `--shadow-popover` | `0 0 12px 0 rgba(0,0,0,0.08)` | 발주사 전환 팝오버, 기사 0명 카드 |
 
-토큰이 없는 Figma 값은 컴포넌트 CSS에 그대로 적었습니다: 페이지네이션 현재 페이지 `#e0e0ee`, ▼ 캐럿 `#727272`, 검색 플레이스홀더 `#b5b5b5`, 마이페이지 아바타 배경 `#e2e2f0`·아이콘 `#56569d`, 활성화 칩 배경 `#4f3bfe` 12%, 사이드바 메뉴 글자 `#f1f1f1`, 사이드바 구분선 흰색 12%.
+토큰이 없는 Figma 값은 컴포넌트 CSS에 그대로 적었습니다: 페이지네이션 현재 페이지 `#e0e0ee`, ▼ 캐럿 `#727272`, 검색 플레이스홀더 `#b5b5b5`, 활성화 칩 배경 `#4f3bfe` 12%, 사이드바 메뉴 글자 `#f1f1f1`, 사이드바 구분선 흰색 12%.
 
 ### 글자
 
@@ -46,12 +46,12 @@ Figma에서 line-height가 `auto`인 글자(작업 유형 배지 15px, 대기함
 
 | 컴포넌트 | 용도 | Figma |
 | --- | --- | --- |
-| `Icon` | 아이콘 66종(§6) | `Icon` 456:4223 + 화면 아이콘 |
+| `Icon` | 아이콘 64종(§6) | `Icon` 456:4223 + 화면 아이콘 |
 | `Logo` | Orbit 로고(마크·워드마크) | `Side bar` 456:4284, 로그인 2423:12794 |
 | `Button` | 버튼 7종 × md/lg | `Button` 449:2601 + 화면 버튼 |
 | `IconButton` | 아이콘만 있는 버튼 | 모달 닫기, 더보기, 대기함 접기 |
 | `SelectButton` | 필터 버튼(라벨 + ⌄) | `Select` 449:2597 |
-| `FilterSelect` | 필터 버튼 + 옵션 패널(단일·다중) | 작업 목록 필터 1883:14092 |
+| `FilterSelect` | 필터 버튼 + 옵션 패널(단일 선택) | 작업 목록 필터 1883:14092 |
 | `Menu` / `MenuItem` | 드롭다운 패널·항목 | `직원 유형` Drop Down=o, 더보기 2008:27440 |
 | `Popover` | 트리거에 붙는 포털 패널 | — |
 | `CompactSelect` | 표 안 작은 드롭다운(직원/기사) | `직원 유형` 1377:7883 |
@@ -69,7 +69,7 @@ Figma에서 line-height가 `auto`인 글자(작업 유형 배지 15px, 대기함
 | `StatusChip` | 작업 상태 칩(새 표기) | 2293:11954, 2423:12709, 타임테이블 블록 |
 | `MemberStatusChip` | 활성화·비활성화 | `Component 15` 570:2977 |
 | `WorkTypeBadge` | 작업 유형 배지 | `Work Type Badge` 449:2580 |
-| `Avatar` | 원형 아바타 4종 | 사이드바·팝오버·마이페이지 |
+| `Avatar` | 원형 첫 글자 아바타 | 발주사 전환 팝오버·기사 작업이력 |
 | `StateMessage` | 빈·오류 상태 3종 | 1338:6564, 2053:9689, 1773:7704, 1834:10132 |
 | `Modal` | 어두운 배경 + 가운데 배치 | 모든 모달 |
 | `Dialog` | 확인형 모달 셸 | 배정 확인·일정 충돌·변경정보·작업 취소·유형 삭제·약관 동의 등 |
@@ -156,7 +156,7 @@ Figma에서 line-height가 `auto`인 글자(작업 유형 배지 15px, 대기함
 | `accent` | Secondary 배경, 흰 글자 | 약관 동의 '동의하고 계속하기' |
 | `ghost` | 배경·테두리 없음, Gray900 글자 | 작업 취소 모달 '닫기' |
 
-radius는 12입니다. 화면에서 다른 값(주소 검색 8)은 `style`로 덮습니다. 마이페이지 '사진 업로드'처럼 테두리 색이 다른 경우(Gray200 + 흰 배경 + Primary 글자)는 `variant="outline"`에 className으로 테두리 색만 바꿉니다.
+radius는 12입니다. 화면에서 다른 값(주소 검색 8)은 `style`로 덮습니다. 테두리 색이 다른 경우(Gray200 + 흰 배경 + Primary 글자)는 `variant="outline"`에 className으로 테두리 색만 바꿉니다.
 
 ### IconButton
 
@@ -178,11 +178,10 @@ radius는 12입니다. 화면에서 다른 값(주소 검색 8)은 `style`로 �
   onChange={setRegistrant}      // 같은 값을 다시 누르면 null
   options={[{ value: 'm-1', label: '김운영' }]}
 />
-<FilterSelect multiple label="상태" value={statuses} onChange={setStatuses} options={statusOptions} />
 ```
 
 - SelectButton: 높이 50, padding 10/16, radius 12, Gray200 테두리, 18/500 Primary, `chevron-down` 28(#222). 너비는 글자에 맞춰집니다(상태 103, 담당기사 133). 열림 모양 차이는 Figma에 없습니다.
-- FilterSelect 패널: 트리거 아래 6px, 트리거와 같은 너비(`matchWidth` 기본 true), Menu 모양. 단일 선택은 고르면 닫히고 `multiple`은 열린 채 토글합니다. 선택지가 없으면(기사·유형이 없는 발주사의 담당기사·유형 등) 패널을 열지 않습니다(빈 메뉴 상자는 시안에 없음).
+- FilterSelect 패널: 트리거 아래 6px, 트리거와 같은 너비(`matchWidth` 기본 true), Menu 모양. 항목마다 하나만 고르며 고르면 닫힙니다(같은 값을 다시 누르면 해제). 선택지가 없으면(기사·유형이 없는 발주사의 담당기사·유형 등) 패널을 열지 않습니다(빈 메뉴 상자는 시안에 없음).
 
 ### Menu · MenuItem · Popover
 
@@ -230,6 +229,7 @@ Popover props: `open`, `anchorRef`, `onClose`, `placement`(`bottom-start` 기본
 <Field label="담당기사" labelStyle="modal"><SelectField ... /></Field>
 <Field label="거절 사유" labelSuffix="(선택)" labelStyle="title"><TextArea /></Field>
 <Field label="이름" hint="필수 항목" labelStyle="caption"><TextField appearance="filled" /></Field>
+<Field label="연락처" error={phoneError} errorId="phone-error"><TextField invalid={!!phoneError} aria-describedby="phone-error" /></Field>
 ```
 
 | labelStyle | 라벨 | 간격 | 화면 |
@@ -242,6 +242,8 @@ Popover props: `open`, `anchorRef`, `onClose`, `placement`(`bottom-start` 기본
 | `caption` | 14/500 Gray600 + `hint` 12/500 Gray500 오른쪽 | 12 | 온보딩 프로필 등록 |
 
 `labelSuffix`는 Gray500으로 라벨 뒤에 붙습니다. `gap`으로 간격을 바꿉니다.
+
+`error`가 있으면 입력 아래에 오류 헬퍼 텍스트(Caption/M/Medium 14/500 Warning/1, `role="alert"`)를 라벨 간격만큼 띄워 그립니다. 입력에는 `invalid`(Warning/1 테두리)를 함께 줍니다 — 회원가입 프로필 등록·마이페이지 이름·연락처.
 
 ### TextField
 
@@ -382,10 +384,7 @@ Popover props: `open`, `anchorRef`, `onClose`, `placement`(`bottom-start` 기본
 ### Avatar
 
 ```tsx
-<Avatar variant="user" size={50} />                    // 사이드바: Accepted/2 원 + user(Primary100) 28
-<Avatar variant="initial" size={36} text={company.name} />   // 발주사 전환: 첫 글자 Secondary 14/500(줄 20) · 62px이면 24/500(줄 34, 기사 작업이력)
-<Avatar variant="profile" size={130} />                 // 마이페이지: #e2e2f0 원 + user-fill(#56569d) 72.8
-<Avatar variant="image" size={130} src={avatarUrl} />   // src 없으면 profile 모양
+<Avatar size={36} text={company.name} />   // 발주사 전환: Accepted/2 원 + 첫 글자 Secondary 14/500(줄 20) · 62px이면 24/500(줄 34, 기사 작업이력)
 ```
 
 타임테이블 기사 사진은 `DriverListItem`이 Figma 이미지 채움(바둑판 자리표시, `src/assets/images/avatar-placeholder.png`)을 씁니다.
@@ -473,15 +472,16 @@ Popover props: `open`, `anchorRef`, `onClose`, `placement`(`bottom-start` 기본
 
 - 연결: `selectCurrentUser`(이름), `selectCurrentMembership`(역할 → `COMPANY_ROLE_LABEL`), `selectCurrentCompany`(회사명), `s.memberships`(발주사 목록), `s.session.currentCompanyId`, `s.switchCompany`, `s.logout`(후 `/login`으로 이동).
 - 메뉴: 타임테이블 `/timetable`, 작업 목록 `/tasks`, 진행 보드 `/board`, 조직 설정 `/org/company`, 알림함 `/notifications`, 마이페이지 `/mypage`. 선택 메뉴는 경로 첫 구간(`/org/*`는 조직 설정).
+- 로고: `hrefs.timetable`로 가는 링크(메뉴와 같은 클릭 처리) — 누르면 타임테이블.
 - 검색: 입력만(결과 시안 없음).
-- 소속 1곳: 사용자 카드 오른쪽 `logout` 32.1px(#898eae) → 로그아웃. 2곳 이상: 카드 전체가 버튼, `selector` 30px(#898eae) → '발주사 전환' 팝오버(카드 위 12px, 274px, 현재 회사 Background/2 + 체크, 구분선, 로그아웃). 로컬 시드의 총관리자 오르빗(OO건설 총관리자 + 협력 발주사 직원)으로 확인합니다.
+- 사용자 카드: 시안의 사용자 사진 원(50px)은 요청에 따라 그리지 않고 이름·역할·회사만 둡니다. 소속 1곳: 카드 오른쪽 `logout` 32.1px(#898eae) → 로그아웃. 2곳 이상: 카드 전체가 버튼, `selector` 30px(#898eae) → '발주사 전환' 팝오버(카드 위 12px, 274px, 현재 회사 Background/2 + 체크, 구분선, 로그아웃). 로컬 시드의 총관리자 오르빗(OO건설 총관리자 + 협력 발주사 직원)으로 확인합니다.
 - 좌표(319×1080): 로고 (24,34) · 검색 (23,110) 274×54 · 메뉴 (23,188) 68px 간격 8 · 구분선 y=786(2px, 흰색 12%) · 알림함 y=798 · 사용자 카드 y=950(68px) · 아래 여백 62. 화면 높이가 1080이 아니면 아래 묶음이 바닥에 붙습니다.
 - 메뉴 글자 20/500, 위 메뉴 `#f1f1f1`(아이콘 Gray50), 알림함·마이페이지 흰색, 선택 안 된 메뉴 불투명 50%, 선택 Support/select2 배경 radius 11.
 
 ### DriverListItem · WorkCard · ScheduleCard(타임테이블)
 
 ```tsx
-<DriverListItem name="김민수" role="전문 기사" avatarSrc={member.avatarUrl} />
+<DriverListItem name="김민수" role="전문 기사" />
 <WorkCard workType={{ name: '설치', color: 'PURPLE' }} title="인덕션 교체" assigneeLabel="기사 미정" meta="등록 3일 경과" />
 <ScheduleCard status="ACCEPTED" width={234} title="인덕션 설치" timeRange="09:00 - 11:00" staffLabel="직원 (박서준)" />
 ```
@@ -561,7 +561,6 @@ Popover props: `open`, `anchorRef`, `onClose`, `placement`(`bottom-start` 기본
 | `error-fill` | 28×28 | #767676 | Icon / Type=warning02 | 1543:5036 |
 | `external-link` | 24×24 | #222222 | check2-square(상세보기) | 1951:22507 |
 | `file-text` | 42×42 | #9B9B9B | Icon / Type=File | 1951:21989 |
-| `help-circle` | 24×24 | #141B34 60% | help-circle(연결 끊김 안내) | 560:2863 |
 | `image` | 28×28 | 다색 | 사진 자리(새 작업 등록 사진 칸) | 1686:7208 |
 | `info-circle` | 24×24 | #222222 | Icon / Type=info(인력관리 안내 문구는 Gray500) | 1712:7392 |
 | `kakao` | 22×22 | black | Kakao Symbol | 2423:12778 |
@@ -585,8 +584,7 @@ Popover props: `open`, `anchorRef`, `onClose`, `placement`(`bottom-start` 기본
 | `selector` | 30×30 | #898EAE | heroicons-outline:selector | 1921:10884 |
 | `sidebar-left` | 28×28 | #222222 | Icon / Type=sidebar-left(대기함 접기) | 456:4221 |
 | `trash` | 24×24 | #D71A29 | eva:trash-2-outline(삭제) | 2008:35285 |
-| `user` | 28×28 | white | Icon / Type=People(사이드바 아바타 #a99fff) | 1477:9054 |
-| `user-fill` | 73×73 | #56569D | Icon / 속성 1=사용자(마이페이지 프로필) | 463:5639 |
+| `user` | 28×28 | white | Icon / Type=People(마이페이지 메뉴) | 1477:9054 |
 | `users` | 28×28 | #F4F4F4 | Icon / Type=조직설정(Type=인력 = 42px) | 1453:9238 |
 | `users-circle` | 46×46 | 다색 | 기사 0명 아이콘(레이어 이름 famicons:document-text-outline) | 1834:11070 |
 | `warning-circle-fill` | 40×40 | #D71A29 | mingcute:warning-fill | 1699:8543 |

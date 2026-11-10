@@ -24,8 +24,8 @@ export const STATUS_FILTER_VALUES: Exclude<TaskStatus, 'CANCELED'>[] = [
 ];
 
 export interface TaskFilters {
-  /** 다중 선택. 비어 있으면 전체 */
-  statuses: TaskStatus[];
+  /** 비어 있으면(null) 전체 */
+  status: TaskStatus | null;
   technicianId: ID | null;
   workTypeId: ID | null;
   period: PeriodKey | null;
@@ -33,7 +33,7 @@ export interface TaskFilters {
 }
 
 export const EMPTY_FILTERS: TaskFilters = {
-  statuses: [],
+  status: null,
   technicianId: null,
   workTypeId: null,
   period: null,
@@ -59,7 +59,7 @@ function inPeriod(date: IsoDate | null, period: PeriodKey, todayDate: IsoDate): 
 }
 
 export function matchesFilters(task: Task, filters: TaskFilters, todayDate: IsoDate): boolean {
-  if (filters.statuses.length > 0 && !filters.statuses.includes(task.status)) return false;
+  if (filters.status && task.status !== filters.status) return false;
   if (filters.technicianId && task.technicianId !== filters.technicianId) return false;
   if (filters.workTypeId && task.workTypeId !== filters.workTypeId) return false;
   if (filters.registrantId && task.registrantId !== filters.registrantId) return false;

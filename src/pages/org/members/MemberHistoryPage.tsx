@@ -110,7 +110,7 @@ function MemberHistory({ member }: { member: Member }) {
 
       <section className={styles.card} aria-label="인력 정보">
         <div className={styles.profile}>
-          <Avatar variant="initial" size={62} text={member.name} />
+          <Avatar size={62} text={member.name} />
           <div className={styles.profileText}>
             <p className={styles.name}>{member.name}</p>
             <p className={styles.subtitle}>{subtitle}</p>

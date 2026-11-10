@@ -96,12 +96,11 @@ export default function TaskListPage() {
         <div className={styles.toolbar}>
           <div className={styles.filters}>
             <FilterSelect<TaskStatus>
-              multiple
               className={styles.w103}
               label="상태"
-              value={filters.statuses}
+              value={filters.status}
               options={STATUS_OPTIONS}
-              onChange={(statuses) => updateFilters({ statuses })}
+              onChange={(status) => updateFilters({ status })}
             />
             <FilterSelect
               className={styles.w133}
@@ -137,12 +136,14 @@ export default function TaskListPage() {
             <Button
               variant="outline"
               className={styles.exportButton}
-              onClick={() =>
+              onClick={() => {
+                const { status, period, ...rest } = filters;
                 void useAppStore.getState().exportTasks({
-                  ...filters,
-                  period: filters.period ? periodRange(filters.period, todayDate) : null,
-                })
-              }
+                  ...rest,
+                  statuses: status ? [status] : [],
+                  period: period ? periodRange(period, todayDate) : null,
+                });
+              }}
             >
               작업내역 출력
             </Button>

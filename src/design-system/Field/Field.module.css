@@ -28,6 +28,10 @@
   white-space: nowrap;
 }
 
+.error {
+  color: var(--color-warning-1);
+}
+
 .default .label {
   color: var(--color-gray-800);
   font-size: 16px;

@@ -92,7 +92,7 @@ if (result === 'stale') {
 - '다시 시도'는 `setNetwork('online')`으로 소속·공통 데이터·현재 화면을 다시 읽는다. 서버가 계속 끊겨 있으면 다시 실패한다.
 - 배정의 `SCHEDULE-016`은 `stale`로 반환해 기존 모달을 연다. `SCHEDULE-008`(동일 배정)은 `applied`로 취급한다.
 - `changeMemberKind`(직원↔기사)는 memberId 접두사로 직원 소속·기사 계약 역할 변경 API를 고른다. 성공하면 인력을 다시 읽고(바뀐 역할은 새 memberId), 대기함으로 돌아간 작업이 있으면 작업도 다시 읽는다. 끝나지 않은 작업으로 거부(`ORGANIZATION-027` 기사의 작업중, `ORGANIZATION-028` 직원이 등록한 작업)되면 작업을 다시 읽고 `blocked`를 돌려줘 변경 불가 창을 연다.
-- 서버 API가 없는 `setTypeActive`(유형 활성 상태), `deleteNotification`(숨김), 프로필 사진은 로컬 전용이다. 유형 활성 상태·숨긴 알림은 재조회에도 유지하지만 새로고침하면 사라진다.
+- 서버 API가 없는 `setTypeActive`(유형 활성 상태), `deleteNotification`(숨김)은 로컬 전용이다. 유형 활성 상태·숨긴 알림은 재조회에도 유지하지만 새로고침하면 사라진다. 프로필 사진은 다루지 않는다.
 - `agreeTerms`는 선택을 잠시 기억하고 `registerProfile`이 프로필 저장 후 동의 API를 보낸다. `setJoinRequestKind`도 승인 전 선택값이며 승인 요청에 함께 보낸다.
 - 현장 사진은 등록할 때 올린다(`createTask`). 저장소 업로드 실패는 `UPLOAD-<status>` `ApiError`라 연결 실패 화면으로 바뀌지 않는다. 응답 사진의 `fake-photo://` 접두어는 매퍼에서 제거한다.
 
@@ -192,7 +192,7 @@ if (result === 'stale') {
 
 | 함수 | 예 |
 | --- | --- |
-| `formatTimetableDate(date)` | '2026. 10.21 (수)' |
+| `formatTimetableDate(date)` | '2026.10.21 (수)' |
 | `formatBoardDate(date)` | '2026년 12월 18일 (오늘)', 오늘이 아니면 '(금)' |
 | `formatTimeRange(start, minutes, sep?)` | '09:00 - 11:00', `sep '-'`이면 '13:00-15:00' |
 | `formatTaskTime(task, sep?)` | 작업 예정 시간. 시간이 없으면 `null` |

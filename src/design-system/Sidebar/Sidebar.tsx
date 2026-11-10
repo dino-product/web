@@ -129,7 +129,15 @@ export function Sidebar({
   return (
     <aside className={clsx(styles.sidebar, className)}>
       <div className={styles.logoRow}>
-        <Logo variant="lockup" color="var(--color-gray-0)" />
+        {/* 로고는 타임테이블로 보낸다(메뉴와 같은 클릭 처리) */}
+        <a
+          href={hrefs.timetable}
+          className={styles.logoLink}
+          aria-label="타임테이블로 이동"
+          onClick={(event) => handleClick(event, hrefs.timetable)}
+        >
+          <Logo variant="lockup" color="var(--color-gray-0)" />
+        </a>
       </div>
 
       <label className={styles.search}>
@@ -163,18 +171,12 @@ export function Sidebar({
               aria-expanded={switcherOpen}
               onClick={() => setSwitcherOpen((v) => !v)}
             >
-              <span className={styles.userInfo}>
-                <Avatar variant="user" size={50} />
-                {userTexts}
-              </span>
+              <span className={styles.userInfo}>{userTexts}</span>
               <Icon name="selector" size={30} color="var(--color-support-sidebar-icon)" />
             </button>
           ) : (
             <>
-              <span className={styles.userInfo}>
-                <Avatar variant="user" size={50} />
-                {userTexts}
-              </span>
+              <span className={styles.userInfo}>{userTexts}</span>
               <button
                 type="button"
                 className={styles.logoutButton}
@@ -214,7 +216,7 @@ export function Sidebar({
                   }}
                 >
                   <span className={styles.companyInfo}>
-                    <Avatar variant="initial" size={36} text={company.name} />
+                    <Avatar size={36} text={company.name} />
                     <span className={styles.companyTexts}>
                       <span className={styles.companyName}>{company.name}</span>
                       <span className={styles.companyRole}>{company.roleLabel}</span>
