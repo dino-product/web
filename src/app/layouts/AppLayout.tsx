@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { Sidebar, type SidebarCompanyItem, type SidebarMenuKey } from '@/design-system';
+import { useRealtimeSync } from '@/data/realtime';
 import { selectCurrentCompany, selectCurrentMembership, selectCurrentUser } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
 import { COMPANY_ROLE_LABEL } from '@/data/types';
@@ -14,6 +15,10 @@ const MENU_HREF: Record<SidebarMenuKey, string> = {
   notifications: '/notifications',
   mypage: '/mypage',
 };
+
+/** 직원에게 숨기는 메뉴. 조직 설정의 조회·변경 API는 총관리자만 쓸 수 있다(서버 ORGANIZATION-003). */
+const STAFF_HIDDEN_MENUS: readonly SidebarMenuKey[] = ['org'];
+const NO_HIDDEN_MENUS: readonly SidebarMenuKey[] = [];
 
 /** 현재 경로의 섹션 → 선택 메뉴. /org/* 는 조직 설정. */
 function activeMenu(pathname: string): SidebarMenuKey | null {
@@ -39,6 +44,7 @@ function activeMenu(pathname: string): SidebarMenuKey | null {
 /**
  * 사이드바(319px 고정) + 본문 레이아웃. 본문은 --app-height 높이의 내부 스크롤 영역이다.
  * 사이드바는 스토어 계약(selectCurrentUser·selectCurrentCompany·selectCurrentMembership, memberships, logout, switchCompany)으로 연결한다.
+ * 로그인한 동안 현재 발주사의 실시간 갱신 연결을 연다(src/data/realtime.ts).
  */
 export default function AppLayout() {
   const location = useLocation();
@@ -51,6 +57,7 @@ export default function AppLayout() {
   const logout = useAppStore((s) => s.logout);
   const switchCompany = useAppStore((s) => s.switchCompany);
   const [search, setSearch] = useState('');
+  useRealtimeSync();
 
   const companies = useMemo<SidebarCompanyItem[]>(
     () => memberships.map((m) => ({ id: m.companyId, name: m.companyName, roleLabel: COMPANY_ROLE_LABEL[m.role] })),
@@ -70,6 +77,7 @@ export default function AppLayout() {
         active={activeMenu(location.pathname)}
         hrefs={MENU_HREF}
         onNavigate={handleNavigate}
+        hiddenMenus={membership?.role === 'STAFF' ? STAFF_HIDDEN_MENUS : NO_HIDDEN_MENUS}
         userName={user?.name ?? ''}
         roleLabel={membership ? COMPANY_ROLE_LABEL[membership.role] : ''}
         companyName={company?.name ?? membership?.companyName ?? ''}

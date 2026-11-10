@@ -8,6 +8,7 @@ import { useAppStore } from '@/data/store';
 
 import { OnboardingStep } from './OnboardingStep';
 import styles from './StepFields.module.css';
+import TermsLink from './TermsLink';
 
 /** 연락처 숫자 최소 자릿수(02-123-4567 = 9자리) */
 const MIN_PHONE_DIGITS = 9;
@@ -17,7 +18,7 @@ const MIN_PHONE_DIGITS = 9;
  * - 이름·연락처·이용약관(약관 동의 결과로 체크)이 모두 있어야 '다음' → registerProfile → /onboarding/company.
  *   비어 있으면 화면 변화 없이 빈 입력으로 포커스만 옮긴다(시안의 '다음'은 빈 폼에서도 같은 모양).
  * - '취소' → 로그아웃 → /login.
- * - 이용약관 행 오른쪽 화살표는 약관 본문 시안이 없어 동작하지 않는다.
+ * - 이용약관 행 오른쪽 화살표는 서비스 이용약관 본문(서버 GET /terms의 주소)을 새 탭으로 연다.
  * - 프로필 사진 업로드 요소(1453:12460)는 이 프레임 밖(아래 244px)에 따로 놓인 요소라 폼에 넣지 않는다.
  */
 export default function ProfileStep() {
@@ -104,7 +105,9 @@ export default function ProfileStep() {
               label="서비스 이용 약관에 동의합니다"
               labelClassName={clsx('t-caption-m-medium', styles.termsLabel)}
             />
-            <Icon name="chevron-right" size={26} color="var(--color-gray-400)" />
+            <TermsLink type="SERVICE" label="서비스 이용약관 보기">
+              <Icon name="chevron-right" size={26} color="var(--color-gray-400)" />
+            </TermsLink>
           </div>
         </div>
       </Field>

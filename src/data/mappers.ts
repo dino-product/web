@@ -24,12 +24,15 @@ import type {
   RejectionReasonCode,
   RequestChannel,
   ScheduledWorkDto,
+  TechnicianRefDto,
   WorkDetailDto,
+  WorkHistoryDto,
+  WorkHistoryStatus,
   WorkStatus,
   WorkSummaryDto,
   WorkTypeDto,
 } from '@/api/types';
-import { dateTimeToMs, toHourMinute, toIsoDate, toIsoDateTime } from '@/lib/date';
+import { dateTimeToMs, parseIsoDate, startOfMonth, toHourMinute, toIsoDate, toIsoDateTime } from '@/lib/date';
 import { joinReportContent } from '@/lib/format';
 import { CANCEL_REASONS, HISTORY_LABEL, INDUSTRIES, PAYMENT_METHODS } from '@/data/constants';
 import type {
@@ -44,6 +47,7 @@ import type {
   NotificationType,
   Task,
   TaskHistoryEntry,
+  TechnicianHistoryRow,
   TypeCategory,
   TypeColor,
   TypeItem,
@@ -199,6 +203,25 @@ export function dayRange(date: IsoDate): { from: string; to: string } {
   return { from: new Date(start).toISOString(), to: new Date(start + 24 * 60 * 60 * 1000).toISOString() };
 }
 
+/** 그 달 다음 달 1일(Asia/Seoul 날짜) */
+function nextMonthStart(date: IsoDate): IsoDate {
+  const { year, month } = parseIsoDate(date);
+  return month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, '0')}-01`;
+}
+
+/**
+ * from이 속한 달부터 until이 속한 달까지를 Asia/Seoul 달마다 서버 구간 [from, to)로 나눈다(작업 이력 API는 한 번에
+ * 31일까지). month는 그 달 1일이며 이번 달 집계를 고를 때 쓴다.
+ */
+export function monthRanges(from: IsoDate, until: IsoDate): { month: IsoDate; from: string; to: string }[] {
+  const ranges = [];
+  const end = nextMonthStart(until);
+  for (let month = startOfMonth(from); month < end; month = nextMonthStart(month)) {
+    ranges.push({ month, from: toUtcIso(month, '00:00'), to: toUtcIso(nextMonthStart(month), '00:00') });
+  }
+  return ranges;
+}
+
 type ScheduleFields = Pick<Task, 'date' | 'startTime' | 'durationMinutes'>;
 
 function scheduleFields(start: string | null | undefined, durationMinutes: number | null | undefined): ScheduleFields {
@@ -216,11 +239,17 @@ function minutesBetween(start: string | null, end: string | null): number | null
 
 // ── 인력·유형·발주사 ────────────────────────────────────────────────
 
+/**
+ * 서버가 이름을 주지 않는 인원(가입 전·프로필 없음·탈퇴한 계정)의 표시 이름. 빈 칸으로 두면 목록·타임테이블 행에서
+ * 누구인지 가릴 수 없다. 시안에 해당 상태가 없어 정한 문구다.
+ */
+export const UNNAMED_MEMBER = '이름 없음';
+
 export function memberFromParticipant(p: ParticipantDto): Member {
   const technician = p.role === 'TECHNICIAN';
   return {
     id: toId(technician ? ID_PREFIX.technician : ID_PREFIX.staff, p.memberId),
-    name: p.name ?? '',
+    name: p.name ?? UNNAMED_MEMBER,
     // 참여 인원 API는 연락처를 주지 않는다(로그인 사용자만 프로필 API로 채운다).
     phone: '',
     kind: technician ? 'TECHNICIAN' : 'EMPLOYEE',
@@ -230,6 +259,23 @@ export function memberFromParticipant(p: ParticipantDto): Member {
     isOwner: p.role === 'OWNER',
     status: p.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
     joinedAt: toIsoDateTime(p.joinedAt),
+  };
+}
+
+/**
+ * 타임테이블 기사 행(GET /timetable technicians) → 기사 Member. 참여 인원 API가 총관리자 전용이라 직원은 이것으로 기사 목록을 채운다.
+ * 활성 기사만 오고 참여일·연락처는 주지 않는다(참여일은 인력관리 화면에서만 쓰는데, 그 화면은 총관리자 전용이다).
+ */
+export function memberFromTechnician(t: TechnicianRefDto): Member {
+  return {
+    id: toId(ID_PREFIX.technician, t.technicianId),
+    name: t.name ?? UNNAMED_MEMBER,
+    phone: '',
+    kind: 'TECHNICIAN',
+    typeId: t.technicianType ? toId(ID_PREFIX.technicianType, t.technicianType.id) : null,
+    isOwner: false,
+    status: 'ACTIVE',
+    joinedAt: toIsoDateTime(0),
   };
 }
 
@@ -285,6 +331,7 @@ export function emptyTask(id: ID): Task {
     workTypeId: null,
     status: 'REGISTERED',
     technicianId: null,
+    technicianName: null,
     date: null,
     startTime: null,
     durationMinutes: null,
@@ -293,6 +340,7 @@ export function emptyTask(id: ID): Task {
     paymentMethod: null,
     sitePhotoUrls: [],
     registrantId: '',
+    registrantName: null,
     createdAt: '',
     updatedAt: '',
     rejection: null,
@@ -325,8 +373,10 @@ export function taskFromSummary(w: WorkSummaryDto): TaskPatch {
       status: w.status,
       workTypeId: workTypeId(w.workType),
       technicianId: technicianId(w.technician?.technicianId),
+      technicianName: w.technician?.name ?? null,
       ...scheduleFields(w.startTime, minutesBetween(w.startTime, w.endTime)),
       registrantId: staffId(w.registrar?.membershipId),
+      registrantName: w.registrar?.name ?? null,
       createdAt: toIsoDateTime(w.registeredAt),
       updatedAt: toIsoDateTime(w.lastModifiedAt),
       delayed: w.delayed,
@@ -344,8 +394,10 @@ export function taskFromScheduled(w: ScheduledWorkDto): TaskPatch {
       status: w.status,
       workTypeId: workTypeId(w.workType),
       technicianId: technicianId(w.technician?.technicianId),
+      technicianName: w.technician?.name ?? null,
       ...scheduleFields(w.startTime, minutesBetween(w.startTime, w.endTime)),
       registrantId: staffId(w.registrar?.membershipId),
+      registrantName: w.registrar?.name ?? null,
       delayed: w.delayed,
     },
   };
@@ -365,8 +417,10 @@ export function taskFromBacklog(w: BacklogWorkDto, previous: Task | undefined): 
       status: 'REGISTERED',
       workTypeId: workTypeId(w.workType),
       technicianId: w.technicianMissing ? null : technicianId(w.plannedTechnician?.technicianId),
+      technicianName: w.technicianMissing ? null : (w.plannedTechnician?.name ?? null),
       ...(w.timeMissing ? { date: null, startTime: null, durationMinutes: null } : planned),
       registrantId: staffId(w.registrar?.membershipId),
+      registrantName: w.registrar?.name ?? null,
       createdAt: toIsoDateTime(w.registeredAt),
       rejection: w.returnedByRejection
         ? {
@@ -387,6 +441,7 @@ export function taskFromBoardCard(card: BoardCardDto, status: WorkStatus, previo
       title: card.name,
       status,
       technicianId: technicianId(card.technician?.technicianId),
+      technicianName: card.technician?.name ?? null,
       ...scheduleFields(card.startTime, minutesBetween(card.startTime, card.endTime)),
       customer: card.customerName
         ? { name: card.customerName, phone: '', zipCode: '', address: '', addressDetail: '', ...previous?.customer }
@@ -396,16 +451,17 @@ export function taskFromBoardCard(card: BoardCardDto, status: WorkStatus, previo
   };
 }
 
-/** 이름 찾기(이력 처리자). 직원 소속 ID·기사 계약 ID를 화면 인력으로 */
-export type MemberLookup = (id: ID) => Member | undefined;
+/** 이름 찾기(이력 처리자). 직원 소속 ID·기사 계약 ID로 화면 이름을(getMemberNames) */
+export type NameLookup = (id: ID) => string | undefined;
 
-function staffName(lookup: MemberLookup, membershipId: number | null): string | null {
-  return membershipId == null ? null : (lookup(staffId(membershipId))?.name ?? null);
+/** 처리한 직원 이름. 인력 목록의 이름을 먼저 쓰고, 없으면 응답에 담긴 이름(역할을 바꾼 직원 등)을 쓴다 */
+function staffName(lookup: NameLookup, membershipId: number | null, responseName: string | null): string | null {
+  return (membershipId == null ? undefined : lookup(staffId(membershipId))) ?? responseName;
 }
 
-function technicianActor(lookup: MemberLookup, assignment: AssignmentDto): string | null {
-  const id = technicianId(assignment.schedule.technician?.technicianId);
-  const name = id ? lookup(id)?.name : null;
+function technicianActor(lookup: NameLookup, assignment: AssignmentDto): string | null {
+  const technician = assignment.schedule.technician;
+  const name = technician ? (lookup(toId(ID_PREFIX.technician, technician.technicianId)) ?? technician.name) : null;
   return name ? `${name} 기사` : null;
 }
 
@@ -413,17 +469,16 @@ function technicianActor(lookup: MemberLookup, assignment: AssignmentDto): strin
  * 상태 변경 이력. 서버는 이력 표를 따로 주지 않고 등록·배정 이력·완료보고 요청·시작·완료·취소 시각을 주므로
  * 그 시각들로 화면 이력 문구(HISTORY_LABEL)를 오래된 순으로 만든다.
  */
-function buildHistory(d: WorkDetailDto, lookup: MemberLookup): TaskHistoryEntry[] {
-  const entries: TaskHistoryEntry[] = [
-    { at: toIsoDateTime(d.registeredAt), label: HISTORY_LABEL.registered, actor: staffName(lookup, d.registrar?.membershipId ?? null) },
-  ];
+function buildHistory(d: WorkDetailDto, lookup: NameLookup): TaskHistoryEntry[] {
+  const registrar = staffName(lookup, d.registrar?.membershipId ?? null, d.registrar?.name ?? null);
+  const entries: TaskHistoryEntry[] = [{ at: toIsoDateTime(d.registeredAt), label: HISTORY_LABEL.registered, actor: registrar }];
   const assignments = [...d.assignments].sort((a, b) => a.assignmentNumber - b.assignmentNumber);
   assignments.forEach((a, index) => {
     const rescheduled = assignments[index - 1]?.endReason === 'RESCHEDULED';
     entries.push({
       at: toIsoDateTime(a.assignedAt),
       label: rescheduled ? HISTORY_LABEL.rescheduled : HISTORY_LABEL.assigned,
-      actor: staffName(lookup, a.assignedBy),
+      actor: staffName(lookup, a.assignedBy, a.assignedByName),
     });
     if (a.decidedAt && (a.result === 'ACCEPTED' || a.result === 'REJECTED')) {
       entries.push({
@@ -433,11 +488,19 @@ function buildHistory(d: WorkDetailDto, lookup: MemberLookup): TaskHistoryEntry[
       });
     }
     if (a.endReason === 'UNASSIGNED' && a.endedAt) {
-      entries.push({ at: toIsoDateTime(a.endedAt), label: HISTORY_LABEL.unassigned, actor: staffName(lookup, a.endedBy) });
+      entries.push({
+        at: toIsoDateTime(a.endedAt),
+        label: HISTORY_LABEL.unassigned,
+        actor: staffName(lookup, a.endedBy, a.endedByName),
+      });
     }
   });
   for (const r of d.completionReportRequests) {
-    entries.push({ at: toIsoDateTime(r.requestedAt), label: HISTORY_LABEL.reportRequested, actor: staffName(lookup, r.requestedBy) });
+    entries.push({
+      at: toIsoDateTime(r.requestedAt),
+      label: HISTORY_LABEL.reportRequested,
+      actor: staffName(lookup, r.requestedBy, r.requestedByName),
+    });
   }
   const current = assignments.at(-1);
   if (d.startedAt) {
@@ -450,7 +513,7 @@ function buildHistory(d: WorkDetailDto, lookup: MemberLookup): TaskHistoryEntry[
     entries.push({
       at: toIsoDateTime(d.cancellation.cancelledAt),
       label: HISTORY_LABEL.canceled,
-      actor: staffName(lookup, d.cancellation.cancelledBy),
+      actor: staffName(lookup, d.cancellation.cancelledBy, d.cancellation.cancelledByName),
     });
   }
   return entries.sort((a, b) => a.at.localeCompare(b.at));
@@ -467,7 +530,7 @@ function photoUrl(photo: PhotoDto): string {
 }
 
 /** 작업 상세(GET /works/{id}) → 화면 작업 전체 */
-export function taskFromDetail(d: WorkDetailDto, lookup: MemberLookup): TaskPatch {
+export function taskFromDetail(d: WorkDetailDto, lookup: NameLookup): TaskPatch {
   const schedule = d.schedule?.startTime ? d.schedule : null;
   const planned = d.plannedSchedule;
   const lastAssignment = [...d.assignments].sort((a, b) => b.assignmentNumber - a.assignmentNumber)[0];
@@ -486,6 +549,7 @@ export function taskFromDetail(d: WorkDetailDto, lookup: MemberLookup): TaskPatc
       delayed: d.delayed,
       workTypeId: workTypeId(d.workType),
       technicianId: technicianId(scheduleSource?.technician?.technicianId),
+      technicianName: scheduleSource?.technician?.name ?? null,
       ...scheduleFields(scheduleSource?.startTime, scheduleSource?.expectedDurationMinutes),
       customer: d.customer
         ? {
@@ -508,6 +572,7 @@ export function taskFromDetail(d: WorkDetailDto, lookup: MemberLookup): TaskPatc
         uploadedAt: registeredAt,
       })),
       registrantId: staffId(d.registrar?.membershipId),
+      registrantName: d.registrar?.name ?? null,
       createdAt: registeredAt,
       updatedAt: history.at(-1)?.at ?? registeredAt,
       rejection: rejected
@@ -539,4 +604,20 @@ export function taskFromDetail(d: WorkDetailDto, lookup: MemberLookup): TaskPatc
         : null,
     },
   };
+}
+
+/** 기사 작업 이력 응답(GET /work-history, statuses=result로 거른 것) → 이력 줄 */
+export function technicianHistoryRows(dto: WorkHistoryDto, result: WorkHistoryStatus): TechnicianHistoryRow[] {
+  return dto.works.map((w) => ({
+    key: `${result}-${w.workId}-${w.assignmentNumber}`,
+    taskId: toId(ID_PREFIX.plain, w.workId),
+    title: w.name,
+    workTypeId: workTypeId(w.workType),
+    result,
+    date: toIsoDate(w.startTime),
+    durationMinutes:
+      (result === 'COMPLETED' ? minutesBetween(w.startedAt, w.completedAt) : null) ??
+      minutesBetween(w.startTime, w.endTime),
+    reportSubmitted: result === 'COMPLETED',
+  }));
 }

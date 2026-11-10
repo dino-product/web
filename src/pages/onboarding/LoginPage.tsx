@@ -1,12 +1,13 @@
 import clsx from 'clsx';
 import { useEffect, useState } from 'react';
-import { useLocation, useMatch, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useMatch, useNavigate } from 'react-router-dom';
 
 import { Icon, Logo } from '@/design-system';
 import { KAKAO_CALLBACK_PATH, useAppStore } from '@/data/store';
 
 import styles from './LoginPage.module.css';
 import TermsAgreementDialog from './TermsAgreementDialog';
+import TermsLink from './TermsLink';
 
 /** 로그인 뒤 갈 경로. RequireAuth가 담아 둔 원래 경로(location.state.from, 같은 출처 경로만)가 없으면 타임테이블 */
 function redirectTarget(from: unknown): string {
@@ -40,13 +41,16 @@ function HelpBox({ title, description, linkLabel }: HelpBoxProps) {
  * - 카카오 로그인: 서버 authorize → 카카오 로그인 → 서버 callback → 복귀 주소 /login/kakao?code=…(이 화면)에서 교환한다.
  *   가입을 마친 계정 → 원래 경로 또는 /timetable. 가입 전 계정 → /login 위 약관 동의 모달(1453:7505).
  *   실패·취소(?error=…)는 오류 안내 시안이 없어 원래 경로를 유지한 채 /login으로 돌아온다(오류 코드는 콘솔).
- * - '이용약관'·'개인정보처리방침'·'프로필 입력 안내 보기'·'소속 없는 계정 안내'는 목적지 시안이 없어 동작하지 않는다.
+ * - '이용약관'·'개인정보처리방침'은 그 약관 본문(서버 GET /terms의 주소)을 새 탭으로 연다.
+ * - '프로필 입력 안내 보기'·'소속 없는 계정 안내'는 목적지 시안이 없어 동작하지 않는다.
+ * - 이미 로그인한 상태로 들어오면 원래 경로 또는 /timetable로 바로 보낸다.
  */
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const isKakaoCallback = useMatch(KAKAO_CALLBACK_PATH) !== null;
   const [termsOpen, setTermsOpen] = useState(false);
+  const loggedIn = useAppStore((s) => s.session.loggedIn);
 
   // 카카오 복귀를 처리한 뒤 주소에서 일회성 교환 코드를 지운다. 약관 동의 모달은 같은 화면(/login)에 띄운다.
   useEffect(() => {
@@ -81,6 +85,12 @@ export default function LoginPage() {
     navigate('/onboarding/profile');
   };
 
+  // 이미 로그인한 사용자(랜딩 'Orbit 열기'·'로그인 하기', 주소 직접 입력)는 로그인 화면 대신 앱으로 보낸다.
+  // 카카오 복귀 주소는 위 교환 처리가 이동을 맡는다.
+  if (loggedIn && !isKakaoCallback) {
+    return <Navigate to={redirectTarget((location.state as { from?: unknown } | null)?.from)} replace />;
+  }
+
   return (
     <main className={styles.page}>
       <Logo variant="lockup" color="var(--color-primary)" className={styles.logo} />
@@ -106,8 +116,15 @@ export default function LoginPage() {
               <span className={styles.kakaoLabel}>카카오 로그인</span>
             </button>
             <p className={clsx('t-body-xs-medium', styles.notice)}>
-              로그인하면 <span className={styles.noticeStrong}>이용약관</span> 및{' '}
-              <span className={styles.noticeStrong}>개인정보처리방침</span>에 동의하게 됩니다.
+              로그인하면{' '}
+              <TermsLink type="SERVICE" label="이용약관 보기" className={styles.noticeStrong}>
+                이용약관
+              </TermsLink>{' '}
+              및{' '}
+              <TermsLink type="PRIVACY_POLICY" label="개인정보처리방침 보기" className={styles.noticeStrong}>
+                개인정보처리방침
+              </TermsLink>
+              에 동의하게 됩니다.
             </p>
           </div>
         </div>
