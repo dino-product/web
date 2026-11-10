@@ -78,6 +78,11 @@
   box-shadow: 0 0 0 1px var(--color-warning-1);
 }
 
+/* 온보딩 채움 상자는 테두리가 없어 바깥 1px로 오류를 그린다 */
+.filled.invalid {
+  box-shadow: 0 0 0 1px var(--color-warning-1);
+}
+
 .disabledLook {
   opacity: 0.5;
 }
