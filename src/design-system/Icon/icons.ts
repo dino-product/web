@@ -44,7 +44,6 @@ export const ICON_NAMES = [
   'error-fill',
   'external-link',
   'file-text',
-  'help-circle',
   'image',
   'info-circle',
   'kakao',
