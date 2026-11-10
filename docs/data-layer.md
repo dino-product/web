@@ -91,7 +91,8 @@ if (result === 'stale') {
 - `call()`은 성공 결과를 돌려주고 실패하면 `undefined`를 돌려준다. 네트워크 연결 실패는 `network: 'offline'`, refresh token 재발급으로도 풀리지 않은 HTTP 401·`COMMON-404`와 `AUTH-004`는 세션 초기화·로그아웃으로 처리한다. 서버 오류 코드·메시지는 콘솔에 남기며 새 오류 토스트는 만들지 않는다.
 - '다시 시도'는 `setNetwork('online')`으로 소속·공통 데이터·현재 화면을 다시 읽는다. 서버가 계속 끊겨 있으면 다시 실패한다.
 - 배정의 `SCHEDULE-016`은 `stale`로 반환해 기존 모달을 연다. `SCHEDULE-008`(동일 배정)은 `applied`로 취급한다.
-- 서버 API가 없는 `changeMemberKind`(직원↔기사), `setTypeActive`(유형 활성 상태), `deleteNotification`(숨김), 프로필 사진은 로컬 전용이다. 유형 활성 상태·숨긴 알림은 재조회에도 유지하지만 새로고침하면 사라진다. 역할 변경은 인력 재조회로 덮일 수 있고 서버 작업 배정을 해제하지 않는다.
+- `changeMemberKind`(직원↔기사)는 memberId 접두사로 직원 소속·기사 계약 역할 변경 API를 고른다. 성공하면 인력을 다시 읽고(바뀐 역할은 새 memberId), 대기함으로 돌아간 작업이 있으면 작업도 다시 읽는다. 끝나지 않은 작업으로 거부(`ORGANIZATION-027` 기사의 작업중, `ORGANIZATION-028` 직원이 등록한 작업)되면 작업을 다시 읽고 `blocked`를 돌려줘 변경 불가 창을 연다.
+- 서버 API가 없는 `setTypeActive`(유형 활성 상태), `deleteNotification`(숨김), 프로필 사진은 로컬 전용이다. 유형 활성 상태·숨긴 알림은 재조회에도 유지하지만 새로고침하면 사라진다.
 - `agreeTerms`는 선택을 잠시 기억하고 `registerProfile`이 프로필 저장 후 동의 API를 보낸다. `setJoinRequestKind`도 승인 전 선택값이며 승인 요청에 함께 보낸다.
 - 현장 사진은 등록할 때 올린다(`createTask`). 저장소 업로드 실패는 `UPLOAD-<status>` `ApiError`라 연결 실패 화면으로 바뀌지 않는다. 응답 사진의 `fake-photo://` 접두어는 매퍼에서 제거한다.
 
@@ -166,6 +167,7 @@ if (result === 'stale') {
 | `selectJoinRequestCount` · `useJoinRequestCount()` | 승인대기 수 |
 | `selectWaitingTaskCount` | 대기함 작업 수 |
 | `useMembers()` / `sortMembers` | 인력 전체(정렬) |
+| `useMemberNames()` / `getMemberNames`(rules) | 인력 ID별 이름. 인력 목록에 없는 담당 기사·등록자(역할을 바꾸기 전 계약·소속 등)는 작업 응답의 이름으로 채운다 |
 | `useEmployees()` / `getEmployees` | 직원 |
 | `useTechnicians()` / `getTechnicians` | 기사 전체(비활성 포함, 인력관리용) |
 | `useActiveTechnicians()` / `getActiveTechnicians` | 활성 기사(배정 선택지·타임테이블 행) |
@@ -178,7 +180,7 @@ if (result === 'stale') {
 | `useBoardSummary(date)` / `getBoardSummary` | 진행 보드 집계 `BoardSummary` |
 | `getUnassignedReason(task)` | 대기함 미처리 사유 |
 | `findScheduleConflicts(tasks, assignment, excludeId?)` | 같은 기사·시간대에 겹치는 작업(일정 충돌 경고) |
-| `useTechnicianOpenTasks(id)` / `getTechnicianOpenTasks` | `{ inProgress, scheduled }`(역할 변경 모달) |
+| `getRoleChangeTasks(tasks, member)` | `{ blocking, scheduled }`(역할 변경 모달: 변경 불가 사유 작업, 기사의 시작 전 배정) |
 | `useTechnicianHistory(id, from)` | 스토어 `technicianHistory`(그 기사·그 기간을 읽었을 때만): 이력 행·누적 완료·이번 달 거절·완료 |
 | `useRegistrants()` / `getRegistrants` | 등록자 목록(작업 목록 등록자 필터) |
 | `useNotifications()` / `sortNotifications` | 알림 최신순 |

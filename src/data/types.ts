@@ -165,6 +165,8 @@ export interface Task {
   status: TaskStatus;
   /** 담당 기사(Member.kind === 'TECHNICIAN') */
   technicianId: ID | null;
+  /** 응답에 담긴 담당 기사 이름. 인력 목록에 없는 기사(역할을 바꾸기 전 기사 계약 등)의 이름 표시에 쓴다(getMemberNames) */
+  technicianName: string | null;
   /** 작업 날짜. 미지정이면 null */
   date: IsoDate | null;
   /** 시작 시각. 미지정이면 null */
@@ -179,6 +181,8 @@ export interface Task {
   sitePhotoUrls: string[];
   /** 등록자(직원 Member ID) */
   registrantId: ID;
+  /** 응답에 담긴 등록자 이름. 인력 목록에 없는 등록자(역할을 바꾸기 전 직원 소속 등)의 이름 표시에 쓴다(getMemberNames) */
+  registrantName: string | null;
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
   /** 기사가 거절하면 status는 REGISTERED로 돌아가고 거절 정보가 남는다(거절 배지) */

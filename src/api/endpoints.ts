@@ -16,6 +16,7 @@ import type {
   MembershipDto,
   NotificationPageDto,
   OrganizationDto,
+  ParticipantRoleChangeDto,
   ParticipantsDto,
   ParticipationType,
   PendingRequestDto,
@@ -91,6 +92,16 @@ export const organizationApi = {
     http.put<void>(`${org(organizationId)}/staff-memberships/${membershipId}/category`, { categoryId }),
   assignTechnicianCategory: (organizationId: number, technicianId: number, categoryId: number | null) =>
     http.put<void>(`${org(organizationId)}/technicians/${technicianId}/category`, { categoryId }),
+  /** 직원 → 기사. categoryId는 바뀐 뒤 기사 유형(null이면 유형 없음) */
+  changeStaffToTechnician: (organizationId: number, membershipId: number, categoryId: number | null) =>
+    http.post<ParticipantRoleChangeDto>(`${org(organizationId)}/staff-memberships/${membershipId}/role-change`, {
+      categoryId,
+    }),
+  /** 기사 → 직원. categoryId는 바뀐 뒤 직원 유형(null이면 유형 없음). 시작 전 배정은 대기함으로 돌아간다 */
+  changeTechnicianToStaff: (organizationId: number, technicianId: number, categoryId: number | null) =>
+    http.post<ParticipantRoleChangeDto>(`${org(organizationId)}/technicians/${technicianId}/role-change`, {
+      categoryId,
+    }),
 
   pendingRequests: (organizationId: number) =>
     http.get<{ count: number; requests: PendingRequestDto[] }>(`${org(organizationId)}/participation-requests`),

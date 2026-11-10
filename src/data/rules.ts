@@ -4,7 +4,7 @@
  */
 import { SITE_PHOTO_CONTENT_TYPES } from '@/data/constants';
 import { clockNow, dateTimeToMs, hmToMinutes, minutesToHm } from '@/lib/date';
-import type { HourMinute, Member, Task, TaskStatus } from '@/data/types';
+import type { HourMinute, ID, Member, Task, TaskStatus } from '@/data/types';
 
 const PHOTO_TYPE_BY_EXTENSION: Record<string, string> = { heic: 'image/heic', heif: 'image/heif' };
 
@@ -73,4 +73,18 @@ export function isAssignableTechnician(member: Member): boolean {
 /** 두 시간 구간[start, end)이 겹치는지(분 단위) */
 export function rangesOverlap(aStart: number, aEnd: number, bStart: number, bEnd: number): boolean {
   return aStart < bEnd && bStart < aEnd;
+}
+
+/**
+ * 인력 ID별 이름. 인력 목록의 이름을 먼저 쓰고, 목록에 없거나 이름이 빈 사람은 작업 응답의 담당 기사·등록자 이름으로 채운다.
+ * 역할을 바꾸면 이전 역할의 기사 계약·직원 소속은 인력 목록에서 빠지고, 직원은 참여 인원을 읽지 못해 등록자가 목록에 없다.
+ */
+export function getMemberNames(members: Member[], tasks: Task[]): Map<ID, string> {
+  const names = new Map<ID, string>();
+  for (const task of tasks) {
+    if (task.technicianId && task.technicianName) names.set(task.technicianId, task.technicianName);
+    if (task.registrantId && task.registrantName) names.set(task.registrantId, task.registrantName);
+  }
+  for (const member of members) if (member.name) names.set(member.id, member.name);
+  return names;
 }

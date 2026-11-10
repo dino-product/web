@@ -3,6 +3,7 @@ import { type DragEvent, useEffect, useMemo, useRef } from 'react';
 
 import { Icon, IconButton, WorkCard } from '@/design-system';
 import { formatElapsedSinceRegistered } from '@/lib/format';
+import { useMemberNames } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
 import type { ID, Task } from '@/data/types';
 
@@ -40,9 +41,8 @@ export default function WaitingPanel({
   onRevealed,
 }: WaitingPanelProps) {
   const listRef = useRef<HTMLDivElement>(null);
-  const members = useAppStore((s) => s.members);
+  const memberName = useMemberNames();
   const types = useAppStore((s) => s.types);
-  const memberName = useMemo(() => new Map(members.map((m) => [m.id, m.name])), [members]);
   const typeById = useMemo(() => new Map(types.map((t) => [t.id, t])), [types]);
   const selectedInPanel = editing && tasks.some((t) => t.id === selectedTaskId);
 

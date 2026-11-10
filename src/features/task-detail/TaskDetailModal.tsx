@@ -129,9 +129,9 @@ function TaskInfoColumn({ task, status }: { task: Task; status: Exclude<TaskStat
           <div className={styles.row}>
             <dt className={styles.label}>담당기사</dt>
             <dd className={styles.value}>
-              {technician ? (
+              {technician || task.technicianName ? (
                 <span className={styles.inline8}>
-                  <span>{technician.name}</span>
+                  <span>{technician?.name || task.technicianName}</span>
                   {technicianType && <span className={styles.typeChip}>{technicianType.name}</span>}
                 </span>
               ) : (

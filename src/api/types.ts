@@ -114,6 +114,17 @@ export interface ParticipantsDto {
 }
 
 export type ParticipationType = 'STAFF' | 'TECHNICIAN';
+
+/** 역할 변경 결과(POST …/staff-memberships/{id}/role-change, …/technicians/{id}/role-change) */
+export interface ParticipantRoleChangeDto {
+  /** 바뀐 뒤 역할 */
+  role: ParticipationType;
+  /** 바뀐 뒤 역할의 식별자. STAFF면 직원 소속, TECHNICIAN이면 기사 계약 ID(참여 인원 memberId) */
+  memberId: number;
+  /** 기사를 직원으로 바꾸며 대기함으로 돌린 작업 ID. 없으면 빈 목록 */
+  releasedWorkIds: number[];
+}
+
 export type RequestChannel = 'COMPANY_CODE' | 'JOIN_LINK' | 'QR_CODE';
 
 export interface PendingRequestDto {
@@ -252,6 +263,8 @@ export interface AssignmentDto {
   schedule: ScheduleDto;
   assignedAt: string;
   assignedBy: number | null;
+  /** 배정한 관리자 이름. 기사에게와 찾지 못했으면 null */
+  assignedByName: string | null;
   result: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN';
   decidedAt: string | null;
   rejectionReason: RejectionReasonCode | null;
@@ -259,6 +272,8 @@ export interface AssignmentDto {
   endReason: 'REASSIGNED' | 'RESCHEDULED' | 'UNASSIGNED' | 'CANCELLED' | 'ACCOUNT_WITHDRAWN' | null;
   endedAt: string | null;
   endedBy: number | null;
+  /** 배정을 끝낸 관리자 이름. 처리자가 없거나 기사에게, 찾지 못했으면 null */
+  endedByName: string | null;
 }
 
 export interface PhotoDto {
@@ -289,7 +304,14 @@ export interface WorkDetailDto {
   assignments: AssignmentDto[];
   startedAt: string | null;
   completedAt: string | null;
-  cancellation: { cancelledAt: string; cancelledBy: number | null; reason: CancelReasonCode; note: string | null } | null;
+  cancellation: {
+    cancelledAt: string;
+    cancelledBy: number | null;
+    /** 취소한 관리자 이름. 기사에게와 찾지 못했으면 null */
+    cancelledByName: string | null;
+    reason: CancelReasonCode;
+    note: string | null;
+  } | null;
   completionReport: {
     beforePhotos: PhotoDto[];
     afterPhotos: PhotoDto[];
@@ -299,7 +321,8 @@ export interface WorkDetailDto {
     actualPaymentMethod: string | null;
   } | null;
   sitePhotos: PhotoDto[];
-  completionReportRequests: { requestedAt: string; requestedBy: number | null }[];
+  /** requestedByName: 요청한 관리자 이름. 찾지 못했으면 null */
+  completionReportRequests: { requestedAt: string; requestedBy: number | null; requestedByName: string | null }[];
   completionReportRequestable: boolean;
   version: number;
 }
