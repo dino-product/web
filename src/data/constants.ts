@@ -33,6 +33,3 @@ export const TYPE_COLOR_ORDER: readonly TypeColor[] = ['PURPLE', 'BLUE', 'YELLOW
 
 /** 작업 등록 모달의 사진 첨부 최대 장수(Figma '이미지를 첨부하세요 (최대 6장)') */
 export const MAX_SITE_PHOTOS = 6;
-
-/** 서버가 받는 현장 사진 형식(JPEG·PNG·WebP·HEIC/HEIF). 다른 형식은 업로드 주소를 받지 못한다(SCHEDULE-020) */
-export const SITE_PHOTO_CONTENT_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'] as const;

@@ -7,7 +7,6 @@
  *   발주사에서도 등록할 수 있게 필수에서 뺐다.
  * - 저장: createTask. 시작 시간을 고르면 날짜는 TaskRegisterDateContext(타임테이블이 보고 있는 날짜, 없으면 오늘).
  *   기사·시작 시간·소요 시간이 모두 있으면 배정됨, 하나라도 없으면 등록(대기함).
- * - 현장 사진: 최대 6장. 저장하면 장마다 업로드 주소를 받아 올린 뒤 등록에 붙인다(store createTask).
  * - 주소 검색: 팝업 시안이 없어 샘플 주소를 채우는 동작만 한다(주소 검색 API 없음).
  */
 import clsx from 'clsx';
@@ -16,9 +15,7 @@ import { type ChangeEvent, type ReactNode, useContext, useId, useRef, useState }
 import { Button, Field, Icon, Modal, ModalPanel, TextField } from '@/design-system';
 import { today } from '@/lib/date';
 import { formatNumber, formatPhone } from '@/lib/format';
-import { useSingleFlight } from '@/lib/useSingleFlight';
-import { MAX_SITE_PHOTOS, PAYMENT_METHODS, SITE_PHOTO_CONTENT_TYPES } from '@/data/constants';
-import { sitePhotoContentType } from '@/data/rules';
+import { MAX_SITE_PHOTOS, PAYMENT_METHODS } from '@/data/constants';
 import { useActiveTechnicians, useActiveTypes } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
 import type { TaskCustomer } from '@/data/types';
@@ -40,9 +37,6 @@ const SAMPLE_ADDRESS = { zipCode: '06236', address: '서울시 강남구 테헤�
 
 const PAYMENT_OPTIONS = PAYMENT_METHODS.map((method) => ({ value: method, label: method }));
 
-/** 파일 선택 창이 보여 줄 형식. 형식을 비워 주는 브라우저를 위해 HEIC·HEIF 확장자도 넣는다 */
-const SITE_PHOTO_ACCEPT = [...SITE_PHOTO_CONTENT_TYPES, '.heic', '.heif'].join(',');
-
 interface FormState {
   title: string;
   workTypeId: string | null;
@@ -56,8 +50,7 @@ interface FormState {
   addressDetail: string;
   price: string;
   paymentMethod: string | null;
-  /** 고른 현장 사진(파일과 미리보기 data URL). 등록할 때 파일을 올린다 */
-  photos: { file: File; preview: string }[];
+  photos: string[];
 }
 
 const EMPTY_FORM: FormState = {
@@ -103,8 +96,6 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
   const [wasOpen, setWasOpen] = useState(open);
   const fileRef = useRef<HTMLInputElement>(null);
   const uid = useId();
-  // 저장 응답 전에 다시 누르면 같은 작업이 두 건 등록돼 진행 중 저장은 거른다.
-  const [saving, saveOnce] = useSingleFlight();
 
   // 열 때마다 빈 양식에서 시작한다(미입력 시안). 렌더 중에 맞춰 이전 입력값이 한 프레임도 보이지 않게 한다.
   if (open !== wasOpen) {
@@ -117,50 +108,46 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
   const canSave = form.title.trim().length > 0;
 
   const handlePhotos = async (event: ChangeEvent<HTMLInputElement>) => {
-    // 서버가 받지 않는 형식(GIF·SVG 등)은 고르지 않는다. 섞이면 등록 전체가 실패한다.
-    const files = Array.from(event.target.files ?? []).filter((file) => sitePhotoContentType(file) !== null);
+    const files = Array.from(event.target.files ?? []).filter((file) => file.type.startsWith('image/'));
     event.target.value = '';
     if (!files.length) return;
     const room = MAX_SITE_PHOTOS - form.photos.length;
-    const picked = files.slice(0, Math.max(0, room));
-    const previews = await Promise.all(picked.map(readAsDataUrl));
-    const added = picked.map((file, index) => ({ file, preview: previews[index] }));
-    setForm((prev) => ({ ...prev, photos: [...prev.photos, ...added].slice(0, MAX_SITE_PHOTOS) }));
+    const urls = await Promise.all(files.slice(0, Math.max(0, room)).map(readAsDataUrl));
+    setForm((prev) => ({ ...prev, photos: [...prev.photos, ...urls].slice(0, MAX_SITE_PHOTOS) }));
   };
 
-  const handleSave = () =>
-    saveOnce(async () => {
-      if (!canSave) return;
-      const hasCustomer = [form.customerName, form.customerPhone, form.zipCode, form.address, form.addressDetail].some(
-        (v) => v.trim() !== '',
-      );
-      const customer: TaskCustomer | null = hasCustomer
-        ? {
-            name: form.customerName.trim(),
-            phone: form.customerPhone,
-            zipCode: form.zipCode,
-            address: form.address,
-            addressDetail: form.addressDetail.trim(),
-          }
-        : null;
-      const priceDigits = form.price.replace(/\D/g, '');
-      const id = await createTask({
-        title: form.title,
-        workTypeId: form.workTypeId,
-        technicianId: form.technicianId,
-        date: form.startTime ? (contextDate ?? today()) : null,
-        startTime: form.startTime,
-        durationMinutes: form.duration ? Number(form.duration) : null,
-        customer,
-        price: priceDigits ? Number(priceDigits) : null,
-        paymentMethod: form.paymentMethod,
-        sitePhotos: form.photos.map((photo) => photo.file),
-      });
-      // 등록·사진 업로드에 실패하면(서버 오류) 입력값을 지우지 않도록 모달을 닫지 않는다. 오류 코드는 콘솔에 남는다.
-      if (!id) return;
-      onCreated?.(id);
-      onClose();
+  const handleSave = async () => {
+    if (!canSave) return;
+    const hasCustomer = [form.customerName, form.customerPhone, form.zipCode, form.address, form.addressDetail].some(
+      (v) => v.trim() !== '',
+    );
+    const customer: TaskCustomer | null = hasCustomer
+      ? {
+          name: form.customerName.trim(),
+          phone: form.customerPhone,
+          zipCode: form.zipCode,
+          address: form.address,
+          addressDetail: form.addressDetail.trim(),
+        }
+      : null;
+    const priceDigits = form.price.replace(/\D/g, '');
+    const id = await createTask({
+      title: form.title,
+      workTypeId: form.workTypeId,
+      technicianId: form.technicianId,
+      date: form.startTime ? (contextDate ?? today()) : null,
+      startTime: form.startTime,
+      durationMinutes: form.duration ? Number(form.duration) : null,
+      customer,
+      price: priceDigits ? Number(priceDigits) : null,
+      paymentMethod: form.paymentMethod,
+      sitePhotoUrls: form.photos,
     });
+    // 등록에 실패하면(서버 오류) 입력값을 지우지 않도록 모달을 닫지 않는다. 오류 코드는 콘솔에 남는다.
+    if (!id) return;
+    onCreated?.(id);
+    onClose();
+  };
 
   const photoSlots = MAX_SITE_PHOTOS - (form.photos.length < MAX_SITE_PHOTOS ? 1 : 0) - form.photos.length;
 
@@ -292,9 +279,6 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
                       suffix="원"
                       value={form.price}
                       onChange={(e) => {
-                        // 숫자만 남긴다. 다만 음수 부호가 든 입력(붙여넣기 포함)은 받지 않아 '-150000'이
-                        // 조용히 150,000으로 바뀌어 금액 의미가 달라지지 않게 한다.
-                        if (e.target.value.includes('-')) return;
                         const digits = e.target.value.replace(/\D/g, '').slice(0, 12);
                         set('price', digits ? formatNumber(Number(digits)) : '');
                       }}
@@ -326,13 +310,8 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
                     <span className="t-caption-m-medium">사진 첨부</span>
                   </button>
                 )}
-                {form.photos.map((photo, index) => (
-                  <img
-                    key={`${index}-${photo.file.name}`}
-                    className={styles.photo}
-                    src={photo.preview}
-                    alt={`현장 사진 ${index + 1}`}
-                  />
+                {form.photos.map((url, index) => (
+                  <img key={`${index}-${url.length}`} className={styles.photo} src={url} alt={`현장 사진 ${index + 1}`} />
                 ))}
                 {Array.from({ length: photoSlots }, (_, index) => (
                   <span key={`slot-${index}`} className={styles.photoSlot}>
@@ -344,7 +323,7 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
                 ref={fileRef}
                 className={styles.fileInput}
                 type="file"
-                accept={SITE_PHOTO_ACCEPT}
+                accept="image/*"
                 multiple
                 tabIndex={-1}
                 aria-hidden
@@ -357,7 +336,7 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
             <Button size="lg" variant="secondary" style={{ width: 97 }} onClick={onClose}>
               취소
             </Button>
-            <Button size="lg" style={{ width: 173 }} disabled={!canSave || saving} onClick={handleSave}>
+            <Button size="lg" style={{ width: 173 }} disabled={!canSave} onClick={handleSave}>
               저장
             </Button>
           </div>

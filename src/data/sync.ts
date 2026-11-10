@@ -48,12 +48,13 @@ export function useTaskDetailSync(taskId: ID | null | undefined): void {
   }, [key, taskId]);
 }
 
-/** 기사 작업이력: GET /organizations/{id}/work-history(from이 속한 달부터 이번 달까지, 달마다) */
-export function useTechnicianHistorySync(memberId: ID, from: IsoDate): void {
+/** 기사 작업이력: 관련 작업의 상세(배정 이력) */
+export function useTechnicianHistorySync(memberId: ID): void {
   const key = useSyncKey();
+  const taskCount = useAppStore((s) => s.tasks.length);
   useEffect(() => {
-    if (key) void useAppStore.getState().loadTechnicianHistory(memberId, from);
-  }, [key, memberId, from]);
+    if (key && taskCount) void useAppStore.getState().loadTechnicianHistory(memberId);
+  }, [key, memberId, taskCount]);
 }
 
 /** 알림창: GET /notifications(전체 쪽) */

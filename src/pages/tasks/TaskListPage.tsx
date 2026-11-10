@@ -8,14 +8,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { Button, FilterSelect, type FilterOption } from '@/design-system';
 import { today } from '@/lib/date';
-import {
-  useActiveTypes,
-  useMemberNames,
-  useRegistrants,
-  useTechnicians,
-  useVisibleTasks,
-  useWaitingTasks,
-} from '@/data/selectors';
+import { useActiveTypes, useRegistrants, useTechnicians, useVisibleTasks, useWaitingTasks } from '@/data/selectors';
 import { getDeletedType, useAppStore } from '@/data/store';
 import { useTaskListSync } from '@/data/sync';
 import { TASK_STATUS_LABEL, type TaskStatus } from '@/data/types';
@@ -56,7 +49,7 @@ export default function TaskListPage() {
   const technicians = useTechnicians();
   const workTypes = useActiveTypes('WORK');
   const registrants = useRegistrants();
-  const memberNames = useMemberNames();
+  const members = useAppStore((s) => s.members);
   const types = useAppStore((s) => s.types);
 
   const [filters, setFilters] = useState<TaskFilters>(EMPTY_FILTERS);
@@ -74,6 +67,7 @@ export default function TaskListPage() {
     [waitingTasks, filters, todayDate],
   );
 
+  const memberNames = useMemo(() => new Map(members.map((m) => [m.id, m.name])), [members]);
   const typeNames = useMemo(() => new Map(types.map((t) => [t.id, t.name])), [types]);
   const memberName = useCallback((id: string | null) => (id ? (memberNames.get(id) ?? '') : ''), [memberNames]);
   const typeName = useCallback(

@@ -2,7 +2,6 @@ import clsx from 'clsx';
 import type { CSSProperties, ReactNode } from 'react';
 
 import { Icon } from '@/design-system';
-import { useSingleFlight } from '@/lib/useSingleFlight';
 
 import glowBottomImage from './assets/glow-bottom.svg';
 import glowTopImage from './assets/glow-top.svg';
@@ -28,9 +27,9 @@ export interface OnboardingStepProps {
   /** 회색 글자 버튼('취소'·'건너뛰기') */
   secondaryLabel: string;
   onSecondary: () => void;
-  /** 진한 알약 버튼('다음'·'생성'·'유형 설정'). 폼 제출(Enter 포함)과 같다. 진행 중에는 다시 제출하지 않는다 */
+  /** 진한 알약 버튼('다음'·'생성'·'유형 설정'). 폼 제출(Enter 포함)과 같다 */
   primaryLabel: string;
-  onSubmit: () => void | Promise<unknown>;
+  onSubmit: () => void;
   /**
    * Figma 글자 상자 너비(px) — 회색 버튼 글자, 알약 버튼 글자. 브라우저 글자 폭이 Figma보다 1px 남짓 좁아
    * 오른쪽 정렬된 버튼 줄이 밀리지 않도록 상자 너비를 시안 값으로 고정한다.
@@ -64,8 +63,6 @@ export function OnboardingStep({
   // Figma 제약: 카드가 화면 세로 가운데 기준(±0.5px)이라 1080이 아닌 높이에서도 가운데에 둔다.
   const cardStyle: CSSProperties = { top: `calc(50% - ${540 - cardTop}px)` };
   const titleId = `onboarding-step-${step}-title`;
-  // 생성·저장이 끝나기 전에 다시 누르면 같은 요청이 두 번 가(발주사 중복 생성) 진행 중 제출은 거른다.
-  const [submitting, submitOnce] = useSingleFlight();
 
   return (
     <main className={styles.page} aria-labelledby={titleId}>
@@ -100,7 +97,7 @@ export function OnboardingStep({
           noValidate
           onSubmit={(event) => {
             event.preventDefault();
-            void submitOnce(async () => onSubmit());
+            onSubmit();
           }}
         >
           <div className={styles.formBody}>{children}</div>
@@ -113,7 +110,7 @@ export function OnboardingStep({
             >
               {secondaryLabel}
             </button>
-            <button type="submit" className={styles.primaryButton} disabled={submitting} aria-busy={submitting}>
+            <button type="submit" className={styles.primaryButton}>
               <Icon name="arrow-right-circle" />
               <span className={clsx('t-body-xs-medium', styles.primaryLabel)} style={{ width: primaryLabelWidth }}>
                 {primaryLabel}

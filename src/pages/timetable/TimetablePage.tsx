@@ -11,7 +11,6 @@ import {
   selectTaskById,
   useActiveTechnicians,
   useActiveTypes,
-  useIsOwner,
   useTasksByDate,
   useWaitingTasks,
 } from '@/data/selectors';
@@ -69,7 +68,6 @@ export default function TimetablePage() {
   const technicianTypes = useActiveTypes('TECHNICIAN');
   const workTypes = useActiveTypes('WORK');
   const technicians = useActiveTechnicians();
-  const isOwner = useIsOwner();
   useTimetableSync(date);
   const scheduledTasks = useTasksByDate(date);
   const waitingTasks = useWaitingTasks();
@@ -222,8 +220,7 @@ export default function TimetablePage() {
                 onBlockDragStart={(taskId, grabOffsetX) => setDrag({ taskId, grabOffsetX })}
                 onDragEnd={() => setDrag(null)}
                 onDropAt={handleDropAt}
-                // 기사 등록(인력관리)은 총관리자만 할 수 있어 직원에게는 '조직 설정으로'를 보이지 않는다.
-                onGoToOrgSettings={isOwner ? () => navigate('/org/members') : undefined}
+                onGoToOrgSettings={() => navigate('/org/members')}
               />
               <WaitingPanel
                 tasks={panelTasks}

@@ -9,28 +9,19 @@ import {
   profileApi,
   scheduleApi,
 } from '@/api/endpoints';
-import { ApiError, isApiError, NetworkError, uploadFile } from '@/api/http';
+import { ApiError, isApiError, NetworkError } from '@/api/http';
 import {
   clearSession,
   getAccessToken,
   getAccountId,
-  getRefreshToken,
   getSavedCompanyId,
   saveCompanyId,
   savePendingKakaoLogin,
   saveSession,
   takePendingKakaoLogin,
 } from '@/api/token';
-import type {
-  CreateWorkBody,
-  LoginDto,
-  ParticipantRoleChangeDto,
-  ProfileDto,
-  WorkBody,
-  WorkHistoryStatus,
-} from '@/api/types';
+import type { CreateWorkBody, LoginDto, ProfileDto, WorkBody } from '@/api/types';
 import { TYPE_COLOR_ORDER } from '@/data/constants';
-import { getMemberNames, sitePhotoContentType } from '@/data/rules';
 import {
   cancelReasonCode,
   dayRange,
@@ -42,8 +33,6 @@ import {
   joinRequestFromDto,
   MEMBER_CATEGORY_COLOR,
   memberFromParticipant,
-  memberFromTechnician,
-  monthRanges,
   notificationFromDto,
   paymentCode,
   type TaskPatch,
@@ -52,7 +41,6 @@ import {
   taskFromDetail,
   taskFromScheduled,
   taskFromSummary,
-  technicianHistoryRows,
   toId,
   toUtcIso,
   typeColorHex,
@@ -72,15 +60,13 @@ import type {
   Task,
   TaskAssignment,
   TaskInput,
-  TechnicianHistory,
-  TechnicianHistoryRow,
   TypeCategory,
   TypeColor,
   TypeItem,
   TaskStatus,
 } from '@/data/types';
 import { formatPhone } from '@/lib/format';
-import { addDays, startOfMonth, toIsoDateTime, today } from '@/lib/date';
+import { addDays, toIsoDateTime, today } from '@/lib/date';
 import { createPkcePair } from '@/lib/pkce';
 
 /** 카카오 웹 로그인 복귀 주소(서버 KAKAO_WEB_RETURN_URI의 경로) */
@@ -95,12 +81,6 @@ export interface KakaoLoginResult {
 
 /** 배정 변경 결과. 'stale'은 화면을 본 뒤 다른 사람이 작업을 바꿔 서버가 거부한 경우(SCHEDULE-016 '변경된 정보입니다') */
 export type AssignResult = 'applied' | 'stale' | 'failed';
-
-/**
- * 역할 변경 결과. 'blocked'는 서버가 끝나지 않은 작업으로 거부한 경우
- * (기사의 작업중 작업 ORGANIZATION-027, 직원이 등록한 끝나지 않은 작업 ORGANIZATION-028)
- */
-export type RoleChangeResult = 'changed' | 'blocked' | 'failed';
 
 /** 작업내역 출력 조건(작업 목록 필터). 비운 조건은 거르지 않는다 */
 export interface TaskExportFilter {
@@ -140,18 +120,10 @@ export interface AppState {
   /** 현재 발주사 인력·유형을 한 번이라도 읽었는지(주소로 바로 연 기사 작업이력용) */
   organizationLoaded: boolean;
   /**
-   * 탈퇴 가능 여부(GET /profiles/{id}/withdrawal-eligibility). 읽기 전이면 null. 모두 탈퇴 불가 화면(921:3702)의 사유다.
-   * - soleOwner: 어느 발주사의 유일한 총관리자
-   * - inProgressWorks·pendingAcceptWorks: 기사로 소속된 발주사의 작업중·배정됨 작업 수(모든 소속 합)
+   * 탈퇴 가능 여부(GET /profiles/{id}/withdrawal-eligibility). 읽기 전이면 null.
+   * soleOwner: 어느 발주사의 유일한 총관리자라 탈퇴할 수 없음(탈퇴 불가 화면 921:3702)
    */
-  withdrawalEligibility: {
-    withdrawable: boolean;
-    soleOwner: boolean;
-    inProgressWorks: number;
-    pendingAcceptWorks: number;
-  } | null;
-  /** 마지막으로 읽은 기사 작업이력(GET /work-history). 읽기 전이면 null */
-  technicianHistory: TechnicianHistory | null;
+  withdrawalEligibility: { withdrawable: boolean; soleOwner: boolean } | null;
 
   // 인증·온보딩
   /** 카카오 웹 로그인 시작. PKCE를 만들어 이 탭에 두고 서버 authorize(→ 카카오 로그인 페이지)로 이동한다. returnTo: 로그인 뒤 갈 경로 */
@@ -183,11 +155,8 @@ export interface AppState {
   regenerateJoinCode: () => Promise<void>;
 
   // 인력
-  /**
-   * 직원↔기사 역할 변경. 방향은 memberId(직원 소속·기사 계약)로 정해지고 typeId는 바뀐 뒤 역할의 유형이다.
-   * 끝나면 인력을 다시 읽는다(바뀐 역할은 새 memberId). 대기함으로 돌아간 작업이나 거부 사유를 보이려고 작업도 다시 읽는다.
-   */
-  changeMemberKind: (memberId: ID, typeId: ID | null) => Promise<RoleChangeResult>;
+  /** 직원↔기사 역할 변경. 서버 API가 없어 화면 안에서만 */
+  changeMemberKind: (memberId: ID, kind: MemberKind, typeId: ID | null) => void;
   setMemberType: (memberId: ID, typeId: ID | null) => Promise<void>;
   /** 총관리자 지정(기존 총관리자는 해제) */
   assignOwner: (memberId: ID) => Promise<void>;
@@ -221,16 +190,13 @@ export interface AppState {
 
   /** '다시 시도' → 온라인으로 바꾸고 다시 읽는다 */
   setNetwork: (network: 'online' | 'offline') => void;
-  /** 실시간 갱신 신호(작업 저장·재연결)를 받으면 보고 있는 화면이 다시 읽게 한다 */
-  refreshScreens: () => void;
 
   // 화면별 읽기(src/data/sync.ts 훅이 부른다)
   loadTaskList: () => Promise<void>;
   loadTimetable: (date: IsoDate) => Promise<void>;
   loadBoard: (date: IsoDate) => Promise<void>;
   loadTaskDetail: (taskId: ID) => Promise<void>;
-  /** 기사 작업이력: from이 속한 달부터 이번 달까지(이번 달 집계 포함) */
-  loadTechnicianHistory: (memberId: ID, from: IsoDate) => Promise<void>;
+  loadTechnicianHistory: (memberId: ID) => Promise<void>;
   loadNotifications: () => Promise<void>;
   loadOrganization: () => Promise<void>;
   loadWithdrawalEligibility: () => Promise<void>;
@@ -253,10 +219,6 @@ export function getDeletedType(typeId: ID): TypeItem | undefined {
 const taskVersions = new Map<ID, number>();
 /** 상세를 읽은 작업(고객·이력·보고가 채워진 작업) */
 const detailedTaskIds = new Set<ID>();
-/** 기사 작업이력 읽기 순번. 기간을 빠르게 바꿔도 마지막 요청의 결과만 남긴다 */
-let technicianHistoryRequest = 0;
-/** 작업 이력의 상태 조건. 거절했다가 다시 배정받아 완료한 작업은 두 조건 모두에 들어 결과마다 따로 읽는다 */
-const HISTORY_RESULTS: readonly WorkHistoryStatus[] = ['COMPLETED', 'REJECTED'];
 /** 화면 안에서만 바꾼 값(서버 API 없음). 다시 읽어도 유지한다. */
 const localTypeActive = new Map<ID, boolean>();
 const hiddenNotificationIds = new Set<ID>();
@@ -362,9 +324,10 @@ export const useAppStore = create<AppState>()((set, get) => {
       notificationsLoaded: false,
       organizationLoaded: false,
       withdrawalEligibility: null,
-      technicianHistory: null,
     });
   }
+
+  const memberLookup = (id: ID) => get().members.find((m) => m.id === id);
 
   function selfMember(): Member {
     return {
@@ -451,7 +414,7 @@ export const useAppStore = create<AppState>()((set, get) => {
     }
     // 교환이 실패하면 이전 세션을 그대로 복원한다. call()은 401을 저장된 토큰 무효로 보고 세션을 지우므로
     // (교환의 AUTH-007은 저장된 토큰과 무관) 교환만 직접 처리한다.
-    const previous = { accessToken: getAccessToken(), refreshToken: getRefreshToken() };
+    const previousToken = getAccessToken();
     let login: LoginDto;
     try {
       login = await authApi.kakaoExchange({ code, codeVerifier: pending.codeVerifier });
@@ -461,12 +424,10 @@ export const useAppStore = create<AppState>()((set, get) => {
       void restoreSession();
       return failed;
     }
-    // 교환에 성공하면 이전 세션을 새 로그인으로 바꾼다(앱 시작에서 복원하지 않았다). 이전 기기 세션은 서버에서도 끝낸다.
-    if (previous.accessToken || previous.refreshToken) {
-      void authApi.logout(previous).catch((logoutError) => logError('로그아웃', logoutError));
-    }
+    // 교환에 성공하면 이전 세션을 새 로그인으로 바꾼다(앱 시작에서 복원하지 않았다). 이전 Access Token은 서버에서도 폐기한다.
+    if (previousToken) void authApi.logout(previousToken).catch((logoutError) => logError('로그아웃', logoutError));
     resetSession();
-    saveSession(login.accessToken, login.refreshToken, login.accountId);
+    saveSession(login.accessToken, login.accountId);
     const profile = await call('내 프로필', () => profileApi.get(login.accountId));
     if (!profile) {
       // 화면은 로그아웃 상태로 돌아가므로 저장한 토큰도 지워 새로고침 뒤와 어긋나지 않게 한다.
@@ -526,7 +487,6 @@ export const useAppStore = create<AppState>()((set, get) => {
     notificationsLoaded: false,
     organizationLoaded: false,
     withdrawalEligibility: null,
-    technicianHistory: null,
 
     // ── 인증·온보딩 ──
     startKakaoLogin: async (returnTo) => {
@@ -552,10 +512,7 @@ export const useAppStore = create<AppState>()((set, get) => {
     },
 
     logout: () => {
-      const session = { accessToken: getAccessToken(), refreshToken: getRefreshToken() };
-      if (session.accessToken || session.refreshToken) {
-        void authApi.logout(session).catch((error) => logError('로그아웃', error));
-      }
+      if (getAccessToken()) void authApi.logout().catch((error) => logError('로그아웃', error));
       resetSession();
     },
 
@@ -673,35 +630,12 @@ export const useAppStore = create<AppState>()((set, get) => {
     },
 
     // ── 인력 ──
-    changeMemberKind: async (memberId, typeId) => {
-      const staff = fromId(memberId, ID_PREFIX.staff);
-      const technician = fromId(memberId, ID_PREFIX.technician);
-      const categoryId = typeIdNumber(typeId);
-      let result: RoleChangeResult;
-      try {
-        const org = requireOrg();
-        let changed: ParticipantRoleChangeDto;
-        if (staff != null) changed = await organizationApi.changeStaffToTechnician(org, staff, categoryId);
-        else if (technician != null) changed = await organizationApi.changeTechnicianToStaff(org, technician, categoryId);
-        else return 'failed';
-        if (changed.releasedWorkIds.length > 0) {
-          await get().loadTaskList();
-          bump();
-        }
-        result = 'changed';
-      } catch (error) {
-        if (isApiError(error, 'ORGANIZATION-027') || isApiError(error, 'ORGANIZATION-028')) {
-          await get().loadTaskList();
-          result = 'blocked';
-        } else {
-          handleFailure('역할 변경', error);
-          result = 'failed';
-        }
-      }
-      // 거부돼도 그 사이 바뀐 상태(비활성화·총관리자 지정 등)를 보이도록 다시 읽는다.
-      await get().loadOrganization();
-      return result;
-    },
+    changeMemberKind: (memberId, kind, typeId) =>
+      set((s) => ({
+        members: s.members.map((m) =>
+          m.id === memberId ? { ...m, kind, typeId, isOwner: kind === 'EMPLOYEE' ? m.isOwner : false } : m,
+        ),
+      })),
 
     setMemberType: async (memberId, typeId) => {
       const staff = fromId(memberId, ID_PREFIX.staff);
@@ -830,23 +764,10 @@ export const useAppStore = create<AppState>()((set, get) => {
     createTask: async (input) => {
       const org = organizationId();
       if (org == null) return null;
-      // 현장 사진은 장마다 업로드 주소를 받아 저장소로 바로 올린 뒤 파일 식별자로 붙인다(고른 순서 그대로).
-      // 한 장이라도 못 올리면 등록하지 않아 모달에 입력값이 남는다.
-      const sitePhotoIds = await call('현장 사진 업로드', () =>
-        Promise.all(
-          input.sitePhotos.map(async (file) => {
-            const contentType = sitePhotoContentType(file) ?? file.type;
-            const ticket = await scheduleApi.issueSitePhotoUpload(org, { contentType, sizeBytes: file.size });
-            await uploadFile(ticket.uploadUrl, file, ticket.requiredHeaders);
-            return ticket.fileId;
-          }),
-        ),
-      );
-      if (!sitePhotoIds) return null;
       const scheduled = input.technicianId || input.startTime || input.durationMinutes;
       const body: CreateWorkBody = {
+        // 사진 업로드 API가 없어 고른 현장 사진(sitePhotoUrls)은 보낼 수 없다(sitePhotoIds는 업로드를 마친 파일 식별자).
         ...workBody(input),
-        sitePhotoIds: sitePhotoIds.length ? sitePhotoIds : undefined,
         schedule: scheduled
           ? {
               technicianId: fromId(input.technicianId, ID_PREFIX.technician),
@@ -943,32 +864,22 @@ export const useAppStore = create<AppState>()((set, get) => {
       if (network === 'online') void loadMemberships().then(loadCompanyData).then(bump);
     },
 
-    refreshScreens: bump,
-
     // ── 화면별 읽기 ──
     loadOrganization: async () => {
       const org = organizationId();
       const membership = get().memberships.find((m) => m.companyId === get().session.currentCompanyId);
       if (org == null || !membership) return;
       const owner = membership.role === 'OWNER';
-      const [staffTypes, technicianTypes, workTypes, organization, code, participants, requests, timetable] =
-        await Promise.all([
-          call('직원 유형', () => organizationApi.categories(org, 'staff-categories')),
-          call('기사 유형', () => organizationApi.categories(org, 'technician-categories')),
-          call('작업 유형', () => organizationApi.workTypes(org)),
-          // 아래 넷은 총관리자만 볼 수 있다(직원이면 ORGANIZATION-003).
-          owner ? call('발주사 정보', () => organizationApi.get(org)) : undefined,
-          owner ? call('회사 코드', () => organizationApi.companyCode(org)) : undefined,
-          owner ? call('참여 인원', () => organizationApi.participants(org)) : undefined,
-          owner ? call('승인 대기', () => organizationApi.pendingRequests(org)) : undefined,
-          // 직원은 참여 인원을 못 읽으므로 배정할 기사 목록을 타임테이블 기사 행(활성 기사)에서 얻는다.
-          owner
-            ? undefined
-            : call('기사 목록', () => {
-                const { from, to } = dayRange(today());
-                return scheduleApi.timetable(org, from, to);
-              }),
-        ]);
+      const [staffTypes, technicianTypes, workTypes, organization, code, participants, requests] = await Promise.all([
+        call('직원 유형', () => organizationApi.categories(org, 'staff-categories')),
+        call('기사 유형', () => organizationApi.categories(org, 'technician-categories')),
+        call('작업 유형', () => organizationApi.workTypes(org)),
+        // 아래 넷은 총관리자만 볼 수 있다(직원이면 ORGANIZATION-003).
+        owner ? call('발주사 정보', () => organizationApi.get(org)) : undefined,
+        owner ? call('회사 코드', () => organizationApi.companyCode(org)) : undefined,
+        owner ? call('참여 인원', () => organizationApi.participants(org)) : undefined,
+        owner ? call('승인 대기', () => organizationApi.pendingRequests(org)) : undefined,
+      ]);
       const myAccount = accountId();
       const types = [
         ...typesFromCategories('EMPLOYEE', staffTypes?.categories ?? []),
@@ -983,7 +894,6 @@ export const useAppStore = create<AppState>()((set, get) => {
         return p === mine ? { ...member, phone } : member;
       });
       if (!mine) members = [...members, selfMember()];
-      if (timetable) members = [...members, ...timetable.technicians.map(memberFromTechnician)];
       const userId = mine ? toId(ID_PREFIX.staff, mine.memberId) : SELF_MEMBER_ID;
       set((s) => ({
         types,
@@ -1050,21 +960,11 @@ export const useAppStore = create<AppState>()((set, get) => {
       if (!result) return;
       set((s) => {
         const byId = new Map(s.tasks.map((t) => [t.id, t]));
-        const owner = s.memberships.find((m) => m.companyId === s.session.currentCompanyId)?.role === 'OWNER';
         return {
           tasks: applyPatches(s.tasks, [
             ...result.scheduledWorks.map(taskFromScheduled),
             ...result.backlog.map((w) => taskFromBacklog(w, byId.get(toId(ID_PREFIX.plain, w.workId)))),
           ]),
-          // 총관리자는 참여 인원(비활성 기사 포함)이 기사 목록이다. 직원은 타임테이블 기사 행으로 기사 목록을 새로 고친다.
-          ...(owner
-            ? {}
-            : {
-                members: [
-                  ...s.members.filter((m) => m.kind !== 'TECHNICIAN'),
-                  ...result.technicians.map(memberFromTechnician),
-                ],
-              }),
         };
       });
     },
@@ -1094,45 +994,18 @@ export const useAppStore = create<AppState>()((set, get) => {
       const detail = await call('작업 상세', () => scheduleApi.detail(org, workId));
       if (!detail) return;
       detailedTaskIds.add(taskId);
-      set((s) => {
-        const names = getMemberNames(s.members, s.tasks);
-        return { tasks: applyPatches(s.tasks, [taskFromDetail(detail, (id) => names.get(id))]) };
-      });
+      set((s) => ({ tasks: applyPatches(s.tasks, [taskFromDetail(detail, memberLookup)]) }));
     },
 
-    loadTechnicianHistory: async (memberId, from) => {
-      const org = organizationId();
-      const technicianNumber = fromId(memberId, ID_PREFIX.technician);
-      const request = ++technicianHistoryRequest;
-      const empty: TechnicianHistory = { memberId, from, rows: [], totalCompleted: 0, monthRejected: 0, monthCompleted: 0 };
-      if (org == null) return;
-      if (technicianNumber == null) {
-        set({ technicianHistory: empty });
-        return;
-      }
-      // 이력 API는 구간이 31일까지라 달마다 나눠 읽는다. 이번 달 집계(거절·완료)는 이번 달 구간 응답의 통계를 쓴다.
-      const thisMonth = startOfMonth(today());
-      const result = await call('기사 작업이력', async () => {
-        const rows = new Map<string, TechnicianHistoryRow>();
-        let summary = empty;
-        for (const range of monthRanges(from, today())) {
-          const responses = await Promise.all(
-            HISTORY_RESULTS.map((status) =>
-              scheduleApi.workHistory(org, { technicianId: technicianNumber, from: range.from, to: range.to, statuses: [status] }),
-            ),
-          );
-          // 달 경계에 걸친 배정은 두 달 응답에 모두 들어 같은 줄 키로 한 번만 남긴다.
-          responses.forEach((dto, i) => technicianHistoryRows(dto, HISTORY_RESULTS[i]).forEach((row) => rows.set(row.key, row)));
-          summary = { ...summary, totalCompleted: responses[0].totalCompleted };
-          if (range.month === thisMonth) {
-            const { completed, rejected } = responses[0].statistics;
-            summary = { ...summary, monthCompleted: completed, monthRejected: rejected };
-          }
-        }
-        return { ...summary, rows: [...rows.values()].sort((a, b) => b.date.localeCompare(a.date)) };
-      });
-      if (!result || request !== technicianHistoryRequest) return;
-      set({ technicianHistory: result });
+    loadTechnicianHistory: async (memberId) => {
+      // 기사 작업이력은 작업 상세의 배정 이력(완료·거절)으로 그린다. 이 기사가 맡은 작업, 완료 작업(다른 기사가 이어 완료한
+      // 작업에 이 기사의 거절이 남아 있을 수 있음), 거절로 돌아온 작업의 상세를 읽는다.
+      const targets = get().tasks.filter(
+        (t) =>
+          !detailedTaskIds.has(t.id) &&
+          (t.technicianId === memberId || t.status === 'COMPLETED' || (t.status === 'REGISTERED' && t.rejection)),
+      );
+      await Promise.all(targets.map((t) => get().loadTaskDetail(t.id)));
     },
 
     loadWithdrawalEligibility: async () => {
@@ -1140,13 +1013,10 @@ export const useAppStore = create<AppState>()((set, get) => {
       if (id == null) return;
       const result = await call('탈퇴 가능 여부', () => profileApi.withdrawalEligibility(id));
       if (!result) return;
-      const counts = new Map(result.blocks.map((b) => [b.reason, b.count]));
       set({
         withdrawalEligibility: {
           withdrawable: result.withdrawable,
-          soleOwner: (counts.get('SOLE_OWNER') ?? 0) > 0,
-          inProgressWorks: counts.get('WORK_IN_PROGRESS') ?? 0,
-          pendingAcceptWorks: counts.get('WORK_PENDING_ACCEPT') ?? 0,
+          soleOwner: result.blocks.some((b) => b.reason === 'SOLE_OWNER'),
         },
       });
     },

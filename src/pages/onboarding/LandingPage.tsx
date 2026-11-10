@@ -13,7 +13,7 @@ import styles from './LandingPage.module.css';
 
 /**
  * 마케팅 랜딩(Figma 1946:16500, 1920×3908 긴 스크롤 — PublicLayout 내부 스크롤).
- * 상단 오른쪽 '로그인 하기'·'Orbit 열기'(1951:17621)는 로그인 화면으로 보낸다. 이미 로그인했으면 로그인 화면이 앱으로 넘긴다.
+ * 상단 오른쪽 '로그인 하기'·'Orbit 열기'(1951:17621)는 로그인 화면으로 보낸다.
  * 기능 소개 이미지는 Figma 이미지 채움을 그대로 내려받아 같은 자르기 비율로 배치한다.
  */
 export default function LandingPage() {

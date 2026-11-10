@@ -1,9 +1,10 @@
 import clsx from 'clsx';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 
 import { Icon, StateMessage, StatusChip } from '@/design-system';
 import { formatTaskTime } from '@/lib/format';
-import { useMemberNames } from '@/data/selectors';
+import { useAppStore } from '@/data/store';
 import type { Task } from '@/data/types';
 
 import styles from './BoardTaskTable.module.css';
@@ -18,7 +19,8 @@ interface BoardTaskTableProps {
  * 행을 누르면 /board/:taskId 작업 상세 모달. 작업이 없으면 목록 없음(2043:36008).
  */
 export default function BoardTaskTable({ tasks }: BoardTaskTableProps) {
-  const memberNames = useMemberNames();
+  const members = useAppStore((s) => s.members);
+  const memberNames = useMemo(() => new Map(members.map((member) => [member.id, member.name])), [members]);
 
   return (
     <div className={styles.table}>

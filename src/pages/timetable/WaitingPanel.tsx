@@ -4,7 +4,6 @@ import { createPortal } from 'react-dom';
 
 import { Icon, IconButton, WorkCard, type WorkCardProps } from '@/design-system';
 import { formatElapsedSinceRegistered } from '@/lib/format';
-import { useMemberNames } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
 import type { ID, Task } from '@/data/types';
 
@@ -99,8 +98,9 @@ export default function WaitingPanel({
   onRevealed,
 }: WaitingPanelProps) {
   const listRef = useRef<HTMLDivElement>(null);
-  const memberName = useMemberNames();
+  const members = useAppStore((s) => s.members);
   const types = useAppStore((s) => s.types);
+  const memberName = useMemo(() => new Map(members.map((m) => [m.id, m.name])), [members]);
   const typeById = useMemo(() => new Map(types.map((t) => [t.id, t])), [types]);
   const selectedInPanel = editing && tasks.some((t) => t.id === selectedTaskId);
   const [dragGhost, setDragGhost] = useState<DragGhost | null>(null);

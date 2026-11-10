@@ -12,7 +12,6 @@ import {
 
 import { Button, DriverListItem, Icon, StateMessage } from '@/design-system';
 import { hmToMinutes, minutesToHm } from '@/lib/date';
-import { useMemberNames } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
 import type { ID, Member, Task } from '@/data/types';
 
@@ -59,8 +58,7 @@ interface TimeGridProps {
   onDragEnd: () => void;
   /** 격자에 놓음. x = 시간 축 기준 위치(px, 00:00 = 0) */
   onDropAt: (technicianId: ID, x: number) => void;
-  /** 기사 0명 안내의 '조직 설정으로'. 없으면(직원) 버튼을 그리지 않는다 */
-  onGoToOrgSettings?: () => void;
+  onGoToOrgSettings: () => void;
 }
 
 interface ScrollMetrics {
@@ -102,7 +100,7 @@ export default function TimeGrid({
   const scrollerRef = useRef<HTMLDivElement>(null);
   const lanesRef = useRef<HTMLDivElement>(null);
   const nowMinutes = useNowMinutes();
-  const memberName = useMemberNames();
+  const members = useAppStore((s) => s.members);
   const types = useAppStore((s) => s.types);
 
   const noTechnicians = technicians.length === 0;
@@ -111,6 +109,7 @@ export default function TimeGrid({
   const frameHeight = Math.min(HEADER_HEIGHT + bodyHeight, GRID_MAX_HEIGHT);
   const driverWidth = noTechnicians ? EMPTY_DRIVER_COLUMN_WIDTH : DRIVER_COLUMN_WIDTH;
 
+  const memberName = useMemo(() => new Map(members.map((m) => [m.id, m.name])), [members]);
   const typeName = useMemo(() => new Map(types.map((t) => [t.id, t.name])), [types]);
   const rowIndex = useMemo(() => new Map(technicians.map((m, index) => [m.id, index])), [technicians]);
 
@@ -347,11 +346,9 @@ export default function TimeGrid({
             title="등록된 기사가 없어요"
             description="기사를 등록하면 타임테이블에서 일정을 배정할 수 있어요"
             actions={
-              onGoToOrgSettings && (
-                <Button icon="arrow-back" iconSize={24} onClick={onGoToOrgSettings}>
-                  조직 설정으로
-                </Button>
-              )
+              <Button icon="arrow-back" iconSize={24} onClick={onGoToOrgSettings}>
+                조직 설정으로
+              </Button>
             }
           />
         </div>

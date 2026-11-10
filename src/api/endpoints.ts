@@ -16,20 +16,15 @@ import type {
   MembershipDto,
   NotificationPageDto,
   OrganizationDto,
-  ParticipantRoleChangeDto,
   ParticipantsDto,
   ParticipationType,
   PendingRequestDto,
-  PhotoUploadDto,
   ProfileDto,
   ProgressBoardDto,
   ScheduleChangeDto,
-  TermsDocumentDto,
   TimetableDto,
   WithdrawalEligibilityDto,
   WorkDetailDto,
-  WorkHistoryDto,
-  WorkHistoryStatus,
   WorkPageDto,
   WorkStatus,
   WorkTypeDto,
@@ -43,14 +38,8 @@ export type MemberCategoryPath = 'staff-categories' | 'technician-categories';
 
 export const authApi = {
   me: () => http.get<AccountDto>('/auth/me'),
-  /**
-   * 이 기기의 로그인을 끝낸다. Access Token은 만료까지 폐기하고, refresh token이 맞으면 그 기기 세션을 끝낸다
-   * (Access Token이 이미 만료됐어도 refresh token으로 끝낼 수 있다). 끝낼 세션을 직접 넘긴다.
-   */
-  logout: (session: { accessToken: string | null; refreshToken: string | null }) =>
-    http.post<void>('/auth/logout', session.refreshToken ? { refreshToken: session.refreshToken } : undefined, {
-      token: session.accessToken,
-    }),
+  /** 기본은 저장된 Access Token을 폐기한다. 새 로그인으로 바꾼 뒤 이전 토큰을 폐기할 때만 token을 넘긴다. */
+  logout: (token?: string) => http.post<void>('/auth/logout', undefined, token === undefined ? undefined : { token }),
   /** 카카오 웹 로그인 시작 주소. 브라우저로 열면 서버가 카카오 로그인을 거쳐 복귀 주소(/login/kakao)로 돌려보낸다. */
   kakaoAuthorizeUrl: (codeChallenge: string) =>
     apiUrl('/auth/kakao/authorize', { client: 'web', code_challenge: codeChallenge, code_challenge_method: 'S256' }),
@@ -69,8 +58,6 @@ export const profileApi = {
     http.get<WithdrawalEligibilityDto>(`/profiles/${accountId}/withdrawal-eligibility`),
   withdraw: (accountId: number, reason: string) =>
     http.post<void>(`/profiles/${accountId}/withdrawals`, reason ? { reason } : {}),
-  /** 시행 중인 약관 문서(본문 주소). 로그인 없이 부른다 */
-  terms: () => http.get<{ terms: TermsDocumentDto[] }>('/terms', { token: null }),
 };
 
 export const organizationApi = {
@@ -92,16 +79,6 @@ export const organizationApi = {
     http.put<void>(`${org(organizationId)}/staff-memberships/${membershipId}/category`, { categoryId }),
   assignTechnicianCategory: (organizationId: number, technicianId: number, categoryId: number | null) =>
     http.put<void>(`${org(organizationId)}/technicians/${technicianId}/category`, { categoryId }),
-  /** 직원 → 기사. categoryId는 바뀐 뒤 기사 유형(null이면 유형 없음) */
-  changeStaffToTechnician: (organizationId: number, membershipId: number, categoryId: number | null) =>
-    http.post<ParticipantRoleChangeDto>(`${org(organizationId)}/staff-memberships/${membershipId}/role-change`, {
-      categoryId,
-    }),
-  /** 기사 → 직원. categoryId는 바뀐 뒤 직원 유형(null이면 유형 없음). 시작 전 배정은 대기함으로 돌아간다 */
-  changeTechnicianToStaff: (organizationId: number, technicianId: number, categoryId: number | null) =>
-    http.post<ParticipantRoleChangeDto>(`${org(organizationId)}/technicians/${technicianId}/role-change`, {
-      categoryId,
-    }),
 
   pendingRequests: (organizationId: number) =>
     http.get<{ count: number; requests: PendingRequestDto[] }>(`${org(organizationId)}/participation-requests`),
@@ -163,14 +140,6 @@ export const scheduleApi = {
     http.get<ProgressBoardDto>(`${org(organizationId)}/progress-board`, { query: { from, to } }),
   detail: (organizationId: number, workId: number) => http.get<WorkDetailDto>(`${org(organizationId)}/works/${workId}`),
   create: (organizationId: number, body: CreateWorkBody) => http.post<CreatedWorkDto>(`${org(organizationId)}/works`, body),
-  /** 현장 사진 한 장의 업로드 주소 발급. 사진은 http.ts uploadFile로 올린 뒤 fileId를 sitePhotoIds에 넣는다 */
-  issueSitePhotoUpload: (organizationId: number, body: { contentType: string; sizeBytes: number }) =>
-    http.post<PhotoUploadDto>(`${org(organizationId)}/site-photo-uploads`, body),
-  /** 기사 작업 이력·통계. 구간 [from, to)는 최대 31일, 관리자는 technicianId를 꼭 준다 */
-  workHistory: (
-    organizationId: number,
-    query: { technicianId: number; from: string; to: string; statuses?: readonly WorkHistoryStatus[] },
-  ) => http.get<WorkHistoryDto>(`${org(organizationId)}/work-history`, { query: { ...query } }),
   changeAssignment: (
     organizationId: number,
     workId: number,

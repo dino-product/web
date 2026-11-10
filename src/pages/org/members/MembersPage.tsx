@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { Icon, MemberStatusChip, type PillTab, PillTabs, SearchInput, StateMessage } from '@/design-system';
 import { formatJoinDate } from '@/lib/format';
-import { useSingleFlight } from '@/lib/useSingleFlight';
-import { getRoleChangeTasks, selectIsOwner, useMembers } from '@/data/selectors';
+import { getTechnicianOpenTasks, selectIsOwner, useMembers } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
 import type { ID, Member, MemberKind } from '@/data/types';
 
@@ -19,16 +18,13 @@ type KindFilter = 'ALL' | MemberKind;
 interface RoleChange {
   memberId: ID;
   toKind: MemberKind;
-  /** 서버가 끝나지 않은 작업으로 거부함(변경 불가 창으로 바꾼다) */
-  blocked: boolean;
 }
 
 /**
  * 조직 설정 > 인력관리(Figma 1951:19161 · 등록된 인력 없음 650:2568 · 검색 결과 없음 1951:22730,
  * 역할 변경 2008:30734·2008:31040·2008:31376·2008:31713, 총관리자 2232:9741·2232:10017·2232:10293).
  * - 이름 검색, 전체·직원·기사 필터(건수는 검색과 무관). 시안의 모든 인력관리 프레임이 '직원' 선택 상태라 기본값을 직원으로 둔다.
- * - 직원유형 선택을 바꾸면 즉시 저장하지 않고 역할 변경 모달 → changeMemberKind(서버 역할 변경). 총관리자 행은 읽기 전용.
- *   서버가 끝나지 않은 작업으로 거부하면 다시 읽은 작업으로 변경 불가 창을 보인다.
+ * - 직원유형 선택을 바꾸면 즉시 저장하지 않고 역할 변경 모달 → changeMemberKind. 총관리자 행은 읽기 전용.
  * - 상세보기 → /org/members/:memberId(기사 작업이력).
  * - 총관리자 지정·해제: 인력관리 이전 시안(1951:18412 등) 오른쪽 아래 버튼 → 총관리자 지정(직원 선택) → 지정 해제 확인 → assignOwner.
  */
@@ -39,7 +35,6 @@ export default function MembersPage() {
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<KindFilter>('EMPLOYEE');
   const [roleChange, setRoleChange] = useState<RoleChange | null>(null);
-  const [changingRole, changeRoleOnce] = useSingleFlight();
   const [ownerStep, setOwnerStep] = useState<'assign' | 'release' | null>(null);
   const [nextOwnerId, setNextOwnerId] = useState<ID | null>(null);
 
@@ -69,15 +64,13 @@ export default function MembersPage() {
     [members],
   );
 
-  const requestKindChange = (member: Member, toKind: MemberKind) =>
-    setRoleChange({ memberId: member.id, toKind, blocked: false });
+  const requestKindChange = (member: Member, toKind: MemberKind) => setRoleChange({ memberId: member.id, toKind });
 
-  const confirmKindChange = (typeId: ID | null) =>
-    changeRoleOnce(async () => {
-      if (!roleChange) return;
-      const result = await useAppStore.getState().changeMemberKind(roleChange.memberId, typeId);
-      setRoleChange(result === 'blocked' ? { ...roleChange, blocked: true } : null);
-    });
+  const confirmKindChange = (typeId: ID | null) => {
+    if (!roleChange) return;
+    useAppStore.getState().changeMemberKind(roleChange.memberId, roleChange.toKind, typeId);
+    setRoleChange(null);
+  };
 
   const openOwnerFlow = () => {
     setNextOwnerId(ownerCandidates[0]?.id ?? null);
@@ -158,11 +151,9 @@ export default function MembersPage() {
 
       {roleChange && roleMember && (
         <RoleChangeDialogContainer
-          key={`${roleChange.memberId}-${roleChange.toKind}-${roleChange.blocked}`}
+          key={`${roleChange.memberId}-${roleChange.toKind}`}
           member={roleMember}
           toKind={roleChange.toKind}
-          serverBlocked={roleChange.blocked}
-          submitting={changingRole}
           onClose={() => setRoleChange(null)}
           onConfirm={confirmKindChange}
           onShowTasks={() => navigate('/tasks')}
@@ -229,35 +220,24 @@ function MemberRow({ member, onKindChange, onDetail }: MemberRowProps) {
 interface RoleChangeDialogContainerProps {
   member: Member;
   toKind: MemberKind;
-  serverBlocked: boolean;
-  submitting: boolean;
   onClose: () => void;
   onConfirm: (typeId: ID | null) => void;
   onShowTasks: () => void;
 }
 
-/**
- * 모달을 연 순간의 작업 현황으로 변형(변경 불가·예정 작업·기본)을 고른다. 서버가 거부하면 작업을 다시 읽은 뒤
- * 다시 그려(key) 변경 불가 창을 보인다. 서버만 아는 사유(다른 화면에서 막 바뀐 작업)면 목록이 비어 있을 수 있다.
- */
-function RoleChangeDialogContainer({
-  member,
-  toKind,
-  serverBlocked,
-  submitting,
-  onClose,
-  onConfirm,
-  onShowTasks,
-}: RoleChangeDialogContainerProps) {
-  const [tasks] = useState(() => getRoleChangeTasks(useAppStore.getState().tasks, member));
+/** 모달을 연 순간의 기사 작업 현황으로 변형(변경 불가·예정 작업·기본)을 고른다. */
+function RoleChangeDialogContainer({ member, toKind, onClose, onConfirm, onShowTasks }: RoleChangeDialogContainerProps) {
+  const [openTasks] = useState(() =>
+    member.kind === 'TECHNICIAN' && toKind === 'EMPLOYEE'
+      ? getTechnicianOpenTasks(useAppStore.getState().tasks, member.id)
+      : { inProgress: [], scheduled: [] },
+  );
   return (
     <RoleChangeDialog
       member={member}
       toKind={toKind}
-      blocked={serverBlocked || tasks.blocking.length > 0}
-      blocking={tasks.blocking}
-      scheduled={tasks.scheduled}
-      submitting={submitting}
+      inProgress={openTasks.inProgress}
+      scheduled={openTasks.scheduled}
       onClose={onClose}
       onConfirm={onConfirm}
       onShowTasks={onShowTasks}

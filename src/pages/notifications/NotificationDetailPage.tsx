@@ -67,7 +67,7 @@ export default function NotificationDetailPage() {
       color: redState ? CANCEL_RED : 'var(--color-accepted-1)',
     },
     { label: '작업명', value: task.title },
-    { label: '담당 기사', value: technician?.name || task.technicianName || '미정' },
+    { label: '담당 기사', value: technician?.name ?? '미정' },
     { label: copy.timeLabel, value: eventAt },
   ];
 

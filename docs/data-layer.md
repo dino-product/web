@@ -6,16 +6,14 @@
 
 | 파일 | 내용 |
 | --- | --- |
-| `src/api/http.ts` | `/api/v1`, Bearer 토큰, 만료·폐기 토큰(401·`COMMON-404`)이면 refresh token으로 한 번 재발급 후 재요청(탭 사이는 Web Locks로 한 번만), 공통 응답 봉투, `ApiError`·`NetworkError`, 파일 응답, 저장소 직접 업로드(`uploadFile`), 브라우저 이동용 `apiUrl` |
-| `src/api/token.ts` | Access Token·refresh token·계정 ID·선택 발주사 localStorage 저장(세션 정리·재발급 저장은 저장소 값이 이 탭의 토큰일 때만 바꿔 다른 탭의 새 로그인을 남김, 같은 계정의 다른 탭이 재발급한 토큰은 이어받음), 카카오 로그인 시작 정보(PKCE verifier·돌아갈 경로) sessionStorage 저장 |
-| `src/api/realtime.ts` | 실시간 갱신 SSE(`GET /organizations/{id}/events`)를 fetch 스트림으로 읽어 이벤트로 넘김 |
+| `src/api/http.ts` | `/api/v1`, Bearer 토큰, 공통 응답 봉투, `ApiError`·`NetworkError`, 파일 응답, 브라우저 이동용 `apiUrl` |
+| `src/api/token.ts` | 토큰·계정 ID·선택 발주사 localStorage 저장(세션 정리는 저장소 값이 이 탭의 토큰일 때만 지워 다른 탭의 새 로그인을 남김), 카카오 로그인 시작 정보(PKCE verifier·돌아갈 경로) sessionStorage 저장 |
 | `src/api/endpoints.ts` | 인증·프로필·조직·작업·알림 API 경로와 요청 |
 | `src/api/types.ts` | 서버 DTO·요청 타입 |
 | `src/data/types.ts` | 화면 도메인 타입 |
 | `src/data/store.ts` | `AppState`, `useAppStore`, 비동기 액션·읽기·오류 처리·캐시 |
 | `src/data/mappers.ts` | DTO↔도메인, ID·시각·코드·색 변환 |
 | `src/data/sync.ts` | 화면 진입·날짜·작업·발주사·revision 변경 시 재조회 |
-| `src/data/realtime.ts` | `useRealtimeSync()`(앱 레이아웃): 실시간 연결 유지·재연결, 작업 저장 신호 → `refreshScreens`, 알림 신호 → `loadNotifications` |
 | `src/data/selectors.ts` | `select*`·`get*`·`use*` |
 | `src/data/rules.ts` · `constants.ts` | 순수 상태 규칙·이력 문구·선택지 |
 | `src/lib/date.ts` · `format.ts` | Asia/Seoul 날짜·실제 현재 시각·화면 포맷 |
@@ -58,9 +56,9 @@ if (result === 'stale') {
 | 액션 | 반환·동작 |
 | --- | --- |
 | `startKakaoLogin(returnTo)` | `Promise<void>`; PKCE를 만들어 이 탭에 두고 서버 `GET /auth/kakao/authorize`로 이동한다(실패하면 콘솔만) |
-| `completeKakaoLogin({ code, error })` | `Promise<KakaoLoginResult>`(`status`: `loggedIn`·`onboarding`·`failed`, `returnTo`); 복귀 주소 `/login/kakao`(`KAKAO_CALLBACK_PATH`)의 교환 코드를 `POST /auth/kakao/exchange`로 토큰으로 바꾸고 프로필·소속·데이터를 읽는다. 교환에 성공하면 이 탭의 이전 세션을 로그아웃(서버 Access Token 폐기·refresh token 기기 세션 종료)하고, 교환이 실패하거나 교환하지 않는 실패·취소는 이전 세션을 복원한다. 같은 코드는 한 번만 교환한다 |
+| `completeKakaoLogin({ code, error })` | `Promise<KakaoLoginResult>`(`status`: `loggedIn`·`onboarding`·`failed`, `returnTo`); 복귀 주소 `/login/kakao`(`KAKAO_CALLBACK_PATH`)의 교환 코드를 `POST /auth/kakao/exchange`로 토큰으로 바꾸고 프로필·소속·데이터를 읽는다. 교환에 성공하면 이 탭의 이전 세션을 로그아웃(서버 토큰 폐기)하고, 교환이 실패하거나 교환하지 않는 실패·취소는 이전 세션을 복원한다. 같은 코드는 한 번만 교환한다 |
 | `registerProfile`, `createCompany`, `withdrawAccount` | `Promise<boolean>`; 성공 여부로 다음 화면 진행을 결정한다 |
-| `createTask`, `addType` | `Promise<ID \| null>`; 생성 ID 또는 실패. `createTask`는 고른 현장 사진을 장마다 `POST /site-photo-uploads`로 업로드 주소를 받아 저장소에 PUT한 뒤 `sitePhotoIds`로 붙인다(한 장이라도 실패하면 등록하지 않음) |
+| `createTask`, `addType` | `Promise<ID \| null>`; 생성 ID 또는 실패 |
 | `assignTask` | `Promise<AssignResult>`: `applied` / `stale` / `failed`. 서버 버전을 `expectedVersion`으로 보낸다 |
 | `cancelTask`, `requestReport` | `Promise<void>`; 서버 변경 뒤 작업 상세·목록을 다시 읽는다 |
 | `exportTasks(filter)` | `Promise<void>`; 현재 필터로 `GET /organizations/{id}/works/export`, `작업내역_날짜.xlsx` 다운로드 |
@@ -68,12 +66,11 @@ if (result === 'stale') {
 | `setMemberType`, `assignOwner`, `releaseOwner`, `approveJoinRequests`, `rejectJoinRequests` | `Promise<void>`; API 후 소속 또는 조직을 다시 읽는다 |
 | `updateType`, `deleteType` | `Promise<void>`; API 후 목록 재조회. 삭제된 유형은 현재 탭의 표시용 캐시에 보관한다 |
 | `markNotificationRead` | `Promise<void>`; 먼저 읽음 표시하고 서버 읽음 API를 보낸다 |
-| `logout`, `switchCompany`, `finishOnboarding` | 동기 액션. 로그아웃은 서버에 Access Token·refresh token을 함께 보내 기기 세션을 끝낸다. 발주사 전환 내부에서는 필요한 비동기 처리를 시작한다 |
-| `refreshScreens` | 동기 액션; `revision`을 올려 보고 있는 화면이 다시 읽게 한다(실시간 신호용) |
+| `logout`, `switchCompany`, `finishOnboarding` | 동기 액션. 로그아웃·발주사 전환 내부에서는 필요한 비동기 처리를 시작한다 |
 
 ### 화면 동기화 훅
 
-로그인 상태이며 현재 발주사가 있을 때 동작한다. 변경 뒤 `revision`이 늘면 활성 화면을 다시 읽는다. 다른 사람·다른 탭의 작업 변경은 실시간 연결(`src/data/realtime.ts`)이 `refreshScreens`로 `revision`을 올려 반영한다. 알림 신호는 알림 목록만 다시 읽는다. 실시간 연결을 열지 못하면(서버에 닿지 않음) `network: 'offline'`이 되고, 열려 있던 연결이 끊기면 다시 연결한 뒤 화면을 다시 읽는다.
+로그인 상태이며 현재 발주사가 있을 때 동작한다. 변경 뒤 `revision`이 늘면 활성 화면을 다시 읽는다. 폴링이나 다른 탭 변경의 실시간 구독은 아니다.
 
 | 훅 | 읽는 데이터 |
 | --- | --- |
@@ -81,20 +78,19 @@ if (result === 'stale') {
 | `useBoardSync(date)` | 해당 날짜 진행 보드 |
 | `useTaskListSync()` | 작업 목록 전체 페이지·대기함 |
 | `useTaskDetailSync(taskId)` | 작업 상세·이력·보고 |
-| `useTechnicianHistorySync(memberId, from)` | `GET /work-history`를 from이 속한 달부터 이번 달까지 달마다(구간 31일 제한), 완료·거절 조건별로 읽는다. 이번 달 집계는 이번 달 응답의 통계, 누적 완료는 `totalCompleted` |
+| `useTechnicianHistorySync(memberId)` | 해당 기사 관련 작업·완료·거절 작업 상세 |
 | `useNotificationsSync()` | 알림 전체 페이지(현재 발주사·지원하는 알림 유형만 표시) |
 | `useOrganizationSync()` | 발주사·회사 코드·인력·승인대기·유형. 인력·승인대기는 OWNER만 조회 |
 | `useWithdrawalEligibilitySync()` | 계정 탈퇴 가능 여부 |
 
 ### 오류와 로컬 전용 동작
 
-- `call()`은 성공 결과를 돌려주고 실패하면 `undefined`를 돌려준다. 네트워크 연결 실패는 `network: 'offline'`, refresh token 재발급으로도 풀리지 않은 HTTP 401·`COMMON-404`와 `AUTH-004`는 세션 초기화·로그아웃으로 처리한다. 서버 오류 코드·메시지는 콘솔에 남기며 새 오류 토스트는 만들지 않는다.
+- `call()`은 성공 결과를 돌려주고 실패하면 `undefined`를 돌려준다. 네트워크 연결 실패는 `network: 'offline'`, HTTP 401·`COMMON-404`·`AUTH-004`는 세션 초기화·로그아웃으로 처리한다. 서버 오류 코드·메시지는 콘솔에 남기며 새 오류 토스트는 만들지 않는다.
 - '다시 시도'는 `setNetwork('online')`으로 소속·공통 데이터·현재 화면을 다시 읽는다. 서버가 계속 끊겨 있으면 다시 실패한다.
 - 배정의 `SCHEDULE-016`은 `stale`로 반환해 기존 모달을 연다. `SCHEDULE-008`(동일 배정)은 `applied`로 취급한다.
-- `changeMemberKind`(직원↔기사)는 memberId 접두사로 직원 소속·기사 계약 역할 변경 API를 고른다. 성공하면 인력을 다시 읽고(바뀐 역할은 새 memberId), 대기함으로 돌아간 작업이 있으면 작업도 다시 읽는다. 끝나지 않은 작업으로 거부(`ORGANIZATION-027` 기사의 작업중, `ORGANIZATION-028` 직원이 등록한 작업)되면 작업을 다시 읽고 `blocked`를 돌려줘 변경 불가 창을 연다.
-- 서버 API가 없는 `setTypeActive`(유형 활성 상태), `deleteNotification`(숨김)은 로컬 전용이다. 유형 활성 상태·숨긴 알림은 재조회에도 유지하지만 새로고침하면 사라진다. 프로필 사진은 서버 API가 없어 다루지 않는다.
+- 서버 API가 없는 `changeMemberKind`(직원↔기사), `setTypeActive`(유형 활성 상태), `deleteNotification`(숨김)은 로컬 전용이다. 유형 활성 상태·숨긴 알림은 재조회에도 유지하지만 새로고침하면 사라진다. 역할 변경은 인력 재조회로 덮일 수 있고 서버 작업 배정을 해제하지 않는다. 프로필 사진은 서버 API가 없어 다루지 않는다.
 - `agreeTerms`는 선택을 잠시 기억하고 `registerProfile`이 프로필 저장 후 동의 API를 보낸다. `setJoinRequestKind`도 승인 전 선택값이며 승인 요청에 함께 보낸다.
-- 현장 사진은 등록할 때 올린다(`createTask`). 저장소 업로드 실패는 `UPLOAD-<status>` `ApiError`라 연결 실패 화면으로 바뀌지 않는다. 응답 사진의 `fake-photo://` 접두어는 매퍼에서 제거한다.
+- 사진 업로드 API가 없어 신규 현장 사진은 등록 요청에 보내지 않는다. 응답 사진의 `fake-photo://` 접두어는 매퍼에서 제거한다.
 
 ## 3. ID·시각·로그인
 
@@ -108,7 +104,7 @@ if (result === 'stale') {
 
 `toId`·`fromId`·`typeIdNumber`를 사용한다. 서버 테이블별 숫자가 겹치므로 접두어를 임의로 없애지 않는다. 서버 UTC ISO는 화면에서 `+09:00` ISO·`YYYY-MM-DD`·`HH:mm`으로 바꾼다. 요청은 `toUtcIso`, 날짜 조회 범위는 `dayRange`의 KST 자정부터 다음 날 자정까지 `[from, to)`를 쓴다. 현재 시각은 실제 `Date.now()`이며 시연 시계는 없다.
 
-로그인은 서버의 카카오 웹 로그인이다(authorize → 카카오 → callback → `/login/kakao?code=…` → exchange). PKCE verifier와 돌아갈 경로는 sessionStorage `orbit:kakaoLogin`에 두고 복귀하면 바로 지운다. Access Token(`orbit:accessToken`)·refresh token(`orbit:refreshToken`)·계정 ID·선택 발주사는 localStorage에 남는다. Access Token이 만료되면(서버 기본 1시간) 첫 API 호출이 refresh token으로 재발급하고, refresh token도 무효(`AUTH-009`, 마지막 재발급 뒤 30일)면 로그아웃한다. 시드 계정은 가짜 카카오 식별자라 실제 카카오로 들어갈 수 없으며, `node scripts/dev-token.mjs <accountId>`로 만든 로컬 Access Token을 localStorage에 넣어 연다(refresh token이 없어 만료되면 다시 넣는다).
+로그인은 서버의 카카오 웹 로그인이다(authorize → 카카오 → callback → `/login/kakao?code=…` → exchange). PKCE verifier와 돌아갈 경로는 sessionStorage `orbit:kakaoLogin`에 두고 복귀하면 바로 지운다. 인증 토큰·계정 ID·선택 발주사는 localStorage에 남는다. refresh token은 아직 보관하지 않는다. 시드 계정은 가짜 카카오 식별자라 실제 카카오로 들어갈 수 없으며, `node scripts/dev-token.mjs <accountId>`로 만든 로컬 토큰을 localStorage에 넣어 연다.
 
 ## 4. 시드
 
@@ -143,7 +139,7 @@ if (result === 'stale') {
 - **대기함 미처리 사유**(`getUnassignedReason`): '담당기사 · 시간 미지정', '담당기사 미지정', '시간 미지정'.
 - **이력 문구**(`HISTORY_LABEL`): 작업 등록됨, 배정 알림 발송됨, 기사 수락, 기사 거절, 작업 시작, 완료 보고 제출, 작업 취소, 일정 변경, 배정 해제, 작업 정보 수정, 완료 보고 요청. 처리자는 직원이면 이름, 기사면 '이름 기사'. 이력은 오래된 순이다.
 - **완료 보고**: `report.content`는 `작업 메모\n\n[사용 부품]\n부품` 형식이고 `splitReportContent`로 나눈다. `report.photoUrls[0]`은 작업 전 사진, `[1]`은 작업 후 사진이다.
-- **사진**: 첨부 파일은 서버 상세의 현장 사진에서 매핑한다. 새 현장 사진은 작업 등록 때 업로드한다(첨부한 사진을 빼는 방법은 시안이 없다).
+- **사진**: 첨부 파일은 서버 상세의 현장 사진에서 매핑한다. 신규 현장 사진 업로드는 미지원이다.
 - **유형 삭제**: 서버 삭제 API 결과를 다시 읽는다. 현재 탭에서 삭제한 유형은 `getDeletedType`으로 이름·색을 유지한다.
 - **총관리자**: 인력의 `isOwner`와 소속 역할을 API 결과로 맞춘다. 지정 액션은 새 총관리자를 지정한 뒤 기존 총관리자를 해제한다. 서버의 유일 총관리자 탈퇴 차단은 아직 없으므로 화면 소속 규칙도 유지한다.
 - **정렬**: 작업 목록 최근 수정 순, 대기함 등록 오래된 순, 날짜별 작업 시작 시각 순, 알림·승인대기 최신순, 인력 총관리자 → 직원 → 기사(참여일 순), 유형 만든 순.
@@ -169,7 +165,6 @@ if (result === 'stale') {
 | `selectJoinRequestCount` · `useJoinRequestCount()` | 승인대기 수 |
 | `selectWaitingTaskCount` | 대기함 작업 수 |
 | `useMembers()` / `sortMembers` | 인력 전체(정렬) |
-| `useMemberNames()` / `getMemberNames`(rules) | 인력 ID별 이름. 인력 목록에 없는 담당 기사·등록자(역할을 바꾸기 전 계약·소속 등)는 작업 응답의 이름으로 채운다 |
 | `useEmployees()` / `getEmployees` | 직원 |
 | `useTechnicians()` / `getTechnicians` | 기사 전체(비활성 포함, 인력관리용) |
 | `useActiveTechnicians()` / `getActiveTechnicians` | 활성 기사(배정 선택지·타임테이블 행) |
@@ -182,8 +177,8 @@ if (result === 'stale') {
 | `useBoardSummary(date)` / `getBoardSummary` | 진행 보드 집계 `BoardSummary` |
 | `getUnassignedReason(task)` | 대기함 미처리 사유 |
 | `findScheduleConflicts(tasks, assignment, excludeId?)` | 같은 기사·시간대에 겹치는 작업(일정 충돌 경고) |
-| `getRoleChangeTasks(tasks, member)` | `{ blocking, scheduled }`(역할 변경 모달: 변경 불가 사유 작업, 기사의 시작 전 배정) |
-| `useTechnicianHistory(id, from)` | 스토어 `technicianHistory`(그 기사·그 기간을 읽었을 때만): 이력 행·누적 완료·이번 달 거절·완료 |
+| `useTechnicianOpenTasks(id)` / `getTechnicianOpenTasks` | `{ inProgress, scheduled }`(역할 변경 모달) |
+| `useTechnicianHistory(id)` / `getTechnicianHistory` | 기사 작업이력 행·누적 완료·이번 달 거절·완료 |
 | `useRegistrants()` / `getRegistrants` | 등록자 목록(작업 목록 등록자 필터) |
 | `useNotifications()` / `sortNotifications` | 알림 최신순 |
 | `useJoinRequests()` / `sortJoinRequests` | 승인대기 최신순 |
