@@ -127,10 +127,16 @@ export interface AppState {
   /** 현재 발주사 인력·유형을 한 번이라도 읽었는지(주소로 바로 연 기사 작업이력용) */
   organizationLoaded: boolean;
   /**
-   * 탈퇴 가능 여부(GET /profiles/{id}/withdrawal-eligibility). 읽기 전이면 null.
-   * soleOwner: 어느 발주사의 유일한 총관리자라 탈퇴할 수 없음(탈퇴 불가 화면 921:3702)
+   * 탈퇴 가능 여부(GET /profiles/{id}/withdrawal-eligibility). 읽기 전이면 null. 모두 탈퇴 불가 화면(921:3702)의 사유다.
+   * - soleOwner: 어느 발주사의 유일한 총관리자
+   * - inProgressWorks·pendingAcceptWorks: 기사로 소속된 발주사의 작업중·배정됨 작업 수(모든 소속 합)
    */
-  withdrawalEligibility: { withdrawable: boolean; soleOwner: boolean } | null;
+  withdrawalEligibility: {
+    withdrawable: boolean;
+    soleOwner: boolean;
+    inProgressWorks: number;
+    pendingAcceptWorks: number;
+  } | null;
   /** 마지막으로 읽은 기사 작업이력(GET /work-history). 읽기 전이면 null */
   technicianHistory: TechnicianHistory | null;
 
@@ -1098,10 +1104,13 @@ export const useAppStore = create<AppState>()((set, get) => {
       if (id == null) return;
       const result = await call('탈퇴 가능 여부', () => profileApi.withdrawalEligibility(id));
       if (!result) return;
+      const counts = new Map(result.blocks.map((b) => [b.reason, b.count]));
       set({
         withdrawalEligibility: {
           withdrawable: result.withdrawable,
-          soleOwner: result.blocks.some((b) => b.reason === 'SOLE_OWNER'),
+          soleOwner: (counts.get('SOLE_OWNER') ?? 0) > 0,
+          inProgressWorks: counts.get('WORK_IN_PROGRESS') ?? 0,
+          pendingAcceptWorks: counts.get('WORK_PENDING_ACCEPT') ?? 0,
         },
       });
     },
