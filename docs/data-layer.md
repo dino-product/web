@@ -88,7 +88,7 @@ if (result === 'stale') {
 - `call()`은 성공 결과를 돌려주고 실패하면 `undefined`를 돌려준다. 네트워크 연결 실패는 `network: 'offline'`, HTTP 401·`COMMON-404`·`AUTH-004`는 세션 초기화·로그아웃으로 처리한다. 서버 오류 코드·메시지는 콘솔에 남기며 새 오류 토스트는 만들지 않는다.
 - '다시 시도'는 `setNetwork('online')`으로 소속·공통 데이터·현재 화면을 다시 읽는다. 서버가 계속 끊겨 있으면 다시 실패한다.
 - 배정의 `SCHEDULE-016`은 `stale`로 반환해 기존 모달을 연다. `SCHEDULE-008`(동일 배정)은 `applied`로 취급한다.
-- 서버 API가 없는 `changeMemberKind`(직원↔기사), `setTypeActive`(유형 활성 상태), `deleteNotification`(숨김), 프로필 사진은 로컬 전용이다. 유형 활성 상태·숨긴 알림은 재조회에도 유지하지만 새로고침하면 사라진다. 역할 변경은 인력 재조회로 덮일 수 있고 서버 작업 배정을 해제하지 않는다.
+- 서버 API가 없는 `changeMemberKind`(직원↔기사), `setTypeActive`(유형 활성 상태), `deleteNotification`(숨김)은 로컬 전용이다. 유형 활성 상태·숨긴 알림은 재조회에도 유지하지만 새로고침하면 사라진다. 역할 변경은 인력 재조회로 덮일 수 있고 서버 작업 배정을 해제하지 않는다. 프로필 사진은 서버 API가 없어 다루지 않는다.
 - `agreeTerms`는 선택을 잠시 기억하고 `registerProfile`이 프로필 저장 후 동의 API를 보낸다. `setJoinRequestKind`도 승인 전 선택값이며 승인 요청에 함께 보낸다.
 - 사진 업로드 API가 없어 신규 현장 사진은 등록 요청에 보내지 않는다. 응답 사진의 `fake-photo://` 접두어는 매퍼에서 제거한다.
 

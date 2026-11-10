@@ -230,7 +230,6 @@ export function memberFromParticipant(p: ParticipantDto): Member {
     isOwner: p.role === 'OWNER',
     status: p.status === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
     joinedAt: toIsoDateTime(p.joinedAt),
-    avatarUrl: null,
   };
 }
 

@@ -99,7 +99,6 @@ export interface Member {
   isOwner: boolean;
   status: MemberStatus;
   joinedAt: IsoDateTime;
-  avatarUrl: string | null;
 }
 
 export interface TypeItem {

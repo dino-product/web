@@ -156,7 +156,7 @@ Figma에서 line-height가 `auto`인 글자(작업 유형 배지 15px, 대기함
 | `accent` | Secondary 배경, 흰 글자 | 약관 동의 '동의하고 계속하기' |
 | `ghost` | 배경·테두리 없음, Gray900 글자 | 작업 취소 모달 '닫기' |
 
-radius는 12입니다. 화면에서 다른 값(주소 검색 8)은 `style`로 덮습니다. 마이페이지 '사진 업로드'처럼 테두리 색이 다른 경우(Gray200 + 흰 배경 + Primary 글자)는 `variant="outline"`에 className으로 테두리 색만 바꿉니다.
+radius는 12입니다. 화면에서 다른 값(주소 검색 8)은 `style`로 덮습니다. 테두리 색만 다른 경우는 `variant="outline"`에 className으로 테두리 색만 바꿉니다.
 
 ### IconButton
 
@@ -385,7 +385,6 @@ Popover props: `open`, `anchorRef`, `onClose`, `placement`(`bottom-start` 기본
 <Avatar variant="user" size={50} />                    // 사이드바: Accepted/2 원 + user(Primary100) 28
 <Avatar variant="initial" size={36} text={company.name} />   // 발주사 전환: 첫 글자 Secondary 14/500(줄 20) · 62px이면 24/500(줄 34, 기사 작업이력)
 <Avatar variant="profile" size={130} />                 // 마이페이지: #e2e2f0 원 + user-fill(#56569d) 72.8
-<Avatar variant="image" size={130} src={avatarUrl} />   // src 없으면 profile 모양
 ```
 
 타임테이블 기사 사진은 `DriverListItem`이 Figma 이미지 채움(바둑판 자리표시, `src/assets/images/avatar-placeholder.png`)을 씁니다.
@@ -481,7 +480,7 @@ Popover props: `open`, `anchorRef`, `onClose`, `placement`(`bottom-start` 기본
 ### DriverListItem · WorkCard · ScheduleCard(타임테이블)
 
 ```tsx
-<DriverListItem name="김민수" role="전문 기사" avatarSrc={member.avatarUrl} />
+<DriverListItem name="김민수" role="전문 기사" />
 <WorkCard workType={{ name: '설치', color: 'PURPLE' }} title="인덕션 교체" assigneeLabel="기사 미정" meta="등록 3일 경과" />
 <ScheduleCard status="ACCEPTED" width={234} title="인덕션 설치" timeRange="09:00 - 11:00" staffLabel="직원 (박서준)" />
 ```

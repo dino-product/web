@@ -275,7 +275,6 @@ export default function TimeGrid({
                   key={member.id}
                   name={member.name}
                   role={(member.typeId && typeName.get(member.typeId)) || '유형 없음'}
-                  avatarSrc={member.avatarUrl}
                 />
               ))}
             </div>
