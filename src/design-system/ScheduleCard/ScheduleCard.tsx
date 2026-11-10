@@ -47,7 +47,12 @@ export function ScheduleCard({
   ...rest
 }: ScheduleCardProps) {
   return (
-    <div className={clsx(styles.card, TONE_CLASS[status], className)} style={{ width, ...style }} {...rest}>
+    <div
+      className={clsx(styles.card, TONE_CLASS[status], className)}
+      style={{ width, ...style }}
+      data-overflow-tooltip-anchor=""
+      {...rest}
+    >
       <span className={styles.bar} aria-hidden />
       <div className={styles.content}>
         <div className={styles.texts}>
