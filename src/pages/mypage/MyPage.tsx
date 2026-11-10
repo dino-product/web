@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button, Field, Icon, TextField } from '@/design-system';
+import { useProfileValidation } from '@/features/profile/useProfileValidation';
 import { formatPhone } from '@/lib/format';
 import { useCurrentUser } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
@@ -12,6 +13,7 @@ import styles from './MyPage.module.css';
 /**
  * 마이페이지(Figma 460:5226). 시안의 프로필 사진 원·사진 업로드(1802:6229, 463:5695)는 요청에 따라 그리지 않는다.
  * - 저장: 이름·연락처를 updateProfile로 반영(인사말·사이드바 이름이 바뀐다).
+ *   형식이 틀리면 저장하지 않고 칸 아래 오류 헬퍼 텍스트를 보인다(입력칸을 벗어날 때도 검사).
  * - 알림센터 → /notifications, 로그아웃 → /login, 계정 탈퇴 → /mypage/withdraw
  */
 export default function MyPage() {
@@ -23,8 +25,10 @@ export default function MyPage() {
 
   const [name, setName] = useState(user?.name ?? '');
   const [phone, setPhone] = useState(user?.phone ?? '');
+  const validation = useProfileValidation(name, phone);
 
   const handleSave = () => {
+    if (validation.submit()) return;
     updateProfile({ name, phone });
   };
 
@@ -45,12 +49,18 @@ export default function MyPage() {
                 label="이름"
                 labelStyle="profile"
                 htmlFor="mypage-name"
+                error={validation.nameError}
+                errorId="mypage-name-error"
               >
                 <TextField
                   id="mypage-name"
                   appearance="profile"
                   value={name}
+                  invalid={!!validation.nameError}
+                  aria-invalid={validation.nameError ? true : undefined}
+                  aria-describedby={validation.nameError ? 'mypage-name-error' : undefined}
                   onChange={(event) => setName(event.target.value)}
+                  onBlur={() => validation.touch('name')}
                   autoComplete="name"
                 />
               </Field>
@@ -58,13 +68,19 @@ export default function MyPage() {
                 label="연락처"
                 labelStyle="profile"
                 htmlFor="mypage-phone"
+                error={validation.phoneError}
+                errorId="mypage-phone-error"
               >
                 <TextField
                   id="mypage-phone"
                   appearance="profile"
                   value={phone}
+                  invalid={!!validation.phoneError}
+                  aria-invalid={validation.phoneError ? true : undefined}
+                  aria-describedby={validation.phoneError ? 'mypage-phone-error' : undefined}
                   inputMode="tel"
                   onChange={(event) => setPhone(formatPhone(event.target.value))}
+                  onBlur={() => validation.touch('phone')}
                   autoComplete="tel"
                 />
               </Field>

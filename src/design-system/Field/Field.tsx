@@ -24,6 +24,10 @@ export interface FieldProps {
   /** 라벨과 입력 사이 간격(px). 기본은 labelStyle 값 */
   gap?: number;
   htmlFor?: string;
+  /** 입력 아래 오류 헬퍼 텍스트(14/500 Warning/1). 입력에는 invalid를 함께 준다 */
+  error?: ReactNode;
+  /** error 문단 id(입력의 aria-describedby로 연결) */
+  errorId?: string;
   className?: string;
   children: ReactNode;
 }
@@ -45,6 +49,8 @@ export function Field({
   labelStyle = 'default',
   gap,
   htmlFor,
+  error,
+  errorId,
   className,
   children,
 }: FieldProps) {
@@ -61,6 +67,11 @@ export function Field({
         {hint && <span className={styles.hint}>{hint}</span>}
       </div>
       {children}
+      {error && (
+        <p id={errorId} className={clsx('t-caption-m-medium', styles.error)} role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

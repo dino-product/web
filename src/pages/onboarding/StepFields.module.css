@@ -39,12 +39,6 @@
   white-space: nowrap;
 }
 
-/* 입력값 오류 문구(Warning/1) */
-.error {
-  color: var(--color-warning-1);
-  white-space: nowrap;
-}
-
 /* 이용약관 행(1453:12600): 높이 60, Gray200 1px, radius 12. 안쪽 줄은 테두리 안 (18, 15.5)에 342 너비 */
 .termsBox {
   position: relative;
