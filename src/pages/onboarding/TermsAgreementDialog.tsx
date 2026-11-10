@@ -48,7 +48,7 @@ export interface TermsAgreementDialogProps {
  * 서비스 이용약관 동의 모달(Figma 1453:7505). 첫 사용자가 카카오 로그인한 직후 로그인 화면 위에 뜬다.
  * - 처음에는 모두 미선택. '전체 동의'가 개별 항목을 함께 켜고 끈다(시안은 모두 선택된 상태).
  * - 필수 항목을 모두 선택해야 '동의하고 계속하기'가 활성화된다(비활성은 DS Button disabled 모양).
- * - 항목 오른쪽 화살표는 그 약관 본문(서버 GET /terms의 주소)을 새 탭으로 연다.
+ * - 항목 오른쪽 화살표는 그 약관 본문(서버 GET /terms의 주소)을 약관 본문 모달로 연다(이 모달 위에 겹친다).
  */
 export default function TermsAgreementDialog({ open, onClose, onAgree }: TermsAgreementDialogProps) {
   const [checked, setChecked] = useState<Record<TermKey, boolean>>(NONE_CHECKED);

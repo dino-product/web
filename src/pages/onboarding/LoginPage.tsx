@@ -41,7 +41,7 @@ function HelpBox({ title, description, linkLabel }: HelpBoxProps) {
  * - 카카오 로그인: 서버 authorize → 카카오 로그인 → 서버 callback → 복귀 주소 /login/kakao?code=…(이 화면)에서 교환한다.
  *   가입을 마친 계정 → 원래 경로 또는 /timetable. 가입 전 계정 → /login 위 약관 동의 모달(1453:7505).
  *   실패·취소(?error=…)는 오류 안내 시안이 없어 원래 경로를 유지한 채 /login으로 돌아온다(오류 코드는 콘솔).
- * - '이용약관'·'개인정보처리방침'은 그 약관 본문(서버 GET /terms의 주소)을 새 탭으로 연다.
+ * - '이용약관'·'개인정보처리방침'은 그 약관 본문(서버 GET /terms의 주소)을 약관 본문 모달(TermsViewerDialog)로 연다.
  * - '프로필 입력 안내 보기'·'소속 없는 계정 안내'는 목적지 시안이 없어 동작하지 않는다.
  * - 이미 로그인한 상태로 들어오면 원래 경로 또는 /timetable로 바로 보낸다.
  */
