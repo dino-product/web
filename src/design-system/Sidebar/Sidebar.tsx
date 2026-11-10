@@ -129,7 +129,15 @@ export function Sidebar({
   return (
     <aside className={clsx(styles.sidebar, className)}>
       <div className={styles.logoRow}>
-        <Logo variant="lockup" color="var(--color-gray-0)" />
+        {/* 로고는 타임테이블로 보낸다(메뉴와 같은 클릭 처리) */}
+        <a
+          href={hrefs.timetable}
+          className={styles.logoLink}
+          aria-label="타임테이블로 이동"
+          onClick={(event) => handleClick(event, hrefs.timetable)}
+        >
+          <Logo variant="lockup" color="var(--color-gray-0)" />
+        </a>
       </div>
 
       <label className={styles.search}>

@@ -20,6 +20,17 @@
   padding: 24px;
 }
 
+/* 로고 → 타임테이블. 링크가 로고 크기만 차지하도록 inline-flex */
+.logoLink {
+  display: inline-flex;
+  border-radius: 6px;
+}
+
+.logoLink:focus-visible {
+  outline: 2px solid var(--color-primary-100);
+  outline-offset: 4px;
+}
+
 /* 검색: (23,110) 274x54, padding 12/14, radius 10, 흰색 9% */
 .search {
   display: flex;
