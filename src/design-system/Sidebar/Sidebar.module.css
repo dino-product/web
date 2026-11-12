@@ -84,7 +84,7 @@
   margin-top: 24px;
 }
 
-/* 메뉴 항목: padding 20/10, radius 11, 아이콘 28 + 간격 10 + 16/500. 비선택 50% 불투명 */
+/* 메뉴 항목: padding 20/10, radius 11, 아이콘 28 + 간격 10 + 18/500. 비선택 50% 불투명 */
 .item {
   display: flex;
   align-items: center;
@@ -93,8 +93,8 @@
   padding: 20px 10px;
   border-radius: 11px;
   color: #f1f1f1;
-  font-size: 16px;
-  line-height: 22px;
+  font-size: 18px;
+  line-height: var(--line-height-18);
   font-weight: 500;
   opacity: 0.5;
 }
