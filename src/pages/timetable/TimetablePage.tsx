@@ -157,6 +157,13 @@ export default function TimetablePage() {
     });
   };
 
+  // 블록 끝을 끌어 바꾼 시간도 옮길 때처럼 배정 확인을 거친다(같은 기사면 서버가 일정 변경으로 처리한다).
+  const handleResize = (taskId: ID, startMinutes: number, durationMinutes: number) => {
+    const task = useAppStore.getState().tasks.find((t) => t.id === taskId);
+    if (!task?.technicianId) return;
+    setAssignDraft({ taskId, technicianId: task.technicianId, startTime: minutesToHm(startMinutes), durationMinutes });
+  };
+
   const commitAssignment = async (taskId: ID, assignment: TaskAssignment) => {
     setConflict(null);
     // 화면을 본 뒤 다른 사람이 작업을 바꿨으면 서버가 반영하지 않고 '변경된 정보입니다'(SCHEDULE-016)로 답한다.
@@ -224,6 +231,7 @@ export default function TimetablePage() {
                 onBlockDragStart={startDrag}
                 onDragEnd={() => setDrag(null)}
                 onDropAt={handleDropAt}
+                onResize={handleResize}
                 // 기사 등록(인력관리)은 총관리자만 할 수 있어 직원에게는 '조직 설정으로'를 보이지 않는다.
                 onGoToOrgSettings={isOwner ? () => navigate('/org/members') : undefined}
               />

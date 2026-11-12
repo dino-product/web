@@ -11,6 +11,7 @@ import {
 } from 'react';
 
 import { Button, DriverListItem, Icon, StateMessage } from '@/design-system';
+import { SLOT_MINUTES } from '@/features/task-register/scheduleOptions';
 import { hmToMinutes, minutesToHm } from '@/lib/date';
 import { useMemberNames } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
@@ -28,11 +29,12 @@ import {
   HOUR_WIDTH,
   INITIAL_SCROLL_HOUR,
   minutesToX,
+  MINUTES_PER_DAY,
   ROW_HEIGHT,
   VISIBLE_ROWS,
   xToSlotMinutes,
 } from './grid';
-import ScheduleBlock from './ScheduleBlock';
+import ScheduleBlock, { type ResizeEdge } from './ScheduleBlock';
 import styles from './TimeGrid.module.css';
 import { useNowMinutes } from './useNowMinutes';
 
@@ -54,6 +56,13 @@ interface DropSlot {
   startMinutes: number;
 }
 
+/** 블록 양 끝을 끌어 바꾸는 중인 일정(자정부터 분) */
+interface ResizeState {
+  taskId: ID;
+  startMinutes: number;
+  endMinutes: number;
+}
+
 interface TimeGridProps {
   /** 격자 프레임 너비(대기함 펼침 1212, 접힘 1417) */
   width: number;
@@ -73,6 +82,8 @@ interface TimeGridProps {
   onDragEnd: () => void;
   /** 격자에 놓음. startMinutes = 놓을 칸의 시작 시각(분, 30분 단위) */
   onDropAt: (technicianId: ID, startMinutes: number) => void;
+  /** 블록 끝을 끌어 시간을 바꿈. 담당기사는 그대로이고 바뀐 시작 시각·소요 시간(분)을 넘긴다 */
+  onResize: (taskId: ID, startMinutes: number, durationMinutes: number) => void;
   /** 기사 0명 안내의 '조직 설정으로'. 없으면(직원) 버튼을 그리지 않는다 */
   onGoToOrgSettings?: () => void;
 }
@@ -105,6 +116,7 @@ export default function TimeGrid({
   onBlockDragStart,
   onDragEnd,
   onDropAt,
+  onResize,
   onGoToOrgSettings,
 }: TimeGridProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -279,11 +291,65 @@ export default function TimeGrid({
       : null;
 
   const handleBlockDragStart = (task: Task, event: DragEvent<HTMLDivElement>) => {
+    // 손잡이를 누른 채 움직이면 블록 이동이 아니라 시간 조절이다.
+    if (resizingRef.current) {
+      event.preventDefault();
+      return;
+    }
     const rect = event.currentTarget.getBoundingClientRect();
     const grabOffsetX = event.clientX - rect.left;
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', task.id);
     onBlockDragStart(task.id, grabOffsetX);
+  };
+
+  // ── 시간 조절: 블록 양 끝을 30분 단위로 끈다 ─────────────────────────────
+  const [resize, setResize] = useState<ResizeState | null>(null);
+  const resizingRef = useRef(false);
+
+  const startResize = (task: Task, edge: ResizeEdge, event: ReactPointerEvent<HTMLSpanElement>) => {
+    if (event.button !== 0) return;
+    event.stopPropagation();
+    const target = event.currentTarget;
+    target.setPointerCapture(event.pointerId);
+    resizingRef.current = true;
+    const originStart = hmToMinutes(task.startTime!);
+    const originEnd = originStart + task.durationMinutes!;
+    const origin: ResizeState = { taskId: task.id, startMinutes: originStart, endMinutes: originEnd };
+    // 끈 끝은 30분 칸 경계에 맞춘다(블록 이동·시작 시간 선택지와 같은 단위). 최소 30분, 하루(00:00–24:00) 안.
+    const latestStart = Math.floor((originEnd - SLOT_MINUTES) / SLOT_MINUTES) * SLOT_MINUTES;
+    const earliestEnd = Math.ceil((originStart + SLOT_MINUTES) / SLOT_MINUTES) * SLOT_MINUTES;
+    const latestEnd = Math.max(MINUTES_PER_DAY, originEnd);
+    let current = origin;
+    setResize(current);
+
+    const onMove = (e: PointerEvent) => {
+      const moved = ((e.clientX - event.clientX) / HOUR_WIDTH) * 60;
+      const snap = (from: number) => Math.round((from + moved) / SLOT_MINUTES) * SLOT_MINUTES;
+      // 반 칸도 안 끌었으면 원래 시간을 둔다(30분 칸에 맞지 않는 일정이 살짝 눌러도 바뀌지 않게).
+      const next =
+        Math.abs(moved) < SLOT_MINUTES / 2
+          ? origin
+          : edge === 'start'
+            ? { ...origin, startMinutes: Math.min(Math.max(snap(originStart), 0), latestStart) }
+            : { ...origin, endMinutes: Math.max(Math.min(snap(originEnd), latestEnd), earliestEnd) };
+      if (next.startMinutes === current.startMinutes && next.endMinutes === current.endMinutes) return;
+      current = next;
+      setResize(next);
+    };
+    const onEnd = (e: PointerEvent) => {
+      target.removeEventListener('pointermove', onMove);
+      target.removeEventListener('pointerup', onEnd);
+      target.removeEventListener('pointercancel', onEnd);
+      resizingRef.current = false;
+      setResize(null);
+      if (e.type === 'pointerup' && (current.startMinutes !== originStart || current.endMinutes !== originEnd)) {
+        onResize(task.id, current.startMinutes, current.endMinutes - current.startMinutes);
+      }
+    };
+    target.addEventListener('pointermove', onMove);
+    target.addEventListener('pointerup', onEnd);
+    target.addEventListener('pointercancel', onEnd);
   };
 
   const nowX = minutesToX(nowMinutes);
@@ -334,17 +400,26 @@ export default function TimeGrid({
             >
               {blocks.map(({ task, left, top, width: blockWidth }) => {
                 const movable = editing && isMovableTask(task);
+                // 조절 중인 블록은 바뀐 시간으로 그린다(카드의 시간 표기 포함).
+                const resized = resize?.taskId === task.id ? resize : null;
+                const shown = resized
+                  ? {
+                      ...task,
+                      startTime: minutesToHm(resized.startMinutes),
+                      durationMinutes: resized.endMinutes - resized.startMinutes,
+                    }
+                  : task;
                 return (
                   <ScheduleBlock
                     key={task.id}
-                    task={task}
+                    task={shown}
                     registrantName={memberName.get(task.registrantId) ?? ''}
-                    left={left}
+                    left={resized ? minutesToX(resized.startMinutes) : left}
                     top={top}
-                    width={blockWidth}
+                    width={resized ? durationToWidth(resized.endMinutes - resized.startMinutes) : blockWidth}
                     selected={editing && task.id === selectedTaskId}
                     dimmed={editing && selectedOnGrid && task.id !== selectedTaskId}
-                    draggable={movable}
+                    draggable={movable && !resized}
                     onClick={(event) => {
                       if (!editing) return;
                       event.stopPropagation();
@@ -352,6 +427,7 @@ export default function TimeGrid({
                     }}
                     onDragStart={movable ? (event) => handleBlockDragStart(task, event) : undefined}
                     onDragEnd={onDragEnd}
+                    onResizeStart={movable && !drag ? (edge, event) => startResize(task, edge, event) : undefined}
                   />
                 );
               })}

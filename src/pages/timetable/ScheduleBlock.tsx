@@ -1,11 +1,14 @@
 import clsx from 'clsx';
-import type { DragEvent, MouseEvent } from 'react';
+import type { DragEvent, MouseEvent, PointerEvent } from 'react';
 
 import { ScheduleCard, type SolidChipStatus } from '@/design-system';
 import { formatTimeRange } from '@/lib/format';
 import { TASK_STATUS_LABEL, type Task } from '@/data/types';
 
 import styles from './ScheduleBlock.module.css';
+
+/** 블록 양 끝 손잡이. start = 왼쪽(시작 시각), end = 오른쪽(종료 시각) */
+export type ResizeEdge = 'start' | 'end';
 
 interface ScheduleBlockProps {
   task: Task;
@@ -22,6 +25,8 @@ interface ScheduleBlockProps {
   onClick?: (event: MouseEvent<HTMLDivElement>) => void;
   onDragStart?: (event: DragEvent<HTMLDivElement>) => void;
   onDragEnd?: () => void;
+  /** 있으면 양 끝에 손잡이를 그리고, 누르면 그 끝으로 시간 조절을 시작한다 */
+  onResizeStart?: (edge: ResizeEdge, event: PointerEvent<HTMLSpanElement>) => void;
 }
 
 /**
@@ -40,6 +45,7 @@ export default function ScheduleBlock({
   onClick,
   onDragStart,
   onDragEnd,
+  onResizeStart,
 }: ScheduleBlockProps) {
   const timeRange = task.startTime && task.durationMinutes != null ? formatTimeRange(task.startTime, task.durationMinutes) : '';
   const staffLabel = `직원 (${registrantName})`;
@@ -77,6 +83,17 @@ export default function ScheduleBlock({
           staffLabel={staffLabel}
         />
       )}
+      {onResizeStart &&
+        (['start', 'end'] as const).map((edge) => (
+          <span
+            key={edge}
+            className={clsx(styles.resizeHandle, edge === 'start' ? styles.resizeStart : styles.resizeEnd)}
+            onPointerDown={(event) => onResizeStart(edge, event)}
+            // 조절을 마친 클릭이 블록 선택·격자 선택 해제로 이어지지 않게 한다.
+            onClick={(event) => event.stopPropagation()}
+            aria-hidden
+          />
+        ))}
     </div>
   );
 }
