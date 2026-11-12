@@ -9,14 +9,16 @@
  * - 저장: createTask. 시작 시간을 고르면 날짜는 TaskRegisterDateContext(타임테이블이 보고 있는 날짜, 없으면 오늘).
  *   기사·시작 시간·소요 시간이 모두 있으면 배정됨, 하나라도 없으면 등록(대기함).
  * - 현장 사진: 최대 6장. 저장하면 장마다 업로드 주소를 받아 올린 뒤 등록에 붙인다(store createTask).
- * - 주소 검색: 팝업 시안이 없어 샘플 주소를 채우는 동작만 한다(주소 검색 API 없음).
+ * - 주소 검색: 카카오 우편번호 서비스 팝업(lib/kakaoPostcode)으로 고른 우편번호·기본 주소를 채운다. 팝업 시안이 없어 카카오 화면을
+ *   그대로 쓴다. 좌표는 서버가 저장할 때 기본 주소로 구한다.
  */
 import clsx from 'clsx';
-import { type ChangeEvent, type ReactNode, useContext, useId, useRef, useState } from 'react';
+import { type ChangeEvent, type ReactNode, useContext, useEffect, useId, useRef, useState } from 'react';
 
 import { Button, Field, Icon, Modal, ModalPanel, TextField } from '@/design-system';
 import { today } from '@/lib/date';
 import { formatNumber, formatPhone } from '@/lib/format';
+import { loadPostcode, openPostcodeSearch } from '@/lib/kakaoPostcode';
 import { useSingleFlight } from '@/lib/useSingleFlight';
 import { MAX_SITE_PHOTOS, PAYMENT_METHODS, SITE_PHOTO_CONTENT_TYPES } from '@/data/constants';
 import { sitePhotoContentType } from '@/data/rules';
@@ -35,9 +37,6 @@ export interface TaskRegisterModalProps {
   /** 저장 성공 시 새 작업 ID */
   onCreated?: (taskId: string) => void;
 }
-
-/** 주소 검색 버튼이 채우는 샘플 주소 */
-const SAMPLE_ADDRESS = { zipCode: '06236', address: '서울시 강남구 테헤란로 152' } as const;
 
 const PAYMENT_OPTIONS = PAYMENT_METHODS.map((method) => ({ value: method, label: method }));
 
@@ -117,6 +116,11 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
       setFailure(null);
     }
   }
+
+  // 주소 검색 스크립트를 열 때 미리 받아 둔다. 클릭 뒤에 받으면 팝업이 차단될 수 있다. 실패하면 클릭할 때 다시 받는다.
+  useEffect(() => {
+    if (open) loadPostcode().catch(() => undefined);
+  }, [open]);
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((prev) => ({ ...prev, [key]: value }));
 
@@ -281,7 +285,11 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
                     variant="outline"
                     icon="search"
                     style={{ borderRadius: 8 }}
-                    onClick={() => setForm((prev) => ({ ...prev, ...SAMPLE_ADDRESS }))}
+                    onClick={() =>
+                      openPostcodeSearch(({ zipCode, address }) =>
+                        setForm((prev) => ({ ...prev, zipCode, address })),
+                      ).catch((error: unknown) => console.error('[주소 검색] 실패:', error))
+                    }
                   >
                     주소 검색
                   </Button>
