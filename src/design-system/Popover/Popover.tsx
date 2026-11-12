@@ -62,12 +62,11 @@ export function Popover({
     const panel = panelRef.current;
     if (!anchor || !panel || !root) return;
     const rootRect = root.getBoundingClientRect();
-    const scale = root.offsetWidth ? rootRect.width / root.offsetWidth : 1;
     const rect = anchor.getBoundingClientRect();
-    const ax = (rect.left - rootRect.left) / scale;
-    const ay = (rect.top - rootRect.top) / scale;
-    const aw = rect.width / scale;
-    const ah = rect.height / scale;
+    const ax = rect.left - rootRect.left;
+    const ay = rect.top - rootRect.top;
+    const aw = rect.width;
+    const ah = rect.height;
     const pw = matchWidth ? aw : panel.offsetWidth;
     const ph = panel.offsetHeight;
     const left = placement.endsWith('end') ? ax + aw - pw : ax;
@@ -97,7 +96,7 @@ export function Popover({
       event.preventDefault();
       onClose();
     };
-    // AppStage가 창 크기 변경 때 zoom을 바꾼 다음 프레임에 다시 잰다.
+    // 창 크기 변경 때 AppStage 높이가 바뀐 다음 프레임에 다시 잰다.
     let frame = 0;
     const onResize = () => {
       cancelAnimationFrame(frame);

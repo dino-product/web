@@ -97,7 +97,7 @@ export function OverflowTooltip() {
     };
   }, []);
 
-  // AppStage zoom을 걷어 낸 캔버스 좌표로 배치한다(Popover와 같은 방식).
+  // #overlay-root 기준 캔버스 좌표로 배치한다(Popover와 같은 방식).
   useLayoutEffect(() => {
     const bubble = bubbleRef.current;
     if (!anchor || !bubble || !root) {
@@ -105,11 +105,10 @@ export function OverflowTooltip() {
       return;
     }
     const rootRect = root.getBoundingClientRect();
-    const scale = root.offsetWidth ? rootRect.width / root.offsetWidth : 1;
     const rect = anchor.box.getBoundingClientRect();
-    const ax = (rect.left - rootRect.left) / scale;
-    const ay = (rect.top - rootRect.top) / scale;
-    const ah = rect.height / scale;
+    const ax = rect.left - rootRect.left;
+    const ay = rect.top - rootRect.top;
+    const ah = rect.height;
     const bw = bubble.offsetWidth;
     const bh = bubble.offsetHeight;
     const left = Math.min(Math.max(ax, EDGE), root.offsetWidth - bw - EDGE);

@@ -26,6 +26,11 @@ body,
   overflow: hidden;
 }
 
+/* 창이 1920px 캔버스보다 좁을 때(브라우저 확대 포함) 가로로 스크롤한다. */
+#root {
+  overflow-x: auto;
+}
+
 body {
   background: var(--color-gray-0);
   color: var(--color-primary);
@@ -94,16 +99,18 @@ svg {
 }
 
 /*
- * 1920px 디자인 캔버스. AppStage가 창 너비에 맞춰 zoom을 지정하고 --app-height(캔버스 기준 높이)를 넣는다.
+ * 1920px 디자인 캔버스. 배율 없이 그리므로 브라우저 확대·축소가 그대로 적용된다.
+ * 창이 더 넓으면 가운데 두고, 좁으면 #root가 가로로 스크롤된다. AppStage가 --app-height(보이는 화면 높이)를 넣는다.
  * 페이지 스크롤은 각 레이아웃의 내부 스크롤 영역에서 처리한다. vh·vw 단위는 쓰지 않는다.
  */
 .app-stage {
   position: relative;
   width: var(--design-width);
+  margin-inline: auto;
   overflow: hidden;
 }
 
-/* 모달·드롭다운 포털 대상. 캔버스와 함께 확대·축소된다. */
+/* 모달·드롭다운 포털 대상. 캔버스 좌표를 그대로 쓴다. */
 #overlay-root {
   position: absolute;
   inset: 0;

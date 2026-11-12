@@ -39,10 +39,9 @@ function choosePlacement(anchor: HTMLElement, panelHeight: number): PopoverPlace
   const root = document.getElementById('overlay-root');
   if (!root) return 'bottom-start';
   const rootRect = root.getBoundingClientRect();
-  const scale = root.offsetWidth ? rootRect.width / root.offsetWidth : 1;
   const rect = anchor.getBoundingClientRect();
-  const top = (rect.top - rootRect.top) / scale;
-  const bottom = (rect.bottom - rootRect.top) / scale;
+  const top = rect.top - rootRect.top;
+  const bottom = rect.bottom - rootRect.top;
   const below = root.offsetHeight - bottom - PANEL_OFFSET;
   return below < panelHeight + 8 && top > below ? 'top-start' : 'bottom-start';
 }

@@ -74,12 +74,6 @@ interface ScrollMetrics {
 
 const HOURS = Array.from({ length: AXIS_HOURS }, (_, hour) => minutesToHm(hour * 60));
 
-/** AppStage zoom을 고려한 캔버스 배율 */
-function canvasScale(element: HTMLElement): number {
-  const rect = element.getBoundingClientRect();
-  return element.offsetWidth ? rect.width / element.offsetWidth : 1;
-}
-
 /**
  * 타임테이블 격자(577:3008). 왼쪽 기사 열·위 시간 머리줄은 고정되고 본문이 가로·세로로 스크롤된다.
  * 처음에는 09:00이 첫 칸으로 보이게 스크롤한다. 보기 모드는 스크롤바를 그리지 않고(시안),
@@ -200,12 +194,11 @@ export default function TimeGrid({
     event.preventDefault();
     const target = event.currentTarget;
     target.setPointerCapture(event.pointerId);
-    const scale = canvasScale(el);
     const startPointer = axis === 'x' ? event.clientX : event.clientY;
     const startScroll = axis === 'x' ? el.scrollLeft : el.scrollTop;
     const ratio = info.max / info.range;
     const onMove = (e: PointerEvent) => {
-      const delta = ((axis === 'x' ? e.clientX : e.clientY) - startPointer) / scale;
+      const delta = (axis === 'x' ? e.clientX : e.clientY) - startPointer;
       if (axis === 'x') el.scrollLeft = startScroll + delta * ratio;
       else el.scrollTop = startScroll + delta * ratio;
     };
@@ -231,16 +224,15 @@ export default function TimeGrid({
     if (!editing || !dragging || !lanes || noTechnicians) return;
     event.preventDefault();
     const rect = lanes.getBoundingClientRect();
-    const scale = canvasScale(lanes);
-    const x = (event.clientX - rect.left) / scale;
-    const y = (event.clientY - rect.top) / scale;
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
     const technician = technicians[Math.floor(y / ROW_HEIGHT)];
     if (technician) onDropAt(technician.id, x);
   };
 
   const handleBlockDragStart = (task: Task, event: DragEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
-    const grabOffsetX = (event.clientX - rect.left) / canvasScale(event.currentTarget);
+    const grabOffsetX = event.clientX - rect.left;
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', task.id);
     onBlockDragStart(task.id, grabOffsetX);

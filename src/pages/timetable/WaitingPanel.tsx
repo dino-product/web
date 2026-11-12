@@ -37,12 +37,11 @@ function CardDragGhost({ ghost, onEnd }: { ghost: DragGhost; onEnd: () => void }
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el || !root) return;
-    // AppStage zoom을 고려해 포인터 위치를 캔버스 좌표로 바꾼다.
+    // 포인터 위치를 #overlay-root 기준 캔버스 좌표로 바꾼다.
     const place = (clientX: number, clientY: number) => {
       const rootRect = root.getBoundingClientRect();
-      const scale = root.offsetWidth ? rootRect.width / root.offsetWidth : 1;
-      const x = (clientX - rootRect.left) / scale - ghost.grabX;
-      const y = (clientY - rootRect.top) / scale - ghost.grabY;
+      const x = clientX - rootRect.left - ghost.grabX;
+      const y = clientY - rootRect.top - ghost.grabY;
       el.style.transform = `translate(${x}px, ${y}px)`;
     };
     place(ghost.clientX, ghost.clientY);
@@ -145,14 +144,13 @@ export default function WaitingPanel({
   const handleDragStart = (task: Task, event: DragEvent<HTMLDivElement>) => {
     const card = event.currentTarget;
     const rect = card.getBoundingClientRect();
-    const scale = card.offsetWidth ? rect.width / card.offsetWidth : 1;
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', task.id);
     event.dataTransfer.setDragImage(EMPTY_DRAG_IMAGE, 0, 0);
     setDragGhost({
       card: cardContent(task),
-      grabX: (event.clientX - rect.left) / scale,
-      grabY: (event.clientY - rect.top) / scale,
+      grabX: event.clientX - rect.left,
+      grabY: event.clientY - rect.top,
       clientX: event.clientX,
       clientY: event.clientY,
     });
