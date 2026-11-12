@@ -434,7 +434,8 @@ async function seedWork(spec, orgId) {
 }
 try {
   await db.connect();
-  const { rows } = await db.query("SELECT tablename FROM pg_tables WHERE schemaname='public'");
+  // Flyway 기록은 남긴다. 비우면 다음 서버 시작 때 V1부터 다시 적용하다 이미 있는 테이블에서 실패한다.
+  const { rows } = await db.query("SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename <> 'flyway_schema_history'");
   if (rows.length) {
     const tables = rows.map(({ tablename }) => `"public"."${tablename.replaceAll('"', '""')}"`).join(', ');
     await db.query(`TRUNCATE ${tables} RESTART IDENTITY CASCADE`);
