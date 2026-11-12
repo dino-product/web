@@ -313,19 +313,13 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
               </div>
             </section>
 
-            {/* 현장 사진 1325:5606 — 사진 첨부 칸 + 미리보기 + 빈 칸, 최대 6장 */}
+            {/* 현장 사진 1325:5606 — 고른 사진을 왼쪽부터 채우고 그 다음 칸에 사진 첨부 칸, 남은 칸은 빈 칸. 최대 6장 */}
             <section className={styles.card}>
               <div className={styles.photoHeader}>
                 <SectionTitle optional>현장 사진 </SectionTitle>
                 <p className={clsx('t-caption-m-medium', styles.caption)}>이미지를 첨부하세요 (최대 6장)</p>
               </div>
               <div className={styles.photoGrid}>
-                {form.photos.length < MAX_SITE_PHOTOS && (
-                  <button type="button" className={styles.addPhoto} onClick={() => fileRef.current?.click()}>
-                    <Icon name="plus" size={40} color="var(--color-gray-800)" />
-                    <span className="t-caption-m-medium">사진 첨부</span>
-                  </button>
-                )}
                 {form.photos.map((photo, index) => (
                   <img
                     key={`${index}-${photo.file.name}`}
@@ -334,6 +328,12 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
                     alt={`현장 사진 ${index + 1}`}
                   />
                 ))}
+                {form.photos.length < MAX_SITE_PHOTOS && (
+                  <button type="button" className={styles.addPhoto} onClick={() => fileRef.current?.click()}>
+                    <Icon name="plus" size={40} color="var(--color-gray-800)" />
+                    <span className="t-caption-m-medium">사진 첨부</span>
+                  </button>
+                )}
                 {Array.from({ length: photoSlots }, (_, index) => (
                   <span key={`slot-${index}`} className={styles.photoSlot}>
                     <Icon name="image" />
