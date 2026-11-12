@@ -30,6 +30,7 @@ import {
   minutesToX,
   ROW_HEIGHT,
   VISIBLE_ROWS,
+  xToSlotMinutes,
 } from './grid';
 import ScheduleBlock from './ScheduleBlock';
 import styles from './TimeGrid.module.css';
@@ -38,6 +39,19 @@ import { useNowMinutes } from './useNowMinutes';
 /** 배정·이동할 수 있는 블록(기사가 아직 시작하지 않은 배정됨·작업전) */
 export function isMovableTask(task: Task): boolean {
   return task.status === 'PENDING_ACCEPT' || task.status === 'ACCEPTED';
+}
+
+/** 격자로 끌고 있는 작업. grabOffsetX = 블록 왼쪽에서 잡은 위치(px), 대기함 카드면 null */
+export interface GridDrag {
+  grabOffsetX: number | null;
+  durationMinutes: number;
+}
+
+/** 포인터 아래 놓을 칸. drag = 이 칸을 계산한 드래그(드래그가 바뀌면 지난 칸을 그리지 않는다) */
+interface DropSlot {
+  drag: GridDrag;
+  row: number;
+  startMinutes: number;
 }
 
 interface TimeGridProps {
@@ -52,13 +66,13 @@ interface TimeGridProps {
   editing: boolean;
   selectedTaskId: ID | null;
   /** 드래그 중인 작업(대기함 카드 또는 블록)이 있을 때만 놓기를 받는다 */
-  dragging: boolean;
+  drag: GridDrag | null;
   onSelectTask: (taskId: ID | null) => void;
   /** 블록 드래그 시작. grabOffsetX = 블록 왼쪽에서 잡은 위치(px) */
   onBlockDragStart: (taskId: ID, grabOffsetX: number) => void;
   onDragEnd: () => void;
-  /** 격자에 놓음. x = 시간 축 기준 위치(px, 00:00 = 0) */
-  onDropAt: (technicianId: ID, x: number) => void;
+  /** 격자에 놓음. startMinutes = 놓을 칸의 시작 시각(분, 30분 단위) */
+  onDropAt: (technicianId: ID, startMinutes: number) => void;
   /** 기사 0명 안내의 '조직 설정으로'. 없으면(직원) 버튼을 그리지 않는다 */
   onGoToOrgSettings?: () => void;
 }
@@ -86,7 +100,7 @@ export default function TimeGrid({
   showNowLine,
   editing,
   selectedTaskId,
-  dragging,
+  drag,
   onSelectTask,
   onBlockDragStart,
   onDragEnd,
@@ -213,22 +227,56 @@ export default function TimeGrid({
   };
 
   // ── 놓기 ─────────────────────────────────────────────────────────────
+  const [dropSlot, setDropSlot] = useState<DropSlot | null>(null);
+
+  /** 포인터 아래 기사 행과 시작 시각. 대기함 카드는 포인터가 있는 칸, 블록은 잡은 위치를 뺀 가장 가까운 칸 */
+  const slotAt = (event: DragEvent<HTMLDivElement>): DropSlot | null => {
+    const lanes = lanesRef.current;
+    if (!editing || !drag || !lanes || noTechnicians) return null;
+    const rect = lanes.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const row = Math.floor((event.clientY - rect.top) / ROW_HEIGHT);
+    if (!technicians[row]) return null;
+    const startMinutes =
+      drag.grabOffsetX === null ? xToSlotMinutes(x, 'floor') : xToSlotMinutes(x - drag.grabOffsetX, 'round');
+    return { drag, row, startMinutes };
+  };
+
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
-    if (!editing || !dragging || noTechnicians) return;
+    if (!editing || !drag || noTechnicians) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
+    const slot = slotAt(event);
+    setDropSlot((prev) =>
+      prev && slot && prev.drag === slot.drag && prev.row === slot.row && prev.startMinutes === slot.startMinutes
+        ? prev
+        : slot,
+    );
+  };
+
+  const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
+    // 안쪽 블록으로 옮겨 갈 때도 dragleave가 오므로 시간 칸 밖으로 나갈 때만 지운다.
+    if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return;
+    setDropSlot(null);
   };
 
   const handleDrop = (event: DragEvent<HTMLDivElement>) => {
-    const lanes = lanesRef.current;
-    if (!editing || !dragging || !lanes || noTechnicians) return;
+    if (!editing || !drag || noTechnicians) return;
     event.preventDefault();
-    const rect = lanes.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    const technician = technicians[Math.floor(y / ROW_HEIGHT)];
-    if (technician) onDropAt(technician.id, x);
+    const slot = slotAt(event);
+    setDropSlot(null);
+    if (slot) onDropAt(technicians[slot.row].id, slot.startMinutes);
   };
+
+  // 대기함 카드를 끄는 동안 놓으면 배정될 칸(기사 행 · 시작 시각 · 소요 시간)을 칠한다.
+  const dropPreview =
+    drag && drag.grabOffsetX === null && dropSlot?.drag === drag
+      ? {
+          left: minutesToX(dropSlot.startMinutes),
+          top: dropSlot.row * ROW_HEIGHT,
+          width: Math.min(durationToWidth(drag.durationMinutes), AXIS_WIDTH - minutesToX(dropSlot.startMinutes)),
+        }
+      : null;
 
   const handleBlockDragStart = (task: Task, event: DragEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -278,6 +326,7 @@ export default function TimeGrid({
               className={styles.lanes}
               style={{ height: bodyHeight }}
               onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => {
                 if (editing && selectedTaskId) onSelectTask(null);
@@ -306,6 +355,7 @@ export default function TimeGrid({
                   />
                 );
               })}
+              {dropPreview && <span className={styles.dropPreview} style={dropPreview} aria-hidden />}
               {showNowLine && <span className={styles.nowLine} style={{ left: nowX - 0.5, height: bodyHeight }} aria-hidden />}
             </div>
           </div>

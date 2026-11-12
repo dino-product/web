@@ -20,17 +20,16 @@ import { useTimetableSync } from '@/data/sync';
 import type { ID, IsoDate, Task, TaskAssignment } from '@/data/types';
 
 import { type AssignDraft, AssignConfirmDialog, ConflictDialog, StaleDialog } from './AssignDialogs';
-import { CONTENT_GAP, CONTENT_WIDTH, PANEL_COLLAPSED_WIDTH, PANEL_WIDTH, xToSlotMinutes } from './grid';
-import TimeGrid from './TimeGrid';
+import { CONTENT_GAP, CONTENT_WIDTH, PANEL_COLLAPSED_WIDTH, PANEL_WIDTH } from './grid';
+import TimeGrid, { type GridDrag } from './TimeGrid';
 import TimetableOffline from './TimetableOffline';
 import styles from './TimetablePage.module.css';
 import TimetableToolbar, { type TimetableMode } from './TimetableToolbar';
 import WaitingPanel from './WaitingPanel';
 
-/** 드래그 중인 작업. 격자 블록이면 잡은 위치(블록 왼쪽에서 px)를 함께 둔다. */
-interface DragState {
+/** 드래그 중인 작업. 격자 블록이면 잡은 위치(블록 왼쪽에서 px)를, 놓을 칸을 칠하도록 소요 시간을 함께 둔다. */
+interface DragState extends GridDrag {
   taskId: ID;
-  grabOffsetX: number | null;
 }
 
 interface ConflictState {
@@ -140,18 +139,21 @@ export default function TimetablePage() {
     updateParams({ mode: next });
   };
 
-  const handleDropAt = (technicianId: ID, x: number) => {
+  const startDrag = (taskId: ID, grabOffsetX: number | null) => {
+    const task = useAppStore.getState().tasks.find((t) => t.id === taskId);
+    setDrag({ taskId, grabOffsetX, durationMinutes: task?.durationMinutes ?? 60 });
+  };
+
+  const handleDropAt = (technicianId: ID, startMinutes: number) => {
     if (!drag) return;
     const task = useAppStore.getState().tasks.find((t) => t.id === drag.taskId);
     setDrag(null);
     if (!task) return;
-    const startMinutes =
-      drag.grabOffsetX === null ? xToSlotMinutes(x, 'floor') : xToSlotMinutes(x - drag.grabOffsetX, 'round');
     setAssignDraft({
       taskId: task.id,
       technicianId,
       startTime: minutesToHm(startMinutes),
-      durationMinutes: task.durationMinutes ?? 60,
+      durationMinutes: drag.durationMinutes,
     });
   };
 
@@ -217,9 +219,9 @@ export default function TimetablePage() {
                 showNowLine={!editing && date === today()}
                 editing={editing}
                 selectedTaskId={selectedTaskId}
-                dragging={drag !== null}
+                drag={drag}
                 onSelectTask={(taskId) => updateParams({ task: taskId })}
-                onBlockDragStart={(taskId, grabOffsetX) => setDrag({ taskId, grabOffsetX })}
+                onBlockDragStart={startDrag}
                 onDragEnd={() => setDrag(null)}
                 onDropAt={handleDropAt}
                 // 기사 등록(인력관리)은 총관리자만 할 수 있어 직원에게는 '조직 설정으로'를 보이지 않는다.
@@ -232,7 +234,7 @@ export default function TimetablePage() {
                 editing={editing}
                 selectedTaskId={selectedTaskId}
                 onSelectTask={(taskId) => updateParams({ task: taskId })}
-                onCardDragStart={(taskId) => setDrag({ taskId, grabOffsetX: null })}
+                onCardDragStart={(taskId) => startDrag(taskId, null)}
                 onDragEnd={() => setDrag(null)}
                 revealTaskId={revealTaskId}
                 onRevealed={clearReveal}
