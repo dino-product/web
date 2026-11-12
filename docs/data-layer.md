@@ -94,7 +94,7 @@ if (result === 'stale') {
 - `changeMemberKind`(직원↔기사)는 memberId 접두사로 직원 소속·기사 계약 역할 변경 API를 고른다. 성공하면 인력을 다시 읽고(바뀐 역할은 새 memberId), 대기함으로 돌아간 작업이 있으면 작업도 다시 읽는다. 끝나지 않은 작업으로 거부(`ORGANIZATION-027` 기사의 작업중, `ORGANIZATION-028` 직원이 등록한 작업)되면 작업을 다시 읽고 `blocked`를 돌려줘 변경 불가 창을 연다.
 - 서버 API가 없는 `setTypeActive`(유형 활성 상태), `deleteNotification`(숨김)은 로컬 전용이다. 유형 활성 상태·숨긴 알림은 재조회에도 유지하지만 새로고침하면 사라진다. 프로필 사진은 다루지 않는다.
 - `agreeTerms`는 선택을 잠시 기억하고 `registerProfile`이 프로필 저장 후 동의 API를 보낸다. `setJoinRequestKind`도 승인 전 선택값이며 승인 요청에 함께 보낸다.
-- 현장 사진은 등록할 때 올린다(`createTask`). 저장소 업로드 실패는 `UPLOAD-<status>` `ApiError`라 연결 실패 화면으로 바뀌지 않는다. 응답 사진의 `fake-photo://` 접두어는 매퍼에서 제거한다.
+- 현장 사진은 등록할 때 올린다(`createTask`). 저장소 업로드 실패는 `UPLOAD-<status>` `ApiError`라 연결 실패 화면으로 바뀌지 않는다.
 
 ## 3. ID·시각·로그인
 

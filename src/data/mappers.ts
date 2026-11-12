@@ -519,16 +519,6 @@ function buildHistory(d: WorkDetailDto, lookup: NameLookup): TaskHistoryEntry[] 
   return entries.sort((a, b) => a.at.localeCompare(b.at));
 }
 
-const FAKE_PHOTO_SCHEME = 'fake-photo://';
-
-/**
- * 사진 주소. local 프로필의 서버 임시 어댑터(FakePhotoUrlAdapter)는 저장된 주소 앞에 'fake-photo://'를 붙여 돌려주므로
- * 브라우저가 열 수 있게 떼어 낸다. 실제 저장소 어댑터가 붙으면 그대로 쓴다.
- */
-function photoUrl(photo: PhotoDto): string {
-  return photo.url.startsWith(FAKE_PHOTO_SCHEME) ? photo.url.slice(FAKE_PHOTO_SCHEME.length) : photo.url;
-}
-
 /** 작업 상세(GET /works/{id}) → 화면 작업 전체 */
 export function taskFromDetail(d: WorkDetailDto, lookup: NameLookup): TaskPatch {
   const schedule = d.schedule?.startTime ? d.schedule : null;
@@ -562,13 +552,13 @@ export function taskFromDetail(d: WorkDetailDto, lookup: NameLookup): TaskPatch 
         : null,
       price: d.payment?.fee ?? null,
       paymentMethod: d.payment?.method ? PAYMENT_LABEL[d.payment.method] : null,
-      sitePhotoUrls: sitePhotos.map(photoUrl),
+      sitePhotoUrls: sitePhotos.map((p) => p.url),
       attachments: sitePhotos.map((p, i) => ({
         id: p.photoId,
         name: `현장사진_${String(i + 1).padStart(2, '0')}.jpg`,
         // 서버가 파일 크기를 주지 않는다.
         sizeBytes: 0,
-        url: photoUrl(p),
+        url: p.url,
         uploadedAt: registeredAt,
       })),
       registrantId: staffId(d.registrar?.membershipId),
@@ -589,7 +579,7 @@ export function taskFromDetail(d: WorkDetailDto, lookup: NameLookup): TaskPatch 
               content: joinReportContent(report.workNote ?? '', report.usedParts ?? ''),
               photoUrls: [report.beforePhotos[0], report.afterPhotos[0]]
                 .filter((p): p is PhotoDto => Boolean(p))
-                .map(photoUrl),
+                .map((p) => p.url),
             }
           : null,
       reportRequestedAt: toKstIso(d.completionReportRequests.at(-1)?.requestedAt),
