@@ -388,8 +388,6 @@ Popover props: `open`, `anchorRef`, `onClose`, `placement`(`bottom-start` 기본
 <Avatar size={36} text={company.name} />   // 발주사 전환: Accepted/2 원 + 첫 글자 Secondary 14/500(줄 20) · 62px이면 24/500(줄 34, 기사 작업이력)
 ```
 
-타임테이블 기사 사진은 `DriverListItem`이 Figma 이미지 채움(바둑판 자리표시, `src/assets/images/avatar-placeholder.png`)을 씁니다.
-
 ### StateMessage
 
 ```tsx
@@ -487,7 +485,7 @@ Popover props: `open`, `anchorRef`, `onClose`, `placement`(`bottom-start` 기본
 <ScheduleCard status="ACCEPTED" width={234} title="인덕션 설치" timeRange="09:00 - 11:00" staffLabel="직원 (박서준)" />
 ```
 
-- DriverListItem(443:1277): 184×111, padding 4/16, 간격 16, 오른쪽·아래 Gray300 1px, 사진 54px, 이름 20/600 Gray900, 유형 16/500 Gray700(간격 4).
+- DriverListItem(443:1277): 184×111, padding 4/16, 오른쪽·아래 Gray300 1px, 이름 20/600 Gray900, 유형 16/500 Gray700(간격 4). 시안의 사진 54px 원은 요청에 따라 그리지 않습니다.
 - WorkCard(443:1197): 247×122 흰 카드, radius 12. 배지 (16,16), 오른쪽 위 문구 14/500 Gray600(오른쪽 16, 위 16), 작업명 20/600 #000 (16,60), 시계 16 + 간격 6 + 13/500 Gray600 (16,90). 대기함 패널(295×836, Primary, radius 20, 제목 '대기함' 24/700 흰색 (24,24), 건수 20/500 흰색 50% (97,29), 카드 (24,77)부터 간격 14)은 타임테이블에서 만듭니다.
 - ScheduleCard: 높이 110, 오른쪽 radius 12, 왼쪽 막대, 내용 (33,12) 작업명 20/500 · 시간 14/500 Gray600(간격 2) · 9 아래 직원 칩(높이 30, padding 2/4, 흰색 60%, radius 6, people-fill 24 + 14/500 Gray900 90%) · 상태 칩 오른쪽 위 (12,12) solid. `width`는 시간 길이로 계산합니다.
 
