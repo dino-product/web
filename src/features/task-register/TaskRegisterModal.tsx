@@ -138,6 +138,9 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
     setForm((prev) => ({ ...prev, photos: [...prev.photos, ...added].slice(0, MAX_SITE_PHOTOS) }));
   };
 
+  const removePhoto = (index: number) =>
+    setForm((prev) => ({ ...prev, photos: prev.photos.filter((_, i) => i !== index) }));
+
   const handleSave = () =>
     saveOnce(async () => {
       if (!canSave) return;
@@ -350,12 +353,17 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
               </div>
               <div className={styles.photoGrid}>
                 {form.photos.map((photo, index) => (
-                  <img
-                    key={`${index}-${photo.file.name}`}
-                    className={styles.photo}
-                    src={photo.preview}
-                    alt={`현장 사진 ${index + 1}`}
-                  />
+                  <div key={`${index}-${photo.file.name}`} className={styles.photoItem}>
+                    <img className={styles.photo} src={photo.preview} alt={`현장 사진 ${index + 1}`} />
+                    <button
+                      type="button"
+                      className={styles.removePhoto}
+                      aria-label={`현장 사진 ${index + 1} 삭제`}
+                      onClick={() => removePhoto(index)}
+                    >
+                      <Icon name="close" size={20} />
+                    </button>
+                  </div>
                 ))}
                 {form.photos.length < MAX_SITE_PHOTOS && (
                   <button type="button" className={styles.addPhoto} onClick={() => fileRef.current?.click()}>

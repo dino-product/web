@@ -122,11 +122,38 @@
   background: var(--color-gray-50);
 }
 
+/* 고른 사진 칸. 오른쪽 위에 사진 취소 버튼(Figma 시안 없음, 지역 스타일) */
+.photoItem {
+  position: relative;
+  width: 185px;
+  height: 129px;
+}
+
 .photo {
+  display: block;
   width: 185px;
   height: 129px;
   border-radius: 16px;
   object-fit: cover;
+}
+
+/* 사진 취소 버튼: 지름 24 원(검정 60%) 안에 흰 X */
+.removePhoto {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--color-gray-0);
+}
+
+.removePhoto:hover {
+  background: rgba(0, 0, 0, 0.8);
 }
 
 .fileInput {
