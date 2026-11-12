@@ -96,6 +96,9 @@ export interface KakaoLoginResult {
 /** 배정 변경 결과. 'stale'은 화면을 본 뒤 다른 사람이 작업을 바꿔 서버가 거부한 경우(SCHEDULE-016 '변경된 정보입니다') */
 export type AssignResult = 'applied' | 'stale' | 'failed';
 
+/** 작업 등록 결과. 실패하면 화면(새 작업 등록 저장 버튼 위)에 보여 줄 실패 사유 */
+export type CreateTaskResult = { id: ID } | { reason: string };
+
 /**
  * 역할 변경 결과. 'blocked'는 서버가 끝나지 않은 작업으로 거부한 경우
  * (기사의 작업중 작업 ORGANIZATION-027, 직원이 등록한 끝나지 않은 작업 ORGANIZATION-028)
@@ -206,8 +209,8 @@ export interface AppState {
   deleteType: (typeId: ID) => Promise<void>;
 
   // 작업
-  /** 등록한 작업 ID. 실패하면 null */
-  createTask: (input: TaskInput) => Promise<ID | null>;
+  /** 작업을 등록한다. 실패하면 실패 사유 */
+  createTask: (input: TaskInput) => Promise<CreateTaskResult>;
   assignTask: (taskId: ID, assignment: TaskAssignment) => Promise<AssignResult>;
   cancelTask: (taskId: ID, reason: string, detail: string) => Promise<void>;
   requestReport: (taskId: ID) => Promise<void>;
@@ -312,6 +315,16 @@ function logError(action: string, error: unknown) {
   else console.error(`[api] ${action} 실패: ${error instanceof Error ? error.message : String(error)}`);
 }
 
+/**
+ * 화면에 보여 줄 실패 사유. 서버 실패 봉투의 안내 문구(한국어)를 그대로 쓰고, 서버에 닿지 못하면 연결 실패 문구,
+ * 봉투가 없는 응답(HTTP-*)·사진 저장소 직접 업로드 실패(UPLOAD-*)·그 밖의 오류는 fallback을 쓴다.
+ */
+function failureReason(error: unknown, fallback: string): string {
+  if (error instanceof NetworkError) return error.message;
+  if (error instanceof ApiError && error.message && !/^(HTTP|UPLOAD)-/.test(error.code)) return error.message;
+  return fallback;
+}
+
 // ── 스토어 ─────────────────────────────────────────────────────────
 
 export const useAppStore = create<AppState>()((set, get) => {
@@ -341,6 +354,22 @@ export const useAppStore = create<AppState>()((set, get) => {
     } catch (error) {
       handleFailure(action, error);
       return undefined;
+    }
+  }
+
+  /** call과 같지만 실패하면 화면에 보여 줄 실패 사유를 돌려준다(failureReason) */
+  async function callWithReason<T>(
+    action: string,
+    run: () => Promise<T>,
+    fallback: string,
+  ): Promise<{ value: T } | { reason: string }> {
+    try {
+      const value = await run();
+      if (get().network === 'offline') set({ network: 'online' });
+      return { value };
+    } catch (error) {
+      handleFailure(action, error);
+      return { reason: failureReason(error, fallback) };
     }
   }
 
@@ -829,20 +858,24 @@ export const useAppStore = create<AppState>()((set, get) => {
     // ── 작업 ──
     createTask: async (input) => {
       const org = organizationId();
-      if (org == null) return null;
+      if (org == null) return { reason: '현재 발주사가 없습니다.' };
       // 현장 사진은 장마다 업로드 주소를 받아 저장소로 바로 올린 뒤 파일 식별자로 붙인다(고른 순서 그대로).
       // 한 장이라도 못 올리면 등록하지 않아 모달에 입력값이 남는다.
-      const sitePhotoIds = await call('현장 사진 업로드', () =>
-        Promise.all(
-          input.sitePhotos.map(async (file) => {
-            const contentType = sitePhotoContentType(file) ?? file.type;
-            const ticket = await scheduleApi.issueSitePhotoUpload(org, { contentType, sizeBytes: file.size });
-            await uploadFile(ticket.uploadUrl, file, ticket.requiredHeaders);
-            return ticket.fileId;
-          }),
-        ),
+      const uploaded = await callWithReason(
+        '현장 사진 업로드',
+        () =>
+          Promise.all(
+            input.sitePhotos.map(async (file) => {
+              const contentType = sitePhotoContentType(file) ?? file.type;
+              const ticket = await scheduleApi.issueSitePhotoUpload(org, { contentType, sizeBytes: file.size });
+              await uploadFile(ticket.uploadUrl, file, ticket.requiredHeaders);
+              return ticket.fileId;
+            }),
+          ),
+        '현장 사진을 올리지 못했습니다. 다시 시도해 주세요.',
       );
-      if (!sitePhotoIds) return null;
+      if ('reason' in uploaded) return uploaded;
+      const sitePhotoIds = uploaded.value;
       const scheduled = input.technicianId || input.startTime || input.durationMinutes;
       const body: CreateWorkBody = {
         ...workBody(input),
@@ -857,11 +890,13 @@ export const useAppStore = create<AppState>()((set, get) => {
             }
           : undefined,
       };
-      const created = await call('작업 등록', () => scheduleApi.create(org, body));
-      if (!created?.workId) return null;
-      const id = toId(ID_PREFIX.plain, created.workId);
+      const registerFailed = '작업을 등록하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+      const created = await callWithReason('작업 등록', () => scheduleApi.create(org, body), registerFailed);
+      if ('reason' in created) return created;
+      if (!created.value?.workId) return { reason: registerFailed };
+      const id = toId(ID_PREFIX.plain, created.value.workId);
       await reloadWork(id);
-      return id;
+      return { id };
     },
 
     assignTask: async (taskId, assignment) => {

@@ -2,9 +2,10 @@
  * 새 작업 등록 모달(Figma 1282:7973 미입력, 1325:8053 입력, 1834:13179 작업 유형 드롭다운 열림). 담당: timetable 섹션.
  * 사용처: 타임테이블 '새 작업 등록'·네트워크 실패 '작업 등록으로', 작업 목록 '새 작업 등록'.
  *
- * - 저장 활성: 작업명을 입력하면 활성(미입력 시안은 비활성, 입력 시안은 활성). 담당기사·시간은 비워도 대기함(등록)으로
- *   저장되고(디자이너 전달사항: 등록 = 담당기사·시간 중 하나라도 비어 대기함에 있는 작업), 작업 유형은 유형이 없는
- *   발주사에서도 등록할 수 있게 필수에서 뺐다.
+ * - 저장 활성: 작업명(필수, 라벨 '*')을 입력하면 활성(미입력 시안은 비활성, 입력 시안은 활성). 담당기사·시간은 비워도
+ *   대기함(등록)으로 저장되고(디자이너 전달사항: 등록 = 담당기사·시간 중 하나라도 비어 대기함에 있는 작업), 작업 유형은
+ *   유형이 없는 발주사에서도 등록할 수 있게 필수에서 뺐다.
+ * - 저장 실패: 입력값을 남긴 채 저장 버튼 위에 실패 사유(서버 안내 문구)를 헬퍼 텍스트로 보인다. 다시 저장하거나 다시 열면 지운다.
  * - 저장: createTask. 시작 시간을 고르면 날짜는 TaskRegisterDateContext(타임테이블이 보고 있는 날짜, 없으면 오늘).
  *   기사·시작 시간·소요 시간이 모두 있으면 배정됨, 하나라도 없으면 등록(대기함).
  * - 현장 사진: 최대 6장. 저장하면 장마다 업로드 주소를 받아 올린 뒤 등록에 붙인다(store createTask).
@@ -100,16 +101,21 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
   const workTypes = useActiveTypes('WORK');
   const technicians = useActiveTechnicians();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [failure, setFailure] = useState<string | null>(null);
   const [wasOpen, setWasOpen] = useState(open);
   const fileRef = useRef<HTMLInputElement>(null);
   const uid = useId();
+  const failureId = `${uid}-failure`;
   // 저장 응답 전에 다시 누르면 같은 작업이 두 건 등록돼 진행 중 저장은 거른다.
   const [saving, saveOnce] = useSingleFlight();
 
   // 열 때마다 빈 양식에서 시작한다(미입력 시안). 렌더 중에 맞춰 이전 입력값이 한 프레임도 보이지 않게 한다.
   if (open !== wasOpen) {
     setWasOpen(open);
-    if (open) setForm(EMPTY_FORM);
+    if (open) {
+      setForm(EMPTY_FORM);
+      setFailure(null);
+    }
   }
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((prev) => ({ ...prev, [key]: value }));
@@ -131,6 +137,7 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
   const handleSave = () =>
     saveOnce(async () => {
       if (!canSave) return;
+      setFailure(null);
       const hasCustomer = [form.customerName, form.customerPhone, form.zipCode, form.address, form.addressDetail].some(
         (v) => v.trim() !== '',
       );
@@ -144,7 +151,7 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
           }
         : null;
       const priceDigits = form.price.replace(/\D/g, '');
-      const id = await createTask({
+      const result = await createTask({
         title: form.title,
         workTypeId: form.workTypeId,
         technicianId: form.technicianId,
@@ -156,9 +163,12 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
         paymentMethod: form.paymentMethod,
         sitePhotos: form.photos.map((photo) => photo.file),
       });
-      // 등록·사진 업로드에 실패하면(서버 오류) 입력값을 지우지 않도록 모달을 닫지 않는다. 오류 코드는 콘솔에 남는다.
-      if (!id) return;
-      onCreated?.(id);
+      // 등록·사진 업로드에 실패하면 입력값을 지우지 않도록 모달을 닫지 않고 실패 사유를 보인다.
+      if ('reason' in result) {
+        setFailure(result.reason);
+        return;
+      }
+      onCreated?.(result.id);
       onClose();
     });
 
@@ -172,9 +182,20 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
           <section className={styles.card}>
             <SectionTitle>기본 정보</SectionTitle>
             <div className={styles.fields}>
-              <Field label="작업명" htmlFor={`${uid}-title`}>
+              <Field
+                label={
+                  <>
+                    작업명
+                    <span className={styles.required} aria-hidden="true">
+                      *
+                    </span>
+                  </>
+                }
+                htmlFor={`${uid}-title`}
+              >
                 <TextField
                   id={`${uid}-title`}
+                  aria-required
                   placeholder="예) 배관 누수 점검 및 교체"
                   value={form.title}
                   onChange={(e) => set('title', e.target.value)}
@@ -353,13 +374,26 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
             </section>
           </div>
 
-          <div className={styles.actions}>
-            <Button size="lg" variant="secondary" style={{ width: 97 }} onClick={onClose}>
-              취소
-            </Button>
-            <Button size="lg" style={{ width: 173 }} disabled={!canSave || saving} onClick={handleSave}>
-              저장
-            </Button>
+          <div className={styles.footer}>
+            {failure && (
+              <p id={failureId} className={clsx('t-caption-m-medium', styles.failure)} role="alert">
+                {failure}
+              </p>
+            )}
+            <div className={styles.actions}>
+              <Button size="lg" variant="secondary" style={{ width: 97 }} onClick={onClose}>
+                취소
+              </Button>
+              <Button
+                size="lg"
+                style={{ width: 173 }}
+                disabled={!canSave || saving}
+                aria-describedby={failure ? failureId : undefined}
+                onClick={handleSave}
+              >
+                저장
+              </Button>
+            </div>
           </div>
         </div>
       </ModalPanel>
