@@ -2,10 +2,11 @@
  * 타임테이블 격자 치수(Figma 443:1156 기준, 10분 칸만 26 → 38px로 넓힘). 1시간 = 228px(10분 칸 38px x 6), 행 = 111px(블록 110 + 아래선 1).
  * 시간 축은 00:00–24:00(1시간 간격, 24시간 표기)이고 처음에는 시안 첫 칸인 09:00이 왼쪽에 오도록 스크롤한다.
  */
-import { SLOT_MINUTES } from '@/features/task-register/scheduleOptions';
 
 export const HOUR_WIDTH = 228;
 export const TEN_MINUTE_WIDTH = 38;
+/** 격자 한 칸(10분) */
+export const CELL_MINUTES = 10;
 export const AXIS_HOURS = 24;
 export const AXIS_WIDTH = HOUR_WIDTH * AXIS_HOURS;
 export const INITIAL_SCROLL_HOUR = 9;
@@ -40,13 +41,13 @@ export function durationToWidth(minutes: number): number {
 }
 
 /**
- * 격자 x(px) → 30분 단위 시작 시각(분). floor는 포인터가 있는 칸, round는 가장 가까운 칸(블록 이동).
- * 하루 범위 안(00:00–23:30)으로 맞춘다.
+ * 격자 x(px) → 10분 칸 단위 시작 시각(분). floor는 포인터가 있는 칸, round는 가장 가까운 칸(블록 이동).
+ * 하루 범위 안(00:00–23:50)으로 맞춘다.
  */
-export function xToSlotMinutes(x: number, mode: 'floor' | 'round'): number {
+export function xToCellMinutes(x: number, mode: 'floor' | 'round'): number {
   const minutes = (x / HOUR_WIDTH) * 60;
-  const slots = mode === 'floor' ? Math.floor(minutes / SLOT_MINUTES) : Math.round(minutes / SLOT_MINUTES);
-  return Math.min(Math.max(slots * SLOT_MINUTES, 0), MINUTES_PER_DAY - SLOT_MINUTES);
+  const cells = mode === 'floor' ? Math.floor(minutes / CELL_MINUTES) : Math.round(minutes / CELL_MINUTES);
+  return Math.min(Math.max(cells * CELL_MINUTES, 0), MINUTES_PER_DAY - CELL_MINUTES);
 }
 
 /** 기사 0명 안내 카드(1834:11068, 512x300) 위치. 시안은 접힌 격자(1417)에서 x=475, y=268 */

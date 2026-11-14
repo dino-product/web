@@ -39,6 +39,12 @@ export function AssignConfirmDialog({ draft, onChange, onCancel, onConfirm }: As
     () => withCurrentOption(DURATION_OPTIONS, duration, duration ? formatDuration(Number(duration)) : ''),
     [duration],
   );
+  // 격자 10분 칸에 놓은 시각(예: 10:10)도 선택지에 넣는다.
+  const startTime = draft?.startTime ?? null;
+  const startTimeOptions = useMemo(
+    () => withCurrentOption(START_TIME_OPTIONS, startTime, startTime ?? ''),
+    [startTime],
+  );
 
   return (
     <Dialog
@@ -75,7 +81,7 @@ export function AssignConfirmDialog({ draft, onChange, onCancel, onConfirm }: As
               appearance="dialog"
               aria-label="시작 시간"
               value={draft.startTime}
-              options={START_TIME_OPTIONS}
+              options={startTimeOptions}
               onChange={(startTime) => onChange({ ...draft, startTime })}
             />
           </Field>

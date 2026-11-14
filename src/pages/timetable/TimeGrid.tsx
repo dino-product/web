@@ -11,7 +11,6 @@ import {
 } from 'react';
 
 import { Button, DriverListItem, Icon, StateMessage } from '@/design-system';
-import { SLOT_MINUTES } from '@/features/task-register/scheduleOptions';
 import { hmToMinutes, minutesToHm } from '@/lib/date';
 import { useMemberNames } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
@@ -20,6 +19,7 @@ import type { ID, Member, Task } from '@/data/types';
 import {
   AXIS_HOURS,
   AXIS_WIDTH,
+  CELL_MINUTES,
   DRIVER_COLUMN_WIDTH,
   durationToWidth,
   EMPTY_DRIVER_COLUMN_WIDTH,
@@ -32,7 +32,7 @@ import {
   MINUTES_PER_DAY,
   ROW_HEIGHT,
   VISIBLE_ROWS,
-  xToSlotMinutes,
+  xToCellMinutes,
 } from './grid';
 import ScheduleBlock, { type ResizeEdge } from './ScheduleBlock';
 import styles from './TimeGrid.module.css';
@@ -80,7 +80,7 @@ interface TimeGridProps {
   /** 블록 드래그 시작. grabOffsetX = 블록 왼쪽에서 잡은 위치(px) */
   onBlockDragStart: (taskId: ID, grabOffsetX: number) => void;
   onDragEnd: () => void;
-  /** 격자에 놓음. startMinutes = 놓을 칸의 시작 시각(분, 30분 단위) */
+  /** 격자에 놓음. startMinutes = 놓을 칸의 시작 시각(분, 10분 칸 단위) */
   onDropAt: (technicianId: ID, startMinutes: number) => void;
   /** 블록 끝을 끌어 시간을 바꿈. 담당기사는 그대로이고 바뀐 시작 시각·소요 시간(분)을 넘긴다 */
   onResize: (taskId: ID, startMinutes: number, durationMinutes: number) => void;
@@ -250,7 +250,7 @@ export default function TimeGrid({
     const row = Math.floor((event.clientY - rect.top) / ROW_HEIGHT);
     if (!technicians[row]) return null;
     const startMinutes =
-      drag.grabOffsetX === null ? xToSlotMinutes(x, 'floor') : xToSlotMinutes(x - drag.grabOffsetX, 'round');
+      drag.grabOffsetX === null ? xToCellMinutes(x, 'floor') : xToCellMinutes(x - drag.grabOffsetX, 'round');
     return { drag, row, startMinutes };
   };
 
@@ -303,7 +303,7 @@ export default function TimeGrid({
     onBlockDragStart(task.id, grabOffsetX);
   };
 
-  // ── 시간 조절: 블록 양 끝을 30분 단위로 끈다 ─────────────────────────────
+  // ── 시간 조절: 블록 양 끝을 10분 칸 단위로 끈다 ──────────────────────────
   const [resize, setResize] = useState<ResizeState | null>(null);
   const resizingRef = useRef(false);
 
@@ -316,19 +316,19 @@ export default function TimeGrid({
     const originStart = hmToMinutes(task.startTime!);
     const originEnd = originStart + task.durationMinutes!;
     const origin: ResizeState = { taskId: task.id, startMinutes: originStart, endMinutes: originEnd };
-    // 끈 끝은 30분 칸 경계에 맞춘다(블록 이동·시작 시간 선택지와 같은 단위). 최소 30분, 하루(00:00–24:00) 안.
-    const latestStart = Math.floor((originEnd - SLOT_MINUTES) / SLOT_MINUTES) * SLOT_MINUTES;
-    const earliestEnd = Math.ceil((originStart + SLOT_MINUTES) / SLOT_MINUTES) * SLOT_MINUTES;
+    // 끈 끝은 10분 칸 경계에 맞춘다(놓기·블록 이동과 같은 단위). 최소 한 칸(10분), 하루(00:00–24:00) 안.
+    const latestStart = Math.floor((originEnd - CELL_MINUTES) / CELL_MINUTES) * CELL_MINUTES;
+    const earliestEnd = Math.ceil((originStart + CELL_MINUTES) / CELL_MINUTES) * CELL_MINUTES;
     const latestEnd = Math.max(MINUTES_PER_DAY, originEnd);
     let current = origin;
     setResize(current);
 
     const onMove = (e: PointerEvent) => {
       const moved = ((e.clientX - event.clientX) / HOUR_WIDTH) * 60;
-      const snap = (from: number) => Math.round((from + moved) / SLOT_MINUTES) * SLOT_MINUTES;
-      // 반 칸도 안 끌었으면 원래 시간을 둔다(30분 칸에 맞지 않는 일정이 살짝 눌러도 바뀌지 않게).
+      const snap = (from: number) => Math.round((from + moved) / CELL_MINUTES) * CELL_MINUTES;
+      // 반 칸도 안 끌었으면 원래 시간을 둔다(칸에 맞지 않는 일정이 살짝 눌러도 바뀌지 않게).
       const next =
-        Math.abs(moved) < SLOT_MINUTES / 2
+        Math.abs(moved) < CELL_MINUTES / 2
           ? origin
           : edge === 'start'
             ? { ...origin, startMinutes: Math.min(Math.max(snap(originStart), 0), latestStart) }
