@@ -280,9 +280,9 @@ export default function TimeGrid({
     if (slot) onDropAt(technicians[slot.row].id, slot.startMinutes);
   };
 
-  // 대기함 카드를 끄는 동안 놓으면 배정될 칸(기사 행 · 시작 시각 · 소요 시간)을 칠한다.
+  // 대기함 카드·격자 블록을 끄는 동안 놓으면 배정될 칸(기사 행 · 시작 시각 · 소요 시간)을 칠한다.
   const dropPreview =
-    drag && drag.grabOffsetX === null && dropSlot?.drag === drag
+    drag && dropSlot?.drag === drag
       ? {
           left: minutesToX(dropSlot.startMinutes),
           top: dropSlot.row * ROW_HEIGHT,
