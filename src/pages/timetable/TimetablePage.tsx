@@ -19,7 +19,13 @@ import { useAppStore } from '@/data/store';
 import { useTimetableSync } from '@/data/sync';
 import type { ID, IsoDate, Task, TaskAssignment } from '@/data/types';
 
-import { type AssignDraft, AssignConfirmDialog, ConflictDialog, StaleDialog } from './AssignDialogs';
+import {
+  type AssignDraft,
+  AssignConfirmDialog,
+  ConflictDialog,
+  StaleDialog,
+  UnassignConfirmDialog,
+} from './AssignDialogs';
 import { CONTENT_GAP, CONTENT_WIDTH, PANEL_COLLAPSED_WIDTH, PANEL_WIDTH } from './grid';
 import TimeGrid, { type GridDrag } from './TimeGrid';
 import TimetableOffline from './TimetableOffline';
@@ -64,6 +70,8 @@ export default function TimetablePage() {
   /** '변경된 정보입니다'를 띄운 작업(서버가 SCHEDULE-016으로 거부). 확인을 누르면 최신 상태를 다시 읽어 그린다 */
   const [staleTaskId, setStaleTaskId] = useState<ID | null>(null);
   const [revealTaskId, setRevealTaskId] = useState<ID | null>(null);
+  /** 대기함에 놓아 배정 해제 안내를 띄운 작업 */
+  const [unassignTaskId, setUnassignTaskId] = useState<ID | null>(null);
 
   const technicianTypes = useActiveTypes('TECHNICIAN');
   const workTypes = useActiveTypes('WORK');
@@ -73,6 +81,7 @@ export default function TimetablePage() {
   const scheduledTasks = useTasksByDate(date);
   const waitingTasks = useWaitingTasks();
   const selectedTask = useAppStore((s) => selectTaskById(s, selectedTaskId));
+  const unassignTask = useAppStore((s) => selectTaskById(s, unassignTaskId));
 
   // 선택한 유형이 비활성화·삭제되면 필터를 푼다.
   const activeTechnicianTypeId = technicianTypes.some((t) => t.id === technicianTypeId) ? technicianTypeId : null;
@@ -164,11 +173,18 @@ export default function TimetablePage() {
     setAssignDraft({ taskId, technicianId: task.technicianId, startTime: minutesToHm(startMinutes), durationMinutes });
   };
 
-  // 격자 블록을 대기함에 놓으면 바로 배정을 해제한다. 다른 사람이 그사이 바꿨으면 '변경된 정보입니다'를 띄운다.
-  const handleDropUnassign = async () => {
+  // 격자 블록을 대기함에 놓으면 배정 해제 안내를 띄운다.
+  const handleDropUnassign = () => {
     if (!drag || drag.grabOffsetX === null) return;
-    const taskId = drag.taskId;
+    setUnassignTaskId(drag.taskId);
     setDrag(null);
+  };
+
+  // 확정하면 해제한다. 다른 사람이 그사이 바꿨으면 '변경된 정보입니다'를 띄운다.
+  const confirmUnassign = async () => {
+    const taskId = unassignTaskId;
+    if (!taskId) return;
+    setUnassignTaskId(null);
     if ((await useAppStore.getState().unassignTask(taskId)) === 'stale') setStaleTaskId(taskId);
   };
 
@@ -279,6 +295,11 @@ export default function TimetablePage() {
         conflicts={conflict?.conflicts ?? []}
         onCancel={() => setConflict(null)}
         onConfirm={() => conflict && commitAssignment(conflict.taskId, conflict.assignment)}
+      />
+      <UnassignConfirmDialog
+        task={unassignTask ?? null}
+        onCancel={() => setUnassignTaskId(null)}
+        onConfirm={confirmUnassign}
       />
       <StaleDialog
         open={staleTaskId !== null}

@@ -171,3 +171,54 @@ export function StaleDialog({ open, onConfirm }: { open: boolean; onConfirm: () 
     />
   );
 }
+
+interface UnassignConfirmDialogProps {
+  /** 대기함에 놓은 작업. null이면 닫는다 */
+  task: Task | null;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+/**
+ * 배정 해제 안내(시안 없음) — 격자 블록을 대기함에 놓았을 때. 배정 확인·일정 충돌과 같은 모달 틀에
+ * 작업 한 줄(일정 충돌의 작업 행 모양)을 보여 주고 '배정 해제'로 확정한다.
+ */
+export function UnassignConfirmDialog({ task, onCancel, onConfirm }: UnassignConfirmDialogProps) {
+  const members = useAppStore((s) => s.members);
+  return (
+    <Dialog
+      open={task !== null}
+      onClose={onCancel}
+      className={styles.dialog}
+      tone="notice"
+      title="배정 해제"
+      description={'이 작업의 배정을 해제하고 대기함으로 옮깁니다.\n다시 배정하면 기사에게 수락을 다시 받습니다.'}
+      actions={
+        <>
+          <Button variant="secondary" style={{ width: 97 }} onClick={onCancel}>
+            취소
+          </Button>
+          <Button style={{ width: 120 }} onClick={onConfirm}>
+            배정 해제
+          </Button>
+        </>
+      }
+    >
+      {task && (
+        <div className={styles.conflicts}>
+          <div className={styles.conflict}>
+            <div className={styles.conflictTexts}>
+              <p className={clsx('t-body-m-medium', styles.conflictTitle)}>{task.title}</p>
+              <p className={clsx('t-body-s-medium', styles.conflictTechnician)}>
+                {members.find((m) => m.id === task.technicianId)?.name ?? ''}
+              </p>
+            </div>
+            <span className={clsx('t-body-m-medium', styles.conflictTime)}>
+              {task.startTime && task.durationMinutes != null ? formatTimeRange(task.startTime, task.durationMinutes, '-') : ''}
+            </span>
+          </div>
+        </div>
+      )}
+    </Dialog>
+  );
+}
