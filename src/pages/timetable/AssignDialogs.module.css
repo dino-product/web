@@ -5,6 +5,11 @@
   gap: 24px;
 }
 
+/* 예상 소요시간 변경분 안내(시안 없음) — 블록 끝을 끌어 바꾼 경우만. 14/500 Secondary */
+.durationHelper {
+  color: var(--color-secondary);
+}
+
 .conflicts {
   display: flex;
   flex-direction: column;

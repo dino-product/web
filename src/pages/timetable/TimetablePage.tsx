@@ -170,7 +170,13 @@ export default function TimetablePage() {
   const handleResize = (taskId: ID, startMinutes: number, durationMinutes: number) => {
     const task = useAppStore.getState().tasks.find((t) => t.id === taskId);
     if (!task?.technicianId) return;
-    setAssignDraft({ taskId, technicianId: task.technicianId, startTime: minutesToHm(startMinutes), durationMinutes });
+    setAssignDraft({
+      taskId,
+      technicianId: task.technicianId,
+      startTime: minutesToHm(startMinutes),
+      durationMinutes,
+      originalDurationMinutes: task.durationMinutes ?? undefined,
+    });
   };
 
   // 격자 블록을 대기함에 놓으면 배정 해제 안내를 띄운다.

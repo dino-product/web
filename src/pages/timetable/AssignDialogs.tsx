@@ -21,6 +21,8 @@ export interface AssignDraft {
   technicianId: ID;
   startTime: HourMinute;
   durationMinutes: number;
+  /** 블록 끝을 끌어 시간을 바꿨을 때 원래 소요 시간(분). 있으면 예상 소요시간 아래에 변경분을 안내한다 */
+  originalDurationMinutes?: number;
 }
 
 interface AssignConfirmDialogProps {
@@ -93,6 +95,11 @@ export function AssignConfirmDialog({ draft, onChange, onCancel, onConfirm }: As
               options={durationOptions}
               onChange={(value) => onChange({ ...draft, durationMinutes: Number(value) })}
             />
+            {draft.originalDurationMinutes !== undefined && draft.originalDurationMinutes !== draft.durationMinutes && (
+              <p className={clsx('t-caption-m-medium', styles.durationHelper)}>
+                {formatDuration(draft.originalDurationMinutes)} → {formatDuration(draft.durationMinutes)}
+              </p>
+            )}
           </Field>
         </div>
       )}
