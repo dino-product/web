@@ -212,6 +212,8 @@ export interface AppState {
   /** 작업을 등록한다. 실패하면 실패 사유 */
   createTask: (input: TaskInput) => Promise<CreateTaskResult>;
   assignTask: (taskId: ID, assignment: TaskAssignment) => Promise<AssignResult>;
+  /** 배정을 풀어 대기함으로 되돌린다 */
+  unassignTask: (taskId: ID) => Promise<AssignResult>;
   cancelTask: (taskId: ID, reason: string, detail: string) => Promise<void>;
   requestReport: (taskId: ID) => Promise<void>;
   /** 작업내역 출력: 작업 목록 필터와 같은 조건의 엑셀 파일을 내려받는다. 기간은 작업 날짜 [from, to] */
@@ -919,6 +921,21 @@ export const useAppStore = create<AppState>()((set, get) => {
         if (isApiError(error, 'SCHEDULE-016')) return 'stale';
         if (isApiError(error, 'SCHEDULE-008')) return 'applied'; // 같은 기사·같은 시간: 바뀐 것이 없다
         handleFailure('배정 변경', error);
+        return 'failed';
+      }
+    },
+
+    unassignTask: async (taskId) => {
+      if (!taskVersions.has(taskId)) await get().loadTaskDetail(taskId);
+      const version = taskVersions.get(taskId);
+      if (version === undefined) return 'failed';
+      try {
+        await scheduleApi.unassign(requireOrg(), Number(taskId), version);
+        await reloadWork(taskId);
+        return 'applied';
+      } catch (error) {
+        if (isApiError(error, 'SCHEDULE-016')) return 'stale';
+        handleFailure('배정 해제', error);
         return 'failed';
       }
     },

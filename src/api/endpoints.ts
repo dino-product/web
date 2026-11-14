@@ -182,6 +182,9 @@ export const scheduleApi = {
       expectedVersion: number;
     },
   ) => http.put<ScheduleChangeDto>(`${org(organizationId)}/works/${workId}/assignment`, body),
+  /** 배정 해제: 대기함으로 되돌린다(배정됨·작업전만). expectedVersion이 지금 버전과 다르면 SCHEDULE-016 */
+  unassign: (organizationId: number, workId: number, expectedVersion: number) =>
+    http.delete<void>(`${org(organizationId)}/works/${workId}/assignment`, { query: { expectedVersion } }),
   cancel: (organizationId: number, workId: number, body: { reason: CancelReasonCode; note?: string }) =>
     http.post<void>(`${org(organizationId)}/works/${workId}/cancellation`, body),
   requestCompletionReport: (organizationId: number, workId: number) =>

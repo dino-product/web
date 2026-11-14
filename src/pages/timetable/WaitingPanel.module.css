@@ -79,6 +79,12 @@
   opacity: 0.5;
 }
 
+/* 배정 해제로 놓을 자리(시안 없음) — 격자 놓을 칸 표시와 같은 Secondary 테두리, 바탕에 Secondary를 섞는다 */
+.dropTarget {
+  background: color-mix(in srgb, var(--color-secondary) 24%, var(--color-primary));
+  box-shadow: inset 0 0 0 2px var(--color-secondary);
+}
+
 /* 빈 상태 1834:9145 — (63,366) 168x80, 상자 40(Gray500) → 12 → 20/600 Gray500 */
 .empty {
   position: absolute;

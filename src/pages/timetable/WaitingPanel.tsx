@@ -76,6 +76,10 @@ interface WaitingPanelProps {
   onSelectTask: (taskId: ID | null) => void;
   onCardDragStart: (taskId: ID) => void;
   onDragEnd: () => void;
+  /** 격자 블록(배정됨·작업전)을 끄는 중. 이때만 패널이 놓기를 받고, 위에 오면 칠한다 */
+  acceptsUnassign: boolean;
+  /** 끌던 블록을 패널에 놓음 → 배정 해제 */
+  onDropUnassign: () => void;
   /** 이 카드가 보이도록 목록을 한 번 스크롤한다(작업 목록 '배정하기'로 진입, 새 작업 등록 직후) */
   revealTaskId: ID | null;
   onRevealed: () => void;
@@ -84,6 +88,7 @@ interface WaitingPanelProps {
 /**
  * 대기함 패널(443:1194, 295x836, Primary, radius 20). 접으면 90px 세로 막대(1834:6778), 비어 있으면 안내(1834:9145).
  * 편집 모드에서 카드를 격자로 드래그해 배정하고, 클릭하면 선택(다른 대기함 카드는 흐리게)한다.
+ * 격자 블록을 패널(접힌 막대 포함)로 끌어 놓으면 배정을 해제한다. 놓을 수 있는 동안 패널 위에 오면 칠한다.
  */
 export default function WaitingPanel({
   tasks,
@@ -94,6 +99,8 @@ export default function WaitingPanel({
   onSelectTask,
   onCardDragStart,
   onDragEnd,
+  acceptsUnassign,
+  onDropUnassign,
   revealTaskId,
   onRevealed,
 }: WaitingPanelProps) {
@@ -104,6 +111,29 @@ export default function WaitingPanel({
   const selectedInPanel = editing && tasks.some((t) => t.id === selectedTaskId);
   const [dragGhost, setDragGhost] = useState<DragGhost | null>(null);
   const clearDragGhost = useCallback(() => setDragGhost(null), []);
+  const [dropOver, setDropOver] = useState(false);
+  // 드래그가 끝나면(패널 위에서 Esc로 취소해 dragleave가 오지 않은 경우 포함) 칠한 것을 지운다.
+  if (!acceptsUnassign && dropOver) setDropOver(false);
+  const highlighted = acceptsUnassign && dropOver;
+  const dropProps = {
+    onDragOver: (event: DragEvent<HTMLElement>) => {
+      if (!acceptsUnassign) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+      if (!dropOver) setDropOver(true);
+    },
+    onDragLeave: (event: DragEvent<HTMLElement>) => {
+      // 안쪽 카드로 옮겨 갈 때도 dragleave가 오므로 패널 밖으로 나갈 때만 지운다.
+      if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return;
+      setDropOver(false);
+    },
+    onDrop: (event: DragEvent<HTMLElement>) => {
+      setDropOver(false);
+      if (!acceptsUnassign) return;
+      event.preventDefault();
+      onDropUnassign();
+    },
+  };
 
   useEffect(() => {
     if (!revealTaskId || collapsed) return;
@@ -114,7 +144,7 @@ export default function WaitingPanel({
 
   if (collapsed) {
     return (
-      <aside className={clsx(styles.panel, styles.collapsed)} aria-label="대기함">
+      <aside className={clsx(styles.panel, styles.collapsed, highlighted && styles.dropTarget)} aria-label="대기함" {...dropProps}>
         <IconButton
           icon="sidebar-left"
           size={24}
@@ -158,7 +188,7 @@ export default function WaitingPanel({
   };
 
   return (
-    <aside className={styles.panel} aria-label="대기함">
+    <aside className={clsx(styles.panel, highlighted && styles.dropTarget)} aria-label="대기함" {...dropProps}>
       <h2 className={clsx('t-body-xl-bold', styles.title)}>대기함</h2>
       <span className={clsx('t-body-m-medium', styles.count)}>{tasks.length}건</span>
       <IconButton

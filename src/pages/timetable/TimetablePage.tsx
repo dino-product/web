@@ -164,6 +164,14 @@ export default function TimetablePage() {
     setAssignDraft({ taskId, technicianId: task.technicianId, startTime: minutesToHm(startMinutes), durationMinutes });
   };
 
+  // 격자 블록을 대기함에 놓으면 바로 배정을 해제한다. 다른 사람이 그사이 바꿨으면 '변경된 정보입니다'를 띄운다.
+  const handleDropUnassign = async () => {
+    if (!drag || drag.grabOffsetX === null) return;
+    const taskId = drag.taskId;
+    setDrag(null);
+    if ((await useAppStore.getState().unassignTask(taskId)) === 'stale') setStaleTaskId(taskId);
+  };
+
   const commitAssignment = async (taskId: ID, assignment: TaskAssignment) => {
     setConflict(null);
     // 화면을 본 뒤 다른 사람이 작업을 바꿨으면 서버가 반영하지 않고 '변경된 정보입니다'(SCHEDULE-016)로 답한다.
@@ -244,6 +252,9 @@ export default function TimetablePage() {
                 onSelectTask={(taskId) => updateParams({ task: taskId })}
                 onCardDragStart={(taskId) => startDrag(taskId, null)}
                 onDragEnd={() => setDrag(null)}
+                // 대기함 카드(grabOffsetX null)가 아니라 격자 블록을 끌 때만 대기함이 놓기를 받는다.
+                acceptsUnassign={drag !== null && drag.grabOffsetX !== null}
+                onDropUnassign={handleDropUnassign}
                 revealTaskId={revealTaskId}
                 onRevealed={clearReveal}
               />
