@@ -235,6 +235,7 @@ export default function TimetablePage() {
                 date={date}
                 onPrevDate={() => setDate((d) => addDays(d, -1))}
                 onNextDate={() => setDate((d) => addDays(d, 1))}
+                onSelectDate={setDate}
                 onToday={() => setDate(today())}
                 mode={mode}
                 onModeChange={handleModeChange}

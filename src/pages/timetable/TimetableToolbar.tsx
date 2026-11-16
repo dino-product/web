@@ -1,11 +1,13 @@
 import clsx from 'clsx';
+import { useRef, useState } from 'react';
 
-import { Button, FilterSelect, Icon } from '@/design-system';
+import { Button, FilterSelect, Icon, Popover } from '@/design-system';
 import { formatTimetableDate } from '@/lib/format';
 import type { ID, IsoDate, TypeItem } from '@/data/types';
 
 import nextIcon from './assets/date-next.svg';
 import prevIcon from './assets/date-prev.svg';
+import DateCalendar from './DateCalendar';
 import styles from './TimetableToolbar.module.css';
 
 export type TimetableMode = 'view' | 'edit';
@@ -38,6 +40,8 @@ interface TimetableToolbarProps {
   date: IsoDate;
   onPrevDate: () => void;
   onNextDate: () => void;
+  /** 날짜 글자를 눌러 연 달력에서 고른 날짜 */
+  onSelectDate: (date: IsoDate) => void;
   onToday: () => void;
   mode: TimetableMode;
   onModeChange: (mode: TimetableMode) => void;
@@ -52,6 +56,7 @@ interface TimetableToolbarProps {
 
 /**
  * 타임테이블 툴바(945:6342 + 443:1270). 날짜 이동·오늘·보기/편집 토글·필터·새 작업 등록.
+ * 날짜 글자를 누르면 아래에 달력이 열려 날짜를 바로 고를 수 있다.
  * 편집 모드(1038:4233)에서는 날짜 이동·오늘·필터가 50% 흐려지고 동작하지 않으며, 안내 칩이 붙는다.
  * 필터 라벨은 시안 문구('일반 기사', '점검')가 기본이고, 유형을 고르면 그 이름을 보여 준다(다시 고르면 해제).
  */
@@ -59,6 +64,7 @@ export default function TimetableToolbar({
   date,
   onPrevDate,
   onNextDate,
+  onSelectDate,
   onToday,
   mode,
   onModeChange,
@@ -71,6 +77,8 @@ export default function TimetableToolbar({
   onRegister,
 }: TimetableToolbarProps) {
   const editing = mode === 'edit';
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const dateButtonRef = useRef<HTMLButtonElement>(null);
   const technicianTypeName = technicianTypes.find((t) => t.id === technicianTypeId)?.name;
   const workTypeName = workTypes.find((t) => t.id === workTypeId)?.name;
 
@@ -82,11 +90,31 @@ export default function TimetableToolbar({
             <button type="button" className={styles.navButton} aria-label="이전 날짜" disabled={editing} onClick={onPrevDate}>
               <img src={prevIcon} alt="" width={42} height={50} />
             </button>
-            <span className={clsx('t-body-s-medium', styles.dateText)}>{formatTimetableDate(date)}</span>
+            <button
+              ref={dateButtonRef}
+              type="button"
+              className={clsx('t-body-s-medium', styles.dateText)}
+              aria-label="날짜 선택"
+              aria-haspopup="dialog"
+              aria-expanded={calendarOpen}
+              disabled={editing}
+              onClick={() => setCalendarOpen((v) => !v)}
+            >
+              {formatTimetableDate(date)}
+            </button>
             <button type="button" className={styles.navButton} aria-label="다음 날짜" disabled={editing} onClick={onNextDate}>
               <img src={nextIcon} alt="" width={42} height={50} />
             </button>
           </div>
+          <Popover open={calendarOpen && !editing} anchorRef={dateButtonRef} onClose={() => setCalendarOpen(false)}>
+            <DateCalendar
+              value={date}
+              onSelect={(next) => {
+                onSelectDate(next);
+                setCalendarOpen(false);
+              }}
+            />
+          </Popover>
           <button type="button" className={styles.today} disabled={editing} onClick={onToday}>
             <span className={clsx('t-body-s-semibold', styles.todayLabel)}>오늘</span>
           </button>
