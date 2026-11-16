@@ -4,8 +4,6 @@ import type { CSSProperties, ReactNode } from 'react';
 import { Icon } from '@/design-system';
 import { useSingleFlight } from '@/lib/useSingleFlight';
 
-import glowBottomImage from './assets/glow-bottom.svg';
-import glowTopImage from './assets/glow-top.svg';
 import styles from './OnboardingStep.module.css';
 
 export interface OnboardingStepProps {
@@ -41,7 +39,7 @@ export interface OnboardingStepProps {
 
 /**
  * 온보딩 단계 화면 공통 틀(Figma 1453:12438·1453:14801·1894:8760).
- * 회색 바탕(#000 40% — 흰 바탕 위) 가운데 큰 카드(Background/3, radius 20)에 빛 번짐(Glow) 두 개,
+ * 회색 바탕(#000 40% — 흰 바탕 위) 가운데 큰 카드(Background/3, radius 20)에
  * 왼쪽 단계 배지·제목, 오른쪽 흰 폼 카드(460×511, radius 18, 그림자)와 아래 버튼 줄을 그린다.
  */
 export function OnboardingStep({
@@ -70,9 +68,6 @@ export function OnboardingStep({
   return (
     <main className={styles.page} aria-labelledby={titleId}>
       <div className={styles.card} style={cardStyle}>
-        <img src={glowTopImage} alt="" className={styles.glowTop} />
-        <img src={glowBottomImage} alt="" className={styles.glowBottom} />
-
         <div className={styles.intro} style={{ top: introTop }}>
           <div className={styles.badge}>
             <span className={styles.badgeNumber}>{step}</span>

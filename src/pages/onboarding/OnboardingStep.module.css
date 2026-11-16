@@ -18,22 +18,6 @@
   background: var(--color-background-3);
 }
 
-/* Glow(555, (-202,-359)) — 흐림 포함 이미지 915×915 */
-.glowTop {
-  position: absolute;
-  left: -382px;
-  top: -539px;
-  pointer-events: none;
-}
-
-/* Glow(1022, (446,473)) — 흐림 포함 이미지 1462×1462 */
-.glowBottom {
-  position: absolute;
-  left: 226px;
-  top: 253px;
-  pointer-events: none;
-}
-
 /* 왼쪽 블록: x 62, 419 너비, 배지와 글 간격 30 */
 .intro {
   position: absolute;
