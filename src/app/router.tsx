@@ -21,8 +21,15 @@ export const router = createBrowserRouter([
     element: <PublicLayout />,
     children: [
       { path: '/', element: lazyPage(() => import('@/pages/onboarding/LandingPage')) },
-      // /login/kakao는 카카오 웹 로그인 복귀 주소다. 같은 화면(부모 경로)이 처리해 /login으로 바꿔도 약관 모달을 유지한다.
-      { path: '/login', element: lazyPage(() => import('@/pages/onboarding/LoginPage')), children: [{ path: 'kakao', element: null }] },
+      // /login/kakao·/login/apple은 웹 로그인 복귀 주소다. 같은 화면(부모 경로)이 처리해 /login으로 바꿔도 약관 모달을 유지한다.
+      {
+        path: '/login',
+        element: lazyPage(() => import('@/pages/onboarding/LoginPage')),
+        children: [
+          { path: 'kakao', element: null },
+          { path: 'apple', element: null },
+        ],
+      },
       { path: '/onboarding/*', element: lazyPage(() => import('@/pages/onboarding/OnboardingRoutes')) },
     ],
   },

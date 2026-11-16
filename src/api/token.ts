@@ -7,7 +7,7 @@ const TOKEN_KEY = 'orbit:accessToken';
 const REFRESH_KEY = 'orbit:refreshToken';
 const ACCOUNT_KEY = 'orbit:accountId';
 const COMPANY_KEY = 'orbit:companyId';
-const KAKAO_LOGIN_KEY = 'orbit:kakaoLogin';
+const WEB_LOGIN_KEY = 'orbit:webLogin';
 
 function read(key: string): string | null {
   try {
@@ -102,30 +102,39 @@ export function saveCompanyId(companyId: string | null): void {
   write(COMPANY_KEY, companyId);
 }
 
-/** 카카오 웹 로그인을 시작할 때 만든 PKCE code_verifier와 로그인 뒤 갈 경로 */
-export interface PendingKakaoLogin {
+/** 웹 로그인 제공자(서버 /auth/{provider}/authorize·exchange 경로 조각) */
+export type WebLoginProvider = 'kakao' | 'apple';
+
+/** 웹 로그인(카카오·Apple)을 시작할 때 만든 PKCE code_verifier와 로그인 뒤 갈 경로 */
+export interface PendingWebLogin {
+  provider: WebLoginProvider;
   codeVerifier: string;
   returnTo: string;
 }
 
-/** 카카오를 다녀오는 동안 이 탭(sessionStorage)에만 둔다. 저장하지 못하면 false */
-export function savePendingKakaoLogin(pending: PendingKakaoLogin): boolean {
+/** 카카오·Apple을 다녀오는 동안 이 탭(sessionStorage)에만 둔다. 저장하지 못하면 false */
+export function savePendingWebLogin(pending: PendingWebLogin): boolean {
   try {
-    window.sessionStorage.setItem(KAKAO_LOGIN_KEY, JSON.stringify(pending));
+    window.sessionStorage.setItem(WEB_LOGIN_KEY, JSON.stringify(pending));
     return true;
   } catch {
     return false;
   }
 }
 
-/** 시작 정보를 꺼내며 지운다. 교환 코드와 code_verifier는 한 번만 쓴다. */
-export function takePendingKakaoLogin(): PendingKakaoLogin | null {
+/**
+ * 시작 정보를 꺼내며 지운다. 교환 코드와 code_verifier는 한 번만 쓴다.
+ * 다른 제공자로 시작한 정보면(카카오로 시작했는데 Apple 복귀 주소로 온 경우 등) 쓰지 않는다.
+ */
+export function takePendingWebLogin(provider: WebLoginProvider): PendingWebLogin | null {
   try {
-    const raw = window.sessionStorage.getItem(KAKAO_LOGIN_KEY);
-    window.sessionStorage.removeItem(KAKAO_LOGIN_KEY);
-    const pending = raw ? (JSON.parse(raw) as Partial<PendingKakaoLogin>) : null;
-    return typeof pending?.codeVerifier === 'string' && typeof pending.returnTo === 'string'
-      ? { codeVerifier: pending.codeVerifier, returnTo: pending.returnTo }
+    const raw = window.sessionStorage.getItem(WEB_LOGIN_KEY);
+    window.sessionStorage.removeItem(WEB_LOGIN_KEY);
+    const pending = raw ? (JSON.parse(raw) as Partial<PendingWebLogin>) : null;
+    return pending?.provider === provider &&
+      typeof pending.codeVerifier === 'string' &&
+      typeof pending.returnTo === 'string'
+      ? { provider, codeVerifier: pending.codeVerifier, returnTo: pending.returnTo }
       : null;
   } catch {
     return null;

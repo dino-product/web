@@ -57,8 +57,8 @@ if (result === 'stale') {
 
 | 액션 | 반환·동작 |
 | --- | --- |
-| `startKakaoLogin(returnTo)` | `Promise<void>`; PKCE를 만들어 이 탭에 두고 서버 `GET /auth/kakao/authorize`로 이동한다(실패하면 콘솔만) |
-| `completeKakaoLogin({ code, error })` | `Promise<KakaoLoginResult>`(`status`: `loggedIn`·`onboarding`·`failed`, `returnTo`); 복귀 주소 `/login/kakao`(`KAKAO_CALLBACK_PATH`)의 교환 코드를 `POST /auth/kakao/exchange`로 토큰으로 바꾸고 프로필·소속·데이터를 읽는다. 교환에 성공하면 이 탭의 이전 세션을 로그아웃(서버 Access Token 폐기·refresh token 기기 세션 종료)하고, 교환이 실패하거나 교환하지 않는 실패·취소는 이전 세션을 복원한다. 같은 코드는 한 번만 교환한다 |
+| `startWebLogin(provider, returnTo)` | `Promise<void>`; `provider`는 `kakao`·`apple`. PKCE를 만들어 이 탭에 두고 서버 `GET /auth/{provider}/authorize`로 이동한다(실패하면 콘솔만) |
+| `completeWebLogin(provider, { code, error })` | `Promise<WebLoginResult>`(`status`: `loggedIn`·`onboarding`·`failed`, `returnTo`); 복귀 주소 `/login/kakao`·`/login/apple`(`WEB_LOGIN_CALLBACK_PATHS`)의 교환 코드를 `POST /auth/{provider}/exchange`로 토큰으로 바꾸고 프로필·소속·데이터를 읽는다. 교환에 성공하면 이 탭의 이전 세션을 로그아웃(서버 Access Token 폐기·refresh token 기기 세션 종료)하고, 교환이 실패하거나 교환하지 않는 실패·취소는 이전 세션을 복원한다. 같은 코드는 한 번만 교환한다 |
 | `registerProfile`, `createCompany`, `withdrawAccount` | `Promise<boolean>`; 성공 여부로 다음 화면 진행을 결정한다 |
 | `createTask`, `addType` | `Promise<ID \| null>`; 생성 ID 또는 실패. `createTask`는 고른 현장 사진을 장마다 `POST /site-photo-uploads`로 업로드 주소를 받아 저장소에 PUT한 뒤 `sitePhotoIds`로 붙인다(한 장이라도 실패하면 등록하지 않음) |
 | `assignTask` | `Promise<AssignResult>`: `applied` / `stale` / `failed`. 서버 버전을 `expectedVersion`으로 보낸다 |
@@ -108,7 +108,7 @@ if (result === 'stale') {
 
 `toId`·`fromId`·`typeIdNumber`를 사용한다. 서버 테이블별 숫자가 겹치므로 접두어를 임의로 없애지 않는다. 서버 UTC ISO는 화면에서 `+09:00` ISO·`YYYY-MM-DD`·`HH:mm`으로 바꾼다. 요청은 `toUtcIso`, 날짜 조회 범위는 `dayRange`의 KST 자정부터 다음 날 자정까지 `[from, to)`를 쓴다. 현재 시각은 실제 `Date.now()`이며 시연 시계는 없다.
 
-로그인은 서버의 카카오 웹 로그인이다(authorize → 카카오 → callback → `/login/kakao?code=…` → exchange). PKCE verifier와 돌아갈 경로는 sessionStorage `orbit:kakaoLogin`에 두고 복귀하면 바로 지운다. Access Token(`orbit:accessToken`)·refresh token(`orbit:refreshToken`)·계정 ID·선택 발주사는 localStorage에 남는다. Access Token이 만료되면(서버 기본 1시간) 첫 API 호출이 refresh token으로 재발급하고, refresh token도 무효(`AUTH-009`, 마지막 재발급 뒤 30일)면 로그아웃한다. 시드 계정은 가짜 카카오 식별자라 실제 카카오로 들어갈 수 없으며, `node scripts/dev-token.mjs <accountId>`로 만든 로컬 Access Token을 localStorage에 넣어 연다(refresh token이 없어 만료되면 다시 넣는다).
+로그인은 서버의 카카오·Apple 웹 로그인이다(authorize → 카카오·Apple → callback → `/login/kakao`·`/login/apple?code=…` → exchange). 제공자·PKCE verifier·돌아갈 경로는 sessionStorage `orbit:webLogin`에 두고 복귀하면 바로 지운다. Access Token(`orbit:accessToken`)·refresh token(`orbit:refreshToken`)·계정 ID·선택 발주사는 localStorage에 남는다. Access Token이 만료되면(서버 기본 1시간) 첫 API 호출이 refresh token으로 재발급하고, refresh token도 무효(`AUTH-009`, 마지막 재발급 뒤 30일)면 로그아웃한다. 시드 계정은 가짜 카카오 식별자라 실제 카카오로 들어갈 수 없으며, `node scripts/dev-token.mjs <accountId>`로 만든 로컬 Access Token을 localStorage에 넣어 연다(refresh token이 없어 만료되면 다시 넣는다).
 
 ## 4. 시드
 

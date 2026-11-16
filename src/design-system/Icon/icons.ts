@@ -11,6 +11,7 @@ const rawIcons = import.meta.glob<string>('/src/assets/icons/*.svg', {
 
 export const ICON_NAMES = [
   'alert-circle-fill',
+  'apple',
   'archive',
   'arrow-back',
   'arrow-right',

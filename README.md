@@ -53,7 +53,7 @@ npm run dev        # http://localhost:5173
 
 '카카오 로그인' 버튼은 서버의 카카오 웹 로그인(authorize·callback·exchange, 모두 `/api/v1` 아래)을 부릅니다.
 
-1. 버튼: PKCE `code_verifier`를 만들어 이 탭의 sessionStorage `orbit:kakaoLogin`에 두고 `GET /auth/kakao/authorize?client=web&code_challenge=…`로 이동합니다.
+1. 버튼: PKCE `code_verifier`를 만들어 이 탭의 sessionStorage `orbit:webLogin`에 두고 `GET /auth/kakao/authorize?client=web&code_challenge=…`(Apple은 `/auth/apple/authorize`)로 이동합니다.
 2. 서버가 카카오 로그인과 콜백(`/auth/kakao/callback`)을 거쳐 복귀 주소 `/login/kakao?code=…`로 돌려보냅니다. 실패·취소는 `?error=AUTH-xxx`입니다.
 3. `/login/kakao`가 `POST /auth/kakao/exchange {code, codeVerifier}`로 Access Token을 받고 프로필·소속을 읽습니다. 가입을 마친 계정은 원래 경로 또는 `/timetable`, 가입 전 계정은 `/login` 위 약관 동의 모달로 갑니다. 실패·취소는 오류 안내 시안이 없어 원래 경로를 유지한 채 `/login`으로 돌아오고 오류 코드는 콘솔에 남깁니다(취소 `AUTH-008`은 남기지 않음). 교환에 성공하면 이 탭의 이전 세션은 로그아웃하고(서버 토큰 폐기 포함) 새 로그인으로 바꾸며, 교환이 실패하면 이전 세션을 그대로 복원합니다.
 
@@ -68,6 +68,8 @@ npm run dev        # http://localhost:5173
 | `KAKAO_ADMIN_KEY` | [앱] > [어드민 키]. 탈퇴 때 카카오 연결 끊기에만 씁니다 |
 
 카카오 로그인 [사용 설정]과 [OpenID Connect]를 켭니다. 서버의 브라우저 연결 쿠키가 `Secure`라 로컬 http에서는 `localhost`를 보안 출처로 보는 Chrome·Firefox로 `http://localhost:5173`을 엽니다(LAN IP로 열면 보안 출처가 아니라 PKCE용 `crypto.subtle`이 없어 버튼이 동작하지 않고, `127.0.0.1`로 열면 콜백의 `localhost`와 쿠키 호스트가 달라 401이 됩니다). state·연결 쿠키 확인에 실패하면(다른 브라우저·만료·Safari의 http localhost) 서버가 복귀하지 않고 API 주소에서 401(`AUTH-003`)로 끝납니다.
+
+'Apple 로그인' 버튼도 같은 순서로 서버의 Apple 웹 로그인(`/auth/apple/authorize` → Apple → `/auth/apple/callback` → 복귀 주소 `/login/apple?code=…` → `POST /auth/apple/exchange`)을 부릅니다. 서버 `.env`의 `APPLE_SERVICES_ID`·`APPLE_WEB_REDIRECT_URI`·`APPLE_WEB_RETURN_URI`(`http://localhost:5173/login/apple`, 배포 환경은 웹 주소의 `/login/apple`)와 Apple 키 값이 필요합니다. Apple은 콜백을 https로 등록된 주소에만 보내므로 로컬 http 서버로는 끝까지 확인할 수 없습니다.
 
 시드 계정은 가짜 카카오 식별자(`dev-{id}`)라 실제 카카오로 로그인할 수 없습니다. 실제 카카오 계정은 새 계정으로 온보딩부터 시작합니다. 시드 계정으로 화면을 열려면 `node scripts/dev-token.mjs <accountId>`(ID는 `.dev-seed.json`의 `accountIds`)로 로컬 토큰을 만들어 개발자 도구에서 localStorage `orbit:accessToken`·`orbit:accountId`에 넣고 `/timetable`을 엽니다. 서명 키는 서버와 같아야 하며 `AUTH_JWT_SECRET` 환경 변수, `../server/.env`, 서버 로컬 기본값 순서로 읽습니다(기본값을 쓰면 경고). `check-flows.mjs`는 카카오 두 엔드포인트(authorize·exchange)만 스텁하고 시드 계정 토큰을 돌려줘 버튼부터 세션까지 앱의 실제 흐름을 점검합니다.
 

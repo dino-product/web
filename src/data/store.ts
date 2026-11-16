@@ -17,9 +17,10 @@ import {
   getRefreshToken,
   getSavedCompanyId,
   saveCompanyId,
-  savePendingKakaoLogin,
+  savePendingWebLogin,
   saveSession,
-  takePendingKakaoLogin,
+  takePendingWebLogin,
+  type WebLoginProvider,
 } from '@/api/token';
 import type {
   CreateWorkBody,
@@ -83,11 +84,22 @@ import { formatPhone } from '@/lib/format';
 import { addDays, startOfMonth, toIsoDateTime, today } from '@/lib/date';
 import { createPkcePair } from '@/lib/pkce';
 
-/** 카카오 웹 로그인 복귀 주소(서버 KAKAO_WEB_RETURN_URI의 경로) */
-export const KAKAO_CALLBACK_PATH = '/login/kakao';
+/** 웹 로그인 복귀 주소(서버 KAKAO_WEB_RETURN_URI·APPLE_WEB_RETURN_URI의 경로) */
+export const WEB_LOGIN_CALLBACK_PATHS: Record<WebLoginProvider, string> = {
+  kakao: '/login/kakao',
+  apple: '/login/apple',
+};
 
-/** 카카오 웹 로그인 복귀 결과. returnTo는 로그인을 시작할 때 넘긴 경로(시작 정보가 없으면 null) */
-export interface KakaoLoginResult {
+const WEB_LOGIN_LABEL: Record<WebLoginProvider, string> = { kakao: '카카오 로그인', apple: 'Apple 로그인' };
+
+/** 지금 주소가 웹 로그인 복귀 주소면 그 제공자 */
+export function matchWebLoginCallback(pathname: string): WebLoginProvider | null {
+  const entry = Object.entries(WEB_LOGIN_CALLBACK_PATHS).find(([, path]) => matchPath(path, pathname));
+  return entry ? (entry[0] as WebLoginProvider) : null;
+}
+
+/** 웹 로그인 복귀 결과. returnTo는 로그인을 시작할 때 넘긴 경로(시작 정보가 없으면 null) */
+export interface WebLoginResult {
   /** loggedIn: 로그인 완료, onboarding: 가입 전 계정(약관 동의부터), failed: 실패·취소 */
   status: 'loggedIn' | 'onboarding' | 'failed';
   returnTo: string | null;
@@ -157,14 +169,20 @@ export interface AppState {
   technicianHistory: TechnicianHistory | null;
 
   // 인증·온보딩
-  /** 카카오 웹 로그인 시작. PKCE를 만들어 이 탭에 두고 서버 authorize(→ 카카오 로그인 페이지)로 이동한다. returnTo: 로그인 뒤 갈 경로 */
-  startKakaoLogin: (returnTo: string) => Promise<void>;
   /**
-   * 카카오 웹 로그인 복귀(/login/kakao?code=… 또는 ?error=…). 교환 코드를 Access Token으로 바꾸고 프로필·소속을 읽는다.
+   * 웹 로그인(카카오·Apple) 시작. PKCE를 만들어 이 탭에 두고 서버 authorize(→ 카카오·Apple 로그인 페이지)로 이동한다.
+   * returnTo: 로그인 뒤 갈 경로
+   */
+  startWebLogin: (provider: WebLoginProvider, returnTo: string) => Promise<void>;
+  /**
+   * 웹 로그인 복귀(/login/kakao·/login/apple ?code=… 또는 ?error=…). 교환 코드를 Access Token으로 바꾸고 프로필·소속을 읽는다.
    * 가입을 마치지 않은 계정이면 status='onboarding' → 약관 동의 모달부터 진행. 교환에 성공하면 이 탭의 이전 세션을 로그아웃하고,
    * 교환이 실패하면 이전 세션을 복원한다.
    */
-  completeKakaoLogin: (callback: { code: string | null; error: string | null }) => Promise<KakaoLoginResult>;
+  completeWebLogin: (
+    provider: WebLoginProvider,
+    callback: { code: string | null; error: string | null },
+  ) => Promise<WebLoginResult>;
   logout: () => void;
   /** 약관 동의 선택값을 기억한다. 서버는 프로필 입력 뒤에만 약관 동의를 받으므로 registerProfile이 함께 보낸다. */
   agreeTerms: (marketingAgreed: boolean) => void;
@@ -269,8 +287,8 @@ const hiddenNotificationIds = new Set<ID>();
 let pendingMarketingAgreed = false;
 /** 로그인 사용자 프로필(연락처·이름) */
 let myProfile: ProfileDto | null = null;
-/** 처리 중인 카카오 복귀. 같은 복귀 주소를 두 번 처리해도(StrictMode 효과 재실행) 일회성 교환 코드는 한 번만 보낸다. */
-let kakaoCompletion: { key: string; result: Promise<KakaoLoginResult> } | null = null;
+/** 처리 중인 웹 로그인 복귀. 같은 복귀 주소를 두 번 처리해도(StrictMode 효과 재실행) 일회성 교환 코드는 한 번만 보낸다. */
+let webLoginCompletion: { key: string; result: Promise<WebLoginResult> } | null = null;
 
 const LOGGED_OUT_SESSION: Session = {
   loggedIn: false,
@@ -462,20 +480,18 @@ export const useAppStore = create<AppState>()((set, get) => {
     await loadCompanyData();
   }
 
-  /** completeKakaoLogin 본체. 서버가 실패를 error(AUTH-xxx)로 돌려보냈으면 교환하지 않는다. */
-  async function finishKakaoLogin({
-    code,
-    error,
-  }: {
-    code: string | null;
-    error: string | null;
-  }): Promise<KakaoLoginResult> {
-    const pending = takePendingKakaoLogin();
-    const failed: KakaoLoginResult = { status: 'failed', returnTo: pending?.returnTo ?? null };
+  /** completeWebLogin 본체. 서버가 실패를 error(AUTH-xxx)로 돌려보냈으면 교환하지 않는다. */
+  async function finishWebLogin(
+    provider: WebLoginProvider,
+    { code, error }: { code: string | null; error: string | null },
+  ): Promise<WebLoginResult> {
+    const label = WEB_LOGIN_LABEL[provider];
+    const pending = takePendingWebLogin(provider);
+    const failed: WebLoginResult = { status: 'failed', returnTo: pending?.returnTo ?? null };
     if (!code || !pending) {
-      // 사용자가 카카오 로그인을 취소한 경우(AUTH-008)는 오류로 남기지 않는다.
-      if (code) logError('카카오 로그인', new Error('이 탭에서 시작한 로그인 정보가 없습니다.'));
-      else if (error !== 'AUTH-008') logError('카카오 로그인', new Error(error ?? '복귀 주소에 교환 코드가 없습니다.'));
+      // 사용자가 로그인을 취소한 경우(AUTH-008)는 오류로 남기지 않는다.
+      if (code) logError(label, new Error('이 탭에서 시작한 로그인 정보가 없습니다.'));
+      else if (error !== 'AUTH-008') logError(label, new Error(error ?? '복귀 주소에 교환 코드가 없습니다.'));
       // 교환하지 않으므로 앱 시작에서 미룬 이전 세션 복원을 이어서 한다.
       void restoreSession();
       return failed;
@@ -485,10 +501,10 @@ export const useAppStore = create<AppState>()((set, get) => {
     const previous = { accessToken: getAccessToken(), refreshToken: getRefreshToken() };
     let login: LoginDto;
     try {
-      login = await authApi.kakaoExchange({ code, codeVerifier: pending.codeVerifier });
+      login = await authApi.webLoginExchange(provider, { code, codeVerifier: pending.codeVerifier });
     } catch (exchangeError) {
       if (exchangeError instanceof NetworkError) set({ network: 'offline' });
-      logError('카카오 로그인', exchangeError);
+      logError(label, exchangeError);
       void restoreSession();
       return failed;
     }
@@ -544,9 +560,9 @@ export const useAppStore = create<AppState>()((set, get) => {
   const categoryPath = (category: Exclude<TypeCategory, 'WORK'>): MemberCategoryPath =>
     category === 'EMPLOYEE' ? 'staff-categories' : 'technician-categories';
 
-  // 앱 시작: 저장된 토큰이 있으면 로그인 상태로 그리고 서버로 확인한다. 카카오 복귀 주소는 이전 토큰을 복원하지 않는다
-  // (복원 응답이 새 로그인보다 늦게 와 새 세션을 덮거나 지우지 않게 한다). 복원·정리는 finishKakaoLogin이 이어서 한다.
-  if (!matchPath(KAKAO_CALLBACK_PATH, window.location.pathname)) queueMicrotask(() => void restoreSession());
+  // 앱 시작: 저장된 토큰이 있으면 로그인 상태로 그리고 서버로 확인한다. 웹 로그인 복귀 주소는 이전 토큰을 복원하지 않는다
+  // (복원 응답이 새 로그인보다 늦게 와 새 세션을 덮거나 지우지 않게 한다). 복원·정리는 finishWebLogin이 이어서 한다.
+  if (!matchWebLoginCallback(window.location.pathname)) queueMicrotask(() => void restoreSession());
 
   return {
     session: { ...LOGGED_OUT_SESSION, loggedIn: Boolean(getAccessToken()), termsAgreed: Boolean(getAccessToken()) },
@@ -560,26 +576,28 @@ export const useAppStore = create<AppState>()((set, get) => {
     technicianHistory: null,
 
     // ── 인증·온보딩 ──
-    startKakaoLogin: async (returnTo) => {
+    startWebLogin: async (provider, returnTo) => {
       try {
         const { codeVerifier, codeChallenge } = await createPkcePair();
-        if (!savePendingKakaoLogin({ codeVerifier, returnTo })) throw new Error('로그인 시작 정보를 저장할 수 없습니다.');
-        window.location.assign(authApi.kakaoAuthorizeUrl(codeChallenge));
+        if (!savePendingWebLogin({ provider, codeVerifier, returnTo })) {
+          throw new Error('로그인 시작 정보를 저장할 수 없습니다.');
+        }
+        window.location.assign(authApi.webLoginAuthorizeUrl(provider, codeChallenge));
       } catch (error) {
-        logError('카카오 로그인', error);
+        logError(WEB_LOGIN_LABEL[provider], error);
       }
     },
 
-    completeKakaoLogin: (callback) => {
-      const key = callback.code ?? `error:${callback.error}`;
-      if (kakaoCompletion?.key !== key) {
-        const result = finishKakaoLogin(callback).catch((error: unknown): KakaoLoginResult => {
-          logError('카카오 로그인', error);
+    completeWebLogin: (provider, callback) => {
+      const key = `${provider}:${callback.code ?? `error:${callback.error}`}`;
+      if (webLoginCompletion?.key !== key) {
+        const result = finishWebLogin(provider, callback).catch((error: unknown): WebLoginResult => {
+          logError(WEB_LOGIN_LABEL[provider], error);
           return { status: 'failed', returnTo: null };
         });
-        kakaoCompletion = { key, result };
+        webLoginCompletion = { key, result };
       }
-      return kakaoCompletion.result;
+      return webLoginCompletion.result;
     },
 
     logout: () => {

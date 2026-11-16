@@ -52,7 +52,7 @@ Figma에 있는 사무실(발주사) 웹 UI를 TypeScript + React로 구현해 U
 | 라우트 | 화면·상태 | Figma 프레임 | 담당 |
 | --- | --- | --- | --- |
 | `/` | 마케팅 랜딩(긴 스크롤) | `1946:16500` | onboarding |
-| `/login`, `/login/kakao` | 로그인(`/login/kakao`는 카카오 로그인 복귀 주소), 첫 사용자 약관 동의 모달 | `2423:12739`, `1453:7505` | onboarding |
+| `/login`, `/login/kakao`, `/login/apple` | 로그인(`/login/kakao`·`/login/apple`은 카카오·Apple 로그인 복귀 주소), 첫 사용자 약관 동의 모달 | `2423:12739`, `1453:7505` | onboarding |
 | `/onboarding/profile` | 1 프로필 등록 | `1453:12438`, `1453:12460` | onboarding |
 | `/onboarding/company` | 2 발주사 생성 | `1453:14801` | onboarding |
 | `/onboarding/types` | 3 유형 설정 | `1894:8760` | onboarding |
@@ -152,7 +152,7 @@ Figma에 있는 사무실(발주사) 웹 UI를 TypeScript + React로 구현해 U
 | 빈 상태 | 새 발주사를 만들거나 데이터가 없는 협력 발주사·날짜·필터로 확인한다 |
 | 연결 실패 | API에 실제로 닿지 못할 때 표시한다. '다시 시도'는 API를 다시 읽는다 |
 
-카카오 로그인 시작 정보(PKCE verifier·돌아갈 경로)는 sessionStorage `orbit:kakaoLogin`에 두고 복귀하면 지운다. 토큰·계정 ID·선택 발주사는 localStorage에 저장하고, 서버에 저장된 변경은 새로고침해도 유지한다. 서버 API가 없는 역할 전환·유형 활성 상태·알림 삭제 등만 탭 메모리에 남는다. 연동 범위는 [백엔드 연동 가이드](../../api-integration-guide.html), 데이터 사용법은 [데이터 계층](data-layer.md)을 따른다.
+카카오·Apple 로그인 시작 정보(제공자·PKCE verifier·돌아갈 경로)는 sessionStorage `orbit:webLogin`에 두고 복귀하면 지운다. 토큰·계정 ID·선택 발주사는 localStorage에 저장하고, 서버에 저장된 변경은 새로고침해도 유지한다. 서버 API가 없는 역할 전환·유형 활성 상태·알림 삭제 등만 탭 메모리에 남는다. 연동 범위는 [백엔드 연동 가이드](../../api-integration-guide.html), 데이터 사용법은 [데이터 계층](data-layer.md)을 따른다.
 
 ## 8. 병렬 작업 분할
 

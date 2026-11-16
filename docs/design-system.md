@@ -527,6 +527,7 @@ Popover props: `open`, `anchorRef`, `onClose`, `placement`(`bottom-start` 기본
 | 이름 | 원래 크기 | Figma 색 | Figma 원본 | 노드 |
 | --- | --- | --- | --- | --- |
 | `alert-circle-fill` | 28×28 | #222222 | Icon / Type=warning01 (≈ si:warning-fill, 변경정보 #f59e0a) | 1338:6745 |
+| `apple` | 19.37×23 | white | Apple 로그인 Logo(Figma 벡터 대신 같은 모양의 Apple 글리프) | 3669:16231 |
 | `archive` | 28×28 | #1C1B2A | Icon / Type=box | 1338:6723 |
 | `arrow-back` | 24×24 | #767676 | Icon / Type=Back (eva:arrow-back-outline) | 1834:13130 |
 | `arrow-right` | 24×24 | #9B9B9B | basil:arrow-left-outline(오른쪽 화살표) | 776:3039 |
