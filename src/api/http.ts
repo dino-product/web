@@ -3,6 +3,7 @@
  * `{ success, code, message, result }`로 온다(server shared ApiResponse).
  * 개발 서버는 vite.config.ts의 프록시로 `/api`를 백엔드(기본 http://localhost:8080)로 넘긴다.
  */
+import { trackPending } from '@/api/pending';
 import type { RefreshedTokensDto } from '@/api/types';
 import { adoptStoredTokens, getAccessToken, getRefreshToken, replaceTokens } from '@/api/token';
 
@@ -156,7 +157,11 @@ export async function authorizedFetch(
 }
 
 /** 요청을 보내고 봉투의 result를 돌려준다. 204 등 본문이 없으면 undefined */
-export async function request<T>(method: string, path: string, options: RequestOptions = {}): Promise<T> {
+export function request<T>(method: string, path: string, options: RequestOptions = {}): Promise<T> {
+  return trackPending(() => sendRequest<T>(method, path, options));
+}
+
+async function sendRequest<T>(method: string, path: string, options: RequestOptions): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
   const response = await authorizedFetch(
@@ -186,7 +191,11 @@ export function isApiError(error: unknown, code?: string): error is ApiError {
 }
 
 /** 파일 응답(엑셀 등)을 받는다. 실패하면 서버 봉투의 오류 코드로 ApiError */
-export async function requestBlob(path: string, query?: Record<string, QueryValue>): Promise<Blob> {
+export function requestBlob(path: string, query?: Record<string, QueryValue>): Promise<Blob> {
+  return trackPending(() => sendBlobRequest(path, query));
+}
+
+async function sendBlobRequest(path: string, query?: Record<string, QueryValue>): Promise<Blob> {
   const response = await authorizedFetch(apiUrl(path, query), { headers: {} });
   if (!response.ok) {
     const envelope = await readEnvelope<unknown>(response);
@@ -200,7 +209,11 @@ export async function requestBlob(path: string, query?: Record<string, QueryValu
  * content-length는 브라우저가 본문 길이로 붙인다. 저장소가 거부하거나 닿지 못하면 ApiError(code 'UPLOAD-<status>').
  * 백엔드 연결 실패(NetworkError)와 구분해 저장소 문제로 앱 전체를 연결 실패 화면으로 바꾸지 않는다.
  */
-export async function uploadFile(uploadUrl: string, file: Blob, requiredHeaders: Record<string, string>): Promise<void> {
+export function uploadFile(uploadUrl: string, file: Blob, requiredHeaders: Record<string, string>): Promise<void> {
+  return trackPending(() => sendUpload(uploadUrl, file, requiredHeaders));
+}
+
+async function sendUpload(uploadUrl: string, file: Blob, requiredHeaders: Record<string, string>): Promise<void> {
   const headers = Object.fromEntries(
     Object.entries(requiredHeaders).filter(([name]) => !['content-length', 'host'].includes(name.toLowerCase())),
   );

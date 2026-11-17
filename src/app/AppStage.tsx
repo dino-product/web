@@ -1,5 +1,6 @@
 import { type CSSProperties, type ReactNode, useLayoutEffect, useState } from 'react';
 
+import PendingSpinner from '@/app/PendingSpinner';
 import { OverflowTooltip } from '@/design-system';
 
 const DESIGN_WIDTH = 1920;
@@ -72,6 +73,7 @@ export default function AppStage({ children }: { children: ReactNode }) {
       {children}
       <div id="overlay-root" />
       <OverflowTooltip />
+      <PendingSpinner />
     </div>
   );
 }
