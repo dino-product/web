@@ -119,6 +119,7 @@ export function TaskTable({ tasks, page, onPageChange, memberName, typeName, onO
       </div>
       {tasks.length > PAGE_SIZE && (
         <Pagination
+          className={styles.pagination}
           page={current}
           pageCount={pageCount}
           onChange={onPageChange}

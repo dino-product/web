@@ -1,10 +1,16 @@
-/* 2110:9761 — 대기함 영역 아래 24px, 표 1538px, 표와 페이지네이션 간격 12 */
+/* 2110:9761 — 대기함 영역 아래 24px, 표 1538px, 표와 페이지네이션 간격 12. 남는 높이를 채워 페이지네이션을 아래에 고정한다. */
 .section {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 12px;
   width: 1538px;
   margin-top: 24px;
+}
+
+/* 표 줄 수와 상관없이 섹션 아래끝에 둔다 */
+.pagination {
+  margin-top: auto;
 }
 
 /* 1230:4832 — 왼쪽·오른쪽·아래 Gray300 1px, radius 14 */
