@@ -1,0 +1,110 @@
+/* 장면 안 모달 배경: 화면 모달과 같은 #000 40% */
+.dim {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-dim);
+  animation: dimIn 220ms ease-out both;
+}
+
+/* DS Dialog 카드: 575, radius 18, padding 30, 세로 간격 24 */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 575px;
+  padding: 30px;
+  border-radius: 18px;
+  background: var(--color-gray-0);
+  animation: cardIn 320ms cubic-bezier(0.2, 1.2, 0.4, 1) both;
+}
+
+@keyframes dimIn {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes cardIn {
+  from {
+    transform: translateY(16px) scale(0.96);
+    opacity: 0;
+  }
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 34px;
+}
+
+/* 24/700 Gray900 */
+.title {
+  color: var(--color-gray-900);
+  font-size: 24px;
+  line-height: var(--line-height-24);
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-base);
+}
+
+/* 20/500 Gray800 */
+.description {
+  color: var(--color-gray-800);
+  font-size: 20px;
+  line-height: var(--line-height-20);
+  font-weight: 500;
+  letter-spacing: var(--letter-spacing-base);
+  white-space: pre-line;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fieldLabel {
+  color: var(--color-gray-900);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+  letter-spacing: var(--letter-spacing-base);
+}
+
+.select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 12px 0 16px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 12px;
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+  letter-spacing: var(--letter-spacing-base);
+}
+
+.selectValue {
+  color: var(--color-gray-800);
+}
+
+.selectPlaceholder {
+  color: var(--color-gray-500);
+}

@@ -1,0 +1,380 @@
+/*
+ * 타임테이블 시연 장면 1210x768 — 타임테이블 화면(443:1156) 치수를 그대로 쓰고 보이는 범위만 줄였다.
+ * 툴바 y=32, 격자 (24,110) 843x615(기사 칸 184 + 09:00~), 대기함 (891,110) 295x615.
+ */
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--color-gray-0);
+  transition: background 300ms ease;
+}
+
+/* 편집 모드(1038:4233): 회색 화면 위에 격자만 밝게 */
+.sceneEditing {
+  background: var(--color-background-1);
+}
+
+.toolbar {
+  position: absolute;
+  top: 32px;
+  right: 24px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 50px;
+}
+
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* 날짜 이동 945:6344 — 높이 50, Gray200 테두리, radius 12 */
+.dateNav {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  height: 50px;
+  padding: 0 11px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: 12px;
+}
+
+.dateNavEditing {
+  background: var(--color-gray-100);
+}
+
+.datePrev {
+  transform: rotate(180deg);
+  opacity: 0.8;
+}
+
+.dateNext {
+  opacity: 0.8;
+}
+
+.dateText {
+  color: var(--color-primary);
+  opacity: 0.8;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* 오늘 945:6350 */
+.today {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  margin-left: -10px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  background: var(--color-gray-100);
+  color: color-mix(in srgb, var(--color-primary) 80%, transparent);
+}
+
+.divider {
+  width: 1px;
+  height: 30px;
+  background: var(--color-gray-200);
+}
+
+/* 보기/편집 토글 945:6353 — 160x50, Gray50, radius 12 */
+.modeToggle {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  padding: 2px 6px;
+  border-radius: 12px;
+  background: var(--color-gray-50);
+}
+
+.modeButton {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: 74px;
+  height: 40px;
+  padding: 8px 12px 8px 8px;
+  border-radius: 8px;
+  color: var(--color-gray-500);
+  font-size: 16px;
+  line-height: 19px;
+  font-weight: 500;
+  letter-spacing: 0;
+  white-space: nowrap;
+  transition:
+    background 200ms ease,
+    color 200ms ease;
+}
+
+.viewActive {
+  border-radius: 10px;
+  background: var(--color-primary);
+  color: var(--color-gray-0);
+}
+
+.editActive {
+  background: var(--color-secondary);
+  color: var(--color-gray-0);
+}
+
+/* 편집 안내 칩 1038:4741 */
+.editHint {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  margin-left: -5px;
+  padding: 10px 20px;
+  border-radius: 48px;
+  background: var(--color-confirmed);
+  color: var(--color-secondary);
+  font-size: 16px;
+  line-height: 19px;
+  font-weight: 500;
+  letter-spacing: 0;
+  white-space: nowrap;
+  animation: hintIn 320ms ease-out both;
+}
+
+@keyframes hintIn {
+  from {
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+}
+
+/* 격자 프레임 577:3008 — 머리줄 위 모서리 radius 18, 편집 모드는 흰 바탕 + 네 모서리 */
+.grid {
+  position: absolute;
+  top: 110px;
+  left: 24px;
+  width: 843px;
+  height: 615px;
+  overflow: hidden;
+  border-radius: 18px 18px 0 0;
+  background: var(--color-gray-0);
+  transition: border-radius 300ms ease;
+}
+
+.sceneEditing .grid {
+  border-radius: 18px;
+}
+
+.header {
+  display: flex;
+  height: 60px;
+  background: var(--color-gray-50);
+}
+
+.corner {
+  display: flex;
+  flex: none;
+  align-items: center;
+  width: 184px;
+  height: 60px;
+  padding: 10px 16px;
+  border-right: 1px solid var(--color-gray-300);
+  border-bottom: 1px solid var(--color-gray-300);
+  color: var(--color-gray-900);
+}
+
+.hour {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 228px;
+  height: 60px;
+  border-bottom: 1px solid var(--color-gray-300);
+  color: var(--color-gray-900);
+}
+
+.body {
+  display: flex;
+}
+
+.drivers {
+  flex: none;
+  background: var(--color-gray-0);
+}
+
+/* 시간 칸 443:1301 — 10분 38px(Gray100), 1시간 228px(Gray300), 행 111px(Gray300) */
+.lanes {
+  position: relative;
+  flex: none;
+  width: 684px;
+  height: 555px;
+  background:
+    linear-gradient(to bottom, transparent 110px, var(--color-gray-300) 110px) 0 0 / 100% 111px,
+    linear-gradient(to right, transparent 227px, var(--color-gray-300) 227px) 0 0 / 228px 100%,
+    linear-gradient(to right, transparent 37px, var(--color-gray-100) 37px) 0 0 / 38px 100%;
+}
+
+.block {
+  position: absolute;
+  z-index: 1;
+  height: 110px;
+}
+
+/* 새로 놓인 블록·상태가 바뀐 블록은 톡 튀며 나타난다 */
+.blockPop {
+  animation: blockPop 420ms cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+@keyframes blockPop {
+  from {
+    transform: scale(0.94);
+    opacity: 0.4;
+  }
+}
+
+/* 완료 블록(ScheduleBlock과 같은 색): 작업전 블록 구조에 Completed 색 */
+.completedCard.completedCard {
+  background: var(--color-completed-2);
+}
+
+.completedCard.completedCard > span:first-child {
+  background: var(--color-completed-1);
+}
+
+.completedCard.completedCard > div > span {
+  border-color: var(--color-completed-2);
+}
+
+.completedChip {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--color-completed-1);
+  color: var(--color-gray-0);
+  white-space: nowrap;
+}
+
+/* 놓을 칸 표시(TimeGrid dropPreview): Secondary 12% + 1.4px 테두리 */
+.dropPreview {
+  position: absolute;
+  z-index: 3;
+  height: 110px;
+  background: color-mix(in srgb, var(--color-secondary) 12%, transparent);
+  box-shadow: inset 0 0 0 1.4px var(--color-secondary);
+}
+
+/* 끌고 오는 동안에는 커서가 칸 위에 올 때쯤 나타난다 */
+.dropPreviewLate {
+  animation: previewIn 200ms ease-out 850ms both;
+}
+
+@keyframes previewIn {
+  from {
+    opacity: 0;
+  }
+}
+
+/* 현재 시각선 443:1673 — 09:50, 작업이 시작되면 10:05로 흐른다 */
+.nowLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 190px;
+  z-index: 2;
+  width: 1px;
+  background: var(--color-secondary);
+  transition: transform 1400ms ease-in-out;
+}
+
+.nowLine::before {
+  position: absolute;
+  top: -3px;
+  left: -2.5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  content: '';
+}
+
+.nowLineLater {
+  transform: translateX(57px);
+}
+
+/* 대기함 443:1194 — Primary, radius 20. 제목 (24,24), 건수 (97,29), 접기 (247,28), 카드 (24,77)부터 */
+.panel {
+  position: absolute;
+  top: 110px;
+  left: 891px;
+  width: 295px;
+  height: 615px;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--color-primary);
+}
+
+.panelTitle {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  color: var(--color-gray-0);
+}
+
+.panelCount {
+  position: absolute;
+  top: 29px;
+  left: 97px;
+  color: var(--color-gray-0);
+  opacity: 0.5;
+}
+
+.panelToggle {
+  position: absolute;
+  top: 28px;
+  left: 247px;
+}
+
+.card {
+  position: absolute;
+  left: 24px;
+  transition:
+    top 420ms cubic-bezier(0.3, 0, 0.1, 1),
+    opacity 200ms ease;
+}
+
+/* 끌려 나간 카드 자리는 흐리게 남는다 */
+.cardLifted {
+  opacity: 0.35;
+}
+
+.cardGone {
+  opacity: 0;
+}
+
+/* 커서를 따라가는 카드(대기함 CardDragGhost): 반투명, 커서가 카드 가운데를 잡는다 */
+.dragGhost {
+  position: absolute;
+  top: -61px;
+  left: -123px;
+  opacity: 0.85;
+  transform: rotate(-2deg);
+  box-shadow: 0 12px 32px 0 rgba(0, 0, 0, 0.22);
+  animation: ghostIn 200ms ease-out both;
+}
+
+@keyframes ghostIn {
+  from {
+    transform: rotate(0) scale(0.96);
+  }
+}
+
+/* 배정 확인 1325:9675 — 필드 3개 사이 24 */
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}

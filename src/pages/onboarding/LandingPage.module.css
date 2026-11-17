@@ -75,6 +75,15 @@
   letter-spacing: var(--letter-spacing-base);
   white-space: nowrap;
   text-align: center;
+  animation: heroIn 800ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* 첫 화면 글자는 들어오자마자 아래에서 떠오른다(가운데 정렬 translateX는 유지) */
+@keyframes heroIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 28px);
+  }
 }
 
 /* 1951:16580: Pretendard Medium 31, 140%, -2.5% */
@@ -89,6 +98,7 @@
   letter-spacing: var(--letter-spacing-base);
   white-space: nowrap;
   text-align: center;
+  animation: heroIn 800ms cubic-bezier(0.2, 0.8, 0.2, 1) 150ms both;
 }
 
 /* 기능 소개 글: 제목 SemiBold 36(줄 50) + 설명 Regular 24(줄 34). 자간 -2.5%는 글자 크기마다 다시 계산한다 */
@@ -99,6 +109,30 @@
   align-items: flex-start;
   gap: 14px;
   width: 574px;
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 700ms ease-out,
+    transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* 화면에 처음 들어올 때 아래에서 떠오른다 */
+.featureRevealed {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .headline,
+  .lead {
+    animation: none;
+  }
+
+  .feature {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 .featureTitle {
@@ -136,79 +170,20 @@
   top: 3067px;
 }
 
-/* 화면 이미지: radius 14, 이미지 채움 자르기 비율은 Figma 값 그대로 */
-.shot {
-  position: absolute;
-  overflow: hidden;
-  border-radius: 14px;
-}
-
-.shot > img {
-  position: absolute;
-  max-width: none;
-}
-
-/* image 43(1951:17624) 726×461 */
-.timetableShot {
+/* 타임테이블 시연: image 43(1951:17624) 자리 726×461에 창을 두고 진행 표시는 그 아래 */
+.timetableDemo {
   left: 1014px;
   top: 1011px;
-  width: 726px;
-  height: 461px;
 }
 
-.timetableShot > img {
-  left: -1.32%;
-  top: -4.15%;
-  width: 179.44%;
-  height: 158.03%;
+/* 진행 보드 시연: image 51(2051:36258)·image 52(2051:36261) 자리(180,2015)~(1456,2673)를 창 하나로 쓴다 */
+.boardDemo {
+  left: 180px;
+  top: 2015px;
 }
 
-/* 스크린샷 2026-10-04 101036 1(2051:36256) 863×435 */
-.membersLeftShot {
+/* 인력관리 시연: 스크린샷 두 장(2051:36256·2051:36249)이 겹쳐 있던 자리 (670,3157)~(1740,3592) */
+.membersDemo {
   left: 670px;
   top: 3157px;
-  width: 863px;
-  height: 435px;
-}
-
-.membersLeftShot > img {
-  left: -0.81%;
-  top: -2.99%;
-  width: 100.81%;
-  height: 108.05%;
-}
-
-/* image 50(2051:36249) 610×435 — 왼쪽 표 위에 겹친다 */
-.membersRightShot {
-  left: 1130px;
-  top: 3157px;
-  width: 610px;
-  height: 435px;
-}
-
-.membersRightShot > img {
-  left: 0;
-  top: -2.3%;
-  width: 101.15%;
-  height: 102.3%;
-}
-
-/* image 51(2051:36258) 1276×256, image 52(2051:36261) 1220×340 — object-fit cover, 라운드 없음 */
-.boardSummary,
-.boardTable {
-  position: absolute;
-  left: 180px;
-  object-fit: cover;
-}
-
-.boardSummary {
-  top: 2015px;
-  width: 1276px;
-  height: 256px;
-}
-
-.boardTable {
-  top: 2333px;
-  width: 1220px;
-  height: 340px;
 }

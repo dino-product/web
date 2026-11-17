@@ -1,0 +1,248 @@
+/* 시연 무대(시안 없음): 창 + 아래 진행 표시. 랜딩 좌표로 절대 배치한다 */
+.stage {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  opacity: 0;
+  transform: translateY(40px);
+  transition:
+    opacity 700ms ease-out,
+    transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* 화면에 처음 들어올 때 아래에서 떠오른다 */
+.stageSeen {
+  opacity: 1;
+  transform: none;
+}
+
+/* 창: 기능 소개 이미지와 같은 radius 14, 흰 바탕. 장면이 넘치는 부분은 자른다 */
+.window {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--color-gray-0);
+  color: var(--color-gray-900);
+  box-shadow: 0 24px 80px 0 rgba(0, 0, 0, 0.35);
+  user-select: none;
+}
+
+/* 앱 화면 치수로 그린 장면을 창 너비에 맞게 줄인다. 반복할 때마다 새로 그려 부드럽게 나타난다 */
+.scaler {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  animation: sceneIn 420ms ease-out both;
+}
+
+@keyframes sceneIn {
+  from {
+    opacity: 0;
+  }
+}
+
+.camera {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  transition: transform 900ms cubic-bezier(0.65, 0, 0.35, 1);
+  will-change: transform;
+}
+
+/* 커서: 화살표 끝이 좌표에 온다. 확대·축소와 상관없이 화면에서 같은 크기로 보이게 되돌린다 */
+.cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  transition-property: transform, opacity;
+  transition-timing-function: cubic-bezier(0.45, 0, 0.15, 1);
+}
+
+.cursorHidden {
+  opacity: 0;
+}
+
+.pointerBox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: scale(var(--cursor-scale));
+  transform-origin: 0 0;
+  transition: transform 900ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.pointer {
+  position: absolute;
+  top: -3px;
+  left: -6px;
+  transform-origin: 6px 3px;
+  transition: transform 140ms ease-out;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+}
+
+.pointerPressed {
+  transform: scale(0.84);
+}
+
+/* 누르는 표시: Secondary 물결 */
+.ripple {
+  position: absolute;
+  top: -22px;
+  left: -22px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-secondary) 28%, transparent);
+  box-shadow: inset 0 0 0 2px var(--color-secondary);
+  animation: ripple 520ms ease-out both;
+}
+
+@keyframes ripple {
+  from {
+    transform: scale(0.2);
+    opacity: 1;
+  }
+
+  to {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+
+/* 진행 표시: 구간마다 막대 + '01 이름'. 지난 구간은 채워 두고 지금 구간은 차오른다 */
+.caption {
+  display: flex;
+  gap: 12px;
+}
+
+.phase {
+  display: flex;
+  flex: 1 0 0;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  color: var(--color-white-60);
+  opacity: 0.55;
+  transition: opacity 300ms ease;
+}
+
+.phaseActive,
+.phaseDone {
+  opacity: 1;
+}
+
+.phaseActive {
+  color: var(--color-gray-0);
+}
+
+.track {
+  position: relative;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--color-white-9);
+}
+
+.phaseDone .track {
+  background: var(--color-white-60);
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px;
+  background: var(--color-primary-100);
+  transform-origin: 0 50%;
+  animation: fill linear both;
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.phaseLabel {
+  display: flex;
+  gap: 8px;
+  overflow: hidden;
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  letter-spacing: var(--letter-spacing-base);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.phaseNumber {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+}
+
+/* 설명 꼬리표: Primary 알약 + 상태 색 점. 장면 위에 떠서 톡 나타난다 */
+.callout {
+  position: absolute;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px 0 12px;
+  border-radius: 40px;
+  background: var(--color-primary);
+  color: var(--color-gray-0);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 600;
+  letter-spacing: var(--letter-spacing-base);
+  white-space: nowrap;
+  box-shadow: 0 8px 24px 0 rgba(28, 27, 42, 0.28);
+  animation: calloutIn 380ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.calloutDot {
+  position: relative;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.calloutDot::after {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  content: '';
+  animation: ping 1200ms ease-out infinite;
+}
+
+@keyframes calloutIn {
+  from {
+    transform: translateY(8px) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes ping {
+  to {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+/* 움직임 줄이기: 장면은 대표 단계에 멈춰 있고(useDemoTimeline), 등장·강조 효과도 끈다 */
+@media (prefers-reduced-motion: reduce) {
+  .stage,
+  .stage * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .stage {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -1,0 +1,227 @@
+/*
+ * 인력관리 시연 장면 1603x652 — 인력관리 표(1951:22495, 너비 1547)를 그대로 옮겼다.
+ * 표 (28,28): 머리줄 55 + 행 76 x 6, 그 아래 16에 안내 줄.
+ */
+.scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  padding: 28px;
+  background: var(--color-gray-0);
+}
+
+/* 머리줄 1951:22495: 55px, Gray50, radius 14, 16/500 Gray600 (y=17) */
+.head {
+  position: relative;
+  height: 55px;
+  border-radius: 14px;
+  background: var(--color-gray-50);
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  letter-spacing: var(--letter-spacing-base);
+  white-space: nowrap;
+}
+
+.head > span {
+  position: absolute;
+  top: 17px;
+}
+
+/* 행 1951:22503: 76px, 아래 Gray100 1px, 18/500 */
+.row {
+  position: relative;
+  height: 76px;
+  border-bottom: 1px solid var(--color-gray-100);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+  letter-spacing: var(--letter-spacing-base);
+  white-space: nowrap;
+}
+
+.row > span {
+  position: absolute;
+}
+
+/* 값이 바뀐 행은 Secondary 바탕이 한 번 번쩍인다 */
+.row > .rowFlash {
+  inset: 0;
+  background: color-mix(in srgb, var(--color-secondary) 10%, transparent);
+  animation: rowFlash 1500ms ease-out both;
+}
+
+@keyframes rowFlash {
+  0% {
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+.name {
+  left: 36px;
+  top: 25px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.nameText {
+  color: var(--color-gray-800);
+}
+
+.crown {
+  display: flex;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding-top: 2px;
+}
+
+.kind {
+  left: 200px;
+  top: 18px;
+}
+
+.subtype {
+  left: 375px;
+  top: 18px;
+}
+
+/* 열린 선택 상자: Secondary 테두리(CompactSelect Open). DS 클래스보다 우선하도록 겹쳐 쓴다 */
+.selectOpen.selectOpen {
+  border-color: var(--color-secondary);
+}
+
+.status {
+  left: 1064px;
+  top: 23px;
+}
+
+.text {
+  top: 25px;
+  color: var(--color-gray-700);
+}
+
+.manage {
+  left: 1390.64px;
+  top: 25px;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 11px;
+  color: var(--color-gray-900);
+}
+
+/* 안내 줄 1951:22624: 표 아래 16, info 24 + 6 + 18/500 Gray500 */
+.notice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  color: var(--color-gray-500);
+  font-size: 18px;
+  line-height: var(--line-height-18);
+  font-weight: 500;
+  letter-spacing: var(--letter-spacing-base);
+}
+
+/* 옵션 목록: 대상 행 선택 상자 아래 17px(행 아래 경계)에 붙는다 */
+.menu {
+  position: absolute;
+  top: 311px;
+  z-index: 5;
+  animation: menuIn 160ms ease-out both;
+}
+
+@keyframes menuIn {
+  from {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+}
+
+/* 역할 변경 확인 본문(RoleChangeDialog 2008:30734): 역할 상자 → 유형 선택 → 안내, 간격 24 */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 역할 상자 2008:31015: 515x88, Gray50, radius 12. 현재 (16,16) · 화살표 (246,32) · 변경 (286,16) */
+.roleBox {
+  position: relative;
+  height: 88px;
+  border-radius: 12px;
+  background: var(--color-gray-50);
+  letter-spacing: var(--letter-spacing-base);
+}
+
+.roleFrom,
+.roleTo {
+  position: absolute;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.roleFrom {
+  left: 16px;
+}
+
+.roleTo {
+  left: 286px;
+}
+
+.roleArrow {
+  position: absolute;
+  top: 32px;
+  left: 246px;
+}
+
+.roleLabel {
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+}
+
+.roleValue {
+  color: var(--color-gray-600);
+  font-size: 20px;
+  line-height: var(--line-height-20);
+  font-weight: 500;
+}
+
+.roleValueNew {
+  color: var(--color-gray-800);
+}
+
+/* 안내 상자 2008:31029: Background/3, padding 16, radius 8, 16/500 Gray600 */
+.info {
+  padding: 16px;
+  border-radius: 8px;
+  background: var(--color-background-3);
+  color: var(--color-gray-600);
+  font-size: 16px;
+  line-height: var(--line-height-16);
+  font-weight: 500;
+  letter-spacing: var(--letter-spacing-base);
+  white-space: pre-line;
+}
+
+/* 움직임 줄이기: 한 번 번쩍이는 강조는 그리지 않는다(멈춘 장면에 남지 않게) */
+@media (prefers-reduced-motion: reduce) {
+  .row > .rowFlash {
+    display: none;
+  }
+}
