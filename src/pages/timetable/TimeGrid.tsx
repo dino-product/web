@@ -29,6 +29,7 @@ import {
   HEADER_HEIGHT,
   HOUR_WIDTH,
   INITIAL_SCROLL_HOUR,
+  NOW_LEAD_MINUTES,
   minutesToX,
   MINUTES_PER_DAY,
   ROW_HEIGHT,
@@ -102,7 +103,7 @@ const HOURS = Array.from({ length: AXIS_HOURS }, (_, hour) => minutesToHm(hour *
 
 /**
  * 타임테이블 격자(577:3008). 왼쪽 기사 열·위 시간 머리줄은 고정되고 본문이 가로·세로로 스크롤된다.
- * 처음에는 09:00이 첫 칸으로 보이게 스크롤한다. 보기 모드는 스크롤바를 그리지 않고(시안),
+ * 처음에는 오늘이면 현재 시각 1시간 전의 정시, 다른 날이면 09:00이 첫 칸으로 보이게 스크롤한다. 보기 모드는 스크롤바를 그리지 않고(시안),
  * 편집 모드는 시안의 스크롤 막대(가로 Gray300, 세로 #989898, 6px)를 그린다.
  */
 export default function TimeGrid({
@@ -150,7 +151,7 @@ export default function TimeGrid({
 
   const selectedOnGrid = blocks.some((b) => b.task.id === selectedTaskId);
 
-  // ── 스크롤: 처음 09:00, 편집 모드 스크롤 막대 ─────────────────────────
+  // ── 스크롤: 처음 위치(오늘은 현재 시각 1시간 전의 정시, 그 외 09:00), 편집 모드 스크롤 막대 ─────────────────────────
   const [metrics, setMetrics] = useState<ScrollMetrics | null>(null);
 
   const measure = useCallback(() => {
@@ -166,9 +167,13 @@ export default function TimeGrid({
     });
   }, []);
 
+  // 오늘이면 현재 시각 1시간 전의 정시(예: 14:35 → 13:00)가 첫 칸이 되도록, 다른 날이면 09:00이 첫 칸이 되도록 처음 한 번 스크롤한다.
   useLayoutEffect(() => {
     const el = scrollerRef.current;
-    if (el) el.scrollLeft = INITIAL_SCROLL_HOUR * HOUR_WIDTH;
+    if (!el) return;
+    el.scrollLeft = showNowLine
+      ? minutesToX(Math.max(0, Math.floor((nowMinutes - NOW_LEAD_MINUTES) / 60) * 60))
+      : INITIAL_SCROLL_HOUR * HOUR_WIDTH;
   }, []);
 
   // 스크롤 막대는 편집 모드에만 그리므로 그때만 잰다.

@@ -1,6 +1,6 @@
 /**
  * 타임테이블 격자 치수(Figma 443:1156 기준, 10분 칸만 26 → 38px로 넓힘). 1시간 = 228px(10분 칸 38px x 6), 행 = 111px(블록 110 + 아래선 1).
- * 시간 축은 00:00–24:00(1시간 간격, 24시간 표기)이고 처음에는 시안 첫 칸인 09:00이 왼쪽에 오도록 스크롤한다.
+ * 시간 축은 00:00–24:00(1시간 간격, 24시간 표기)이고 처음에는 오늘이면 현재 시각 1시간 전의 정시, 다른 날이면 시안 첫 칸인 09:00이 왼쪽에 오도록 스크롤한다.
  */
 
 export const HOUR_WIDTH = 228;
@@ -10,6 +10,8 @@ export const CELL_MINUTES = 10;
 export const AXIS_HOURS = 24;
 export const AXIS_WIDTH = HOUR_WIDTH * AXIS_HOURS;
 export const INITIAL_SCROLL_HOUR = 9;
+/** 오늘 날짜를 열면 현재 시각보다 이만큼 앞선 시각의 정시가 첫 칸이 되도록 스크롤한다. */
+export const NOW_LEAD_MINUTES = 60;
 
 export const ROW_HEIGHT = 111;
 export const BLOCK_HEIGHT = 110;
