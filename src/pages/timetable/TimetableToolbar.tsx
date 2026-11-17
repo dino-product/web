@@ -78,7 +78,8 @@ export default function TimetableToolbar({
 }: TimetableToolbarProps) {
   const editing = mode === 'edit';
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const dateButtonRef = useRef<HTMLButtonElement>(null);
+  // 달력은 날짜 이동 상자(화살표 포함) 왼쪽 끝에 맞춰 연다
+  const dateNavRef = useRef<HTMLDivElement>(null);
   const technicianTypeName = technicianTypes.find((t) => t.id === technicianTypeId)?.name;
   const workTypeName = workTypes.find((t) => t.id === workTypeId)?.name;
 
@@ -86,12 +87,20 @@ export default function TimetableToolbar({
     <div className={styles.toolbar}>
       <div className={styles.left}>
         <div className={clsx(styles.dateGroup, editing && styles.dimmed)}>
-          <div className={clsx(styles.dateNav, editing && styles.dateNavEditing)}>
-            <button type="button" className={styles.navButton} aria-label="이전 날짜" disabled={editing} onClick={onPrevDate}>
+          <div ref={dateNavRef} className={clsx(styles.dateNav, editing && styles.dateNavEditing)}>
+            <button
+              type="button"
+              className={styles.navButton}
+              aria-label="이전 날짜"
+              disabled={editing}
+              onClick={() => {
+                setCalendarOpen(false);
+                onPrevDate();
+              }}
+            >
               <img src={prevIcon} alt="" width={42} height={50} />
             </button>
             <button
-              ref={dateButtonRef}
               type="button"
               className={clsx('t-body-s-medium', styles.dateText)}
               aria-label="날짜 선택"
@@ -102,11 +111,20 @@ export default function TimetableToolbar({
             >
               {formatTimetableDate(date)}
             </button>
-            <button type="button" className={styles.navButton} aria-label="다음 날짜" disabled={editing} onClick={onNextDate}>
+            <button
+              type="button"
+              className={styles.navButton}
+              aria-label="다음 날짜"
+              disabled={editing}
+              onClick={() => {
+                setCalendarOpen(false);
+                onNextDate();
+              }}
+            >
               <img src={nextIcon} alt="" width={42} height={50} />
             </button>
           </div>
-          <Popover open={calendarOpen && !editing} anchorRef={dateButtonRef} onClose={() => setCalendarOpen(false)}>
+          <Popover open={calendarOpen && !editing} anchorRef={dateNavRef} onClose={() => setCalendarOpen(false)}>
             <DateCalendar
               value={date}
               onSelect={(next) => {
