@@ -1,4 +1,4 @@
-/* Figma SIde bar 536:2553 — 319 x 1080 기준 좌표를 주석으로 남긴다. */
+/* Figma SIde bar 536:2553 — 319 x 1080 기준 좌표를 주석으로 남긴다. 실제 너비는 300(--sidebar-width), 안쪽 너비 254(좌우 23). */
 .sidebar {
   position: relative;
   display: flex;
@@ -31,13 +31,13 @@
   outline-offset: 4px;
 }
 
-/* 검색: (23,110) 274x54, padding 12/14, radius 10, 흰색 9% */
+/* 검색: (23,110) 254x54, padding 12/14, radius 10, 흰색 9% */
 .search {
   display: flex;
   flex: none;
   align-items: center;
   gap: 9px;
-  width: 274px;
+  width: 254px;
   height: 54px;
   margin: 20px 0 0 23px;
   padding: 12px 14px;
@@ -70,13 +70,13 @@
   display: none;
 }
 
-/* 메뉴: (23,188) 너비 274, 항목 68px 간격 8 */
+/* 메뉴: (23,188) 너비 254, 항목 68px 간격 8 */
 .menu {
   display: flex;
   flex: none;
   flex-direction: column;
   gap: 8px;
-  width: 274px;
+  width: 254px;
   margin-left: 23px;
 }
 
@@ -127,20 +127,20 @@
 
 .divider {
   flex: none;
-  width: 274px;
+  width: 254px;
   height: 2px;
   margin: 0 0 2px 23px;
   border: 0;
   background: rgba(255, 255, 255, 0.12);
 }
 
-/* 사용자 카드: 274x68, 양끝 정렬 */
+/* 사용자 카드: 254x68, 양끝 정렬 */
 .userCard {
   display: flex;
   flex: none;
   align-items: center;
   justify-content: space-between;
-  width: 274px;
+  width: 254px;
   height: 68px;
   margin-left: 23px;
 }
@@ -162,6 +162,17 @@
   padding-right: 20px;
 }
 
+.userAvatar {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: var(--color-accepted-2);
+}
+
 .userTexts {
   display: flex;
   flex-direction: column;
@@ -174,6 +185,8 @@
   font-size: 18px;
   line-height: 25px;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -181,6 +194,8 @@
   font-size: 16px;
   line-height: 22px;
   font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: pre;
 }
 
@@ -198,7 +213,7 @@
   line-height: 0;
 }
 
-/* 발주사 전환 팝오버(1921:10962): 274px, 흰 배경, Gray200 테두리, radius 12, padding 0 6, 간격 2 */
+/* 발주사 전환 팝오버(1921:10962): 사용자 카드 너비, 흰 배경, Gray200 테두리, radius 12, padding 0 6, 간격 2 */
 .switcher {
   display: flex;
   flex-direction: column;

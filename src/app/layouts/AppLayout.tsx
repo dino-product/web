@@ -42,7 +42,7 @@ function activeMenu(pathname: string): SidebarMenuKey | null {
 }
 
 /**
- * 사이드바(319px 고정) + 본문 레이아웃. 본문은 --app-height 높이의 내부 스크롤 영역이다.
+ * 사이드바(300px 고정) + 본문 레이아웃. 본문은 --app-height 높이의 내부 스크롤 영역이다.
  * 사이드바는 스토어 계약(selectCurrentUser·selectCurrentCompany·selectCurrentMembership, memberships, logout, switchCompany)으로 연결한다.
  * 로그인한 동안 현재 발주사의 실시간 갱신 연결을 연다(src/data/realtime.ts).
  */

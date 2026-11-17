@@ -63,7 +63,7 @@ export interface SidebarProps {
 
 /**
  * Figma `SIde bar` 536:2553(활성 메뉴별 6변형) · 소속 발주사 2곳 이상 1921:10813/1921:11040.
- * 319px, Primary 배경. 로고(24,34) · 검색(23,110 274x54) · 메뉴(23,188, 68px 간격 8) ·
+ * 300px, Primary 배경. 로고(24,34) · 검색(23,110 254x54) · 메뉴(23,188, 68px 간격 8) ·
  * 아래쪽: 구분선 2px(흰색 12%) → 10 → 알림함·마이페이지 → 8 → 사용자 카드 68px → 아래 여백 62.
  */
 export function Sidebar({
@@ -116,12 +116,18 @@ export function Sidebar({
     );
   };
 
-  const userTexts = (
-    <span className={styles.userTexts}>
-      <span className={styles.userName}>{userName}</span>
-      <span className={styles.userMeta}>
-        <span className={styles.userRole}>{`${roleLabel}  · `}</span>
-        <span className={styles.userCompany}>{companyName}</span>
+  // 사용자 카드 1921:10838: 아바타 50px(Accepted/2 원 + user 아이콘 28 Primary100) → 14 → 이름/역할·발주사
+  const userInfo = (
+    <span className={styles.userInfo}>
+      <span className={styles.userAvatar} aria-hidden>
+        <Icon name="user" size={28} color="var(--color-primary-100)" />
+      </span>
+      <span className={styles.userTexts}>
+        <span className={styles.userName}>{userName}</span>
+        <span className={styles.userMeta}>
+          <span className={styles.userRole}>{`${roleLabel}  · `}</span>
+          <span className={styles.userCompany}>{companyName}</span>
+        </span>
       </span>
     </span>
   );
@@ -171,12 +177,12 @@ export function Sidebar({
               aria-expanded={switcherOpen}
               onClick={() => setSwitcherOpen((v) => !v)}
             >
-              <span className={styles.userInfo}>{userTexts}</span>
+              {userInfo}
               <Icon name="selector" size={30} color="var(--color-support-sidebar-icon)" />
             </button>
           ) : (
             <>
-              <span className={styles.userInfo}>{userTexts}</span>
+              {userInfo}
               <button
                 type="button"
                 className={styles.logoutButton}
