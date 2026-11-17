@@ -2,6 +2,8 @@ import clsx from 'clsx';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+import { canvasScale } from '@/lib/canvas';
+
 import { useOverlayRoot } from '../internal/useOverlayRoot';
 import styles from './OverflowTooltip.module.css';
 
@@ -97,7 +99,7 @@ export function OverflowTooltip() {
     };
   }, []);
 
-  // #overlay-root 기준 캔버스 좌표로 배치한다(Popover와 같은 방식).
+  // AppStage zoom을 걷어 낸 #overlay-root 기준 캔버스 좌표로 배치한다(Popover와 같은 방식).
   useLayoutEffect(() => {
     const bubble = bubbleRef.current;
     if (!anchor || !bubble || !root) {
@@ -105,10 +107,11 @@ export function OverflowTooltip() {
       return;
     }
     const rootRect = root.getBoundingClientRect();
+    const scale = canvasScale(root);
     const rect = anchor.box.getBoundingClientRect();
-    const ax = rect.left - rootRect.left;
-    const ay = rect.top - rootRect.top;
-    const ah = rect.height;
+    const ax = (rect.left - rootRect.left) / scale;
+    const ay = (rect.top - rootRect.top) / scale;
+    const ah = rect.height / scale;
     const bw = bubble.offsetWidth;
     const bh = bubble.offsetHeight;
     const left = Math.min(Math.max(ax, EDGE), root.offsetWidth - bw - EDGE);

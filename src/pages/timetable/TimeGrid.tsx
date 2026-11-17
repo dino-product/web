@@ -11,6 +11,7 @@ import {
 } from 'react';
 
 import { Button, DriverListItem, Icon, StateMessage } from '@/design-system';
+import { canvasScale } from '@/lib/canvas';
 import { hmToMinutes, minutesToHm } from '@/lib/date';
 import { useMemberNames } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
@@ -220,11 +221,12 @@ export default function TimeGrid({
     event.preventDefault();
     const target = event.currentTarget;
     target.setPointerCapture(event.pointerId);
+    const scale = canvasScale(el);
     const startPointer = axis === 'x' ? event.clientX : event.clientY;
     const startScroll = axis === 'x' ? el.scrollLeft : el.scrollTop;
     const ratio = info.max / info.range;
     const onMove = (e: PointerEvent) => {
-      const delta = (axis === 'x' ? e.clientX : e.clientY) - startPointer;
+      const delta = ((axis === 'x' ? e.clientX : e.clientY) - startPointer) / scale;
       if (axis === 'x') el.scrollLeft = startScroll + delta * ratio;
       else el.scrollTop = startScroll + delta * ratio;
     };
@@ -246,8 +248,9 @@ export default function TimeGrid({
     const lanes = lanesRef.current;
     if (!editing || !drag || !lanes || noTechnicians) return null;
     const rect = lanes.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const row = Math.floor((event.clientY - rect.top) / ROW_HEIGHT);
+    const scale = canvasScale(lanes);
+    const x = (event.clientX - rect.left) / scale;
+    const row = Math.floor((event.clientY - rect.top) / scale / ROW_HEIGHT);
     if (!technicians[row]) return null;
     const startMinutes =
       drag.grabOffsetX === null ? xToCellMinutes(x, 'floor') : xToCellMinutes(x - drag.grabOffsetX, 'round');
@@ -297,7 +300,7 @@ export default function TimeGrid({
       return;
     }
     const rect = event.currentTarget.getBoundingClientRect();
-    const grabOffsetX = event.clientX - rect.left;
+    const grabOffsetX = (event.clientX - rect.left) / canvasScale(event.currentTarget);
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', task.id);
     onBlockDragStart(task.id, grabOffsetX);
@@ -312,6 +315,7 @@ export default function TimeGrid({
     event.stopPropagation();
     const target = event.currentTarget;
     target.setPointerCapture(event.pointerId);
+    const scale = canvasScale(target);
     resizingRef.current = true;
     const originStart = hmToMinutes(task.startTime!);
     const originEnd = originStart + task.durationMinutes!;
@@ -324,7 +328,7 @@ export default function TimeGrid({
     setResize(current);
 
     const onMove = (e: PointerEvent) => {
-      const moved = ((e.clientX - event.clientX) / HOUR_WIDTH) * 60;
+      const moved = ((e.clientX - event.clientX) / scale / HOUR_WIDTH) * 60;
       const snap = (from: number) => Math.round((from + moved) / CELL_MINUTES) * CELL_MINUTES;
       // 반 칸도 안 끌었으면 원래 시간을 둔다(칸에 맞지 않는 일정이 살짝 눌러도 바뀌지 않게).
       const next =

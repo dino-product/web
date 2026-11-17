@@ -11,6 +11,8 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 
+import { canvasScale } from '@/lib/canvas';
+
 import { useOverlayRoot } from '../internal/useOverlayRoot';
 import styles from './Popover.module.css';
 
@@ -40,7 +42,7 @@ interface Position {
 
 /**
  * #overlay-root(캔버스 안, 함께 zoom됨)로 포털하는 위치 지정 패널.
- * AppStage의 zoom을 고려해 트리거 위치를 캔버스 좌표로 바꿔 배치하고, 스크롤·리사이즈 때 다시 계산한다.
+ * AppStage의 zoom을 걷어 내 트리거 위치를 캔버스 좌표로 바꿔 배치하고, 스크롤·리사이즈 때 다시 계산한다.
  */
 export function Popover({
   open,
@@ -62,11 +64,12 @@ export function Popover({
     const panel = panelRef.current;
     if (!anchor || !panel || !root) return;
     const rootRect = root.getBoundingClientRect();
+    const scale = canvasScale(root);
     const rect = anchor.getBoundingClientRect();
-    const ax = rect.left - rootRect.left;
-    const ay = rect.top - rootRect.top;
-    const aw = rect.width;
-    const ah = rect.height;
+    const ax = (rect.left - rootRect.left) / scale;
+    const ay = (rect.top - rootRect.top) / scale;
+    const aw = rect.width / scale;
+    const ah = rect.height / scale;
     const pw = matchWidth ? aw : panel.offsetWidth;
     const ph = panel.offsetHeight;
     const left = placement.endsWith('end') ? ax + aw - pw : ax;

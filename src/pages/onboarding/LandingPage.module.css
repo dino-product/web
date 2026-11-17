@@ -8,6 +8,18 @@
   color: var(--color-gray-0);
 }
 
+/*
+ * 본문 좌표 기준인 1920px 프레임. 브라우저 축소로 캔버스가 넓어지면 가운데 두고, 배경(.page)만 창 너비를 채운다.
+ * 로고·상단 버튼은 Figma 제약처럼 화면 왼쪽·오른쪽 끝에 붙어 프레임 밖(.page 기준)에 둔다.
+ */
+.frame {
+  position: absolute;
+  top: 0;
+  left: calc(50% - var(--design-width) / 2);
+  width: var(--design-width);
+  height: 100%;
+}
+
 /* Ellipse 457(1951:17633): 1812×479 at (54,199), 흐림 효과 포함 이미지(2358.4×1025.4)가 노드보다 273px씩 크다. overlay 합성 */
 .glow {
   position: absolute;

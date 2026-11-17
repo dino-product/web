@@ -107,8 +107,9 @@ async function gridPoint(page, name, time) {
     const row = [...document.querySelectorAll('[class*="drivers"] > *')].findIndex((el) => el.textContent.includes(name));
     if (!lanes || row < 0) throw new Error(`Missing grid row: ${name}`);
     const rect = lanes.getBoundingClientRect();
+    const zoom = rect.width / lanes.offsetWidth;
     const [h, m] = time.split(':').map(Number);
-    return { x: (h + m / 60) * 156 + 20, y: row * 111 + 55 };
+    return { x: ((h + m / 60) * 228 + 20) * zoom, y: (row * 111 + 55) * zoom };
   }, { name, time });
 }
 async function drag(page, id, name, time) {

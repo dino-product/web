@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { useId, useLayoutEffect, useRef, useState } from 'react';
 
 import { Icon, Menu, MenuItem, Popover, type PopoverPlacement } from '@/design-system';
+import { canvasScale } from '@/lib/canvas';
 
 import styles from './OptionSelect.module.css';
 
@@ -39,9 +40,10 @@ function choosePlacement(anchor: HTMLElement, panelHeight: number): PopoverPlace
   const root = document.getElementById('overlay-root');
   if (!root) return 'bottom-start';
   const rootRect = root.getBoundingClientRect();
+  const scale = canvasScale(root);
   const rect = anchor.getBoundingClientRect();
-  const top = rect.top - rootRect.top;
-  const bottom = rect.bottom - rootRect.top;
+  const top = (rect.top - rootRect.top) / scale;
+  const bottom = (rect.bottom - rootRect.top) / scale;
   const below = root.offsetHeight - bottom - PANEL_OFFSET;
   return below < panelHeight + 8 && top > below ? 'top-start' : 'bottom-start';
 }
