@@ -10,7 +10,8 @@
  *   기사·시작 시간·소요 시간이 모두 있으면 배정됨, 하나라도 없으면 등록(대기함).
  * - 일정 충돌: 같은 기사·시간대에 작업이 있어 서버가 등록하지 않으면 등록 모달을 잠시 감추고 일정 충돌 경고(1325:10373, 타임테이블
  *   배정과 같은 모달)를 띄운다. '충돌 확인 후 배치'는 겹침을 확인한 것으로 다시 등록하고, 취소는 입력값이 남은 등록 모달로 돌아간다.
- * - 현장 사진: 최대 6장. 저장하면 장마다 업로드 주소를 받아 올린 뒤 등록에 붙인다(store createTask).
+ * - 현장 사진: 최대 6장. 남은 칸보다 많이 고르면 하나도 붙이지 않고 안내 문구 자리에 사유를 보인다(사진을 바꾸거나 다시 열면 지운다).
+ *   저장하면 장마다 업로드 주소를 받아 올린 뒤 등록에 붙인다(store createTask).
  * - 주소 검색: 카카오 우편번호 서비스 팝업(lib/kakaoPostcode)으로 고른 우편번호·기본 주소를 채운다. 팝업 시안이 없어 카카오 화면을
  *   그대로 쓴다. 좌표는 서버가 저장할 때 기본 주소로 구한다.
  */
@@ -104,6 +105,8 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
   const technicians = useActiveTechnicians();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [failure, setFailure] = useState<string | null>(null);
+  /** 남은 칸보다 많이 골라 첨부를 거절한 사유. 사진 안내 문구 자리에 보인다 */
+  const [photoError, setPhotoError] = useState<string | null>(null);
   /** 서버가 겹쳐 등록하지 않은 기존 작업과, 확인하면 다시 보낼 등록 */
   const [conflict, setConflict] = useState<{
     conflicts: ScheduleConflict[];
@@ -122,6 +125,7 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
     if (open) {
       setForm(EMPTY_FORM);
       setFailure(null);
+      setPhotoError(null);
       setConflict(null);
     }
   }
@@ -141,14 +145,22 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
     event.target.value = '';
     if (!files.length) return;
     const room = MAX_SITE_PHOTOS - form.photos.length;
-    const picked = files.slice(0, Math.max(0, room));
-    const previews = await Promise.all(picked.map(readAsDataUrl));
-    const added = picked.map((file, index) => ({ file, preview: previews[index] }));
+    // 남은 칸보다 많으면 일부만 붙이지 않고 이번 선택을 통째로 거절한다. 어떤 사진이 빠졌는지 모르는 채 붙지 않게 한다.
+    if (files.length > room) {
+      setPhotoError(`최대 ${MAX_SITE_PHOTOS}장까지 첨부할 수 있어요. ${room}장 이하로 다시 골라 주세요.`);
+      return;
+    }
+    setPhotoError(null);
+    const previews = await Promise.all(files.map(readAsDataUrl));
+    const added = files.map((file, index) => ({ file, preview: previews[index] }));
+    // 미리보기를 읽는 동안 다른 선택이 먼저 붙었을 수 있어 최대 장수로 한 번 더 자른다
     setForm((prev) => ({ ...prev, photos: [...prev.photos, ...added].slice(0, MAX_SITE_PHOTOS) }));
   };
 
-  const removePhoto = (index: number) =>
+  const removePhoto = (index: number) => {
+    setPhotoError(null);
     setForm((prev) => ({ ...prev, photos: prev.photos.filter((_, i) => i !== index) }));
+  };
 
   // 등록 실패는 입력값을 남긴 채 사유를 보이고, 겹치면 일정 충돌 경고를 띄우고, 등록되면 닫는다.
   const settle = (result: CreateTaskResult) => {
@@ -374,7 +386,13 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
             <section className={styles.card}>
               <div className={styles.photoHeader}>
                 <SectionTitle optional>현장 사진 </SectionTitle>
-                <p className={clsx('t-caption-m-medium', styles.caption)}>이미지를 첨부하세요 (최대 6장)</p>
+                {photoError ? (
+                  <p className={clsx('t-caption-m-medium', styles.captionError)} role="alert">
+                    {photoError}
+                  </p>
+                ) : (
+                  <p className={clsx('t-caption-m-medium', styles.caption)}>이미지를 첨부하세요 (최대 6장)</p>
+                )}
               </div>
               <div className={styles.photoGrid}>
                 {form.photos.map((photo, index) => (

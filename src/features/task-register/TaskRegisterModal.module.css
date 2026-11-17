@@ -90,6 +90,11 @@
   color: var(--color-gray-600);
 }
 
+/* 첨부 거절 사유: 안내 문구 자리에 Warning/1 (Figma 시안 없음, 하단 실패 헬퍼 텍스트와 같은 색) */
+.captionError {
+  color: var(--color-warning-1);
+}
+
 .photoGrid {
   display: grid;
   grid-template-columns: repeat(3, 185px);
