@@ -10,7 +10,7 @@ export interface FilterOption<T extends string> {
 }
 
 export interface FilterSelectProps<T extends string> {
-  /** 트리거 글자(필터 이름). 예: '상태', '등록자' */
+  /** 트리거 글자(필터 이름). 예: '상태', '등록자'. 값을 고르면 그 선택지 이름이 대신 보인다. */
   label: ReactNode;
   options: FilterOption<T>[];
   /** 패널 위치. 기본 bottom-start, 트리거 아래 6px(1883:14092) */
@@ -46,6 +46,8 @@ export function FilterSelect<T extends string>({
 
   // 선택지가 없으면(예: 기사·유형이 없는 발주사의 담당기사·유형) 빈 메뉴 상자를 열지 않는다(시안에 없는 모양).
   const hasOptions = options.length > 0;
+  // 고른 값이 있으면 트리거에 그 선택지 이름을 보여 준다(예: '상태' → '작업중'). 해제하면 필터 이름으로 돌아온다.
+  const selectedLabel = options.find((option) => option.value === value)?.label;
 
   const select = (next: T) => {
     onChange(value === next ? null : next);
@@ -56,7 +58,7 @@ export function FilterSelect<T extends string>({
     <>
       <SelectButton
         ref={anchorRef}
-        label={label}
+        label={selectedLabel ?? label}
         open={open && hasOptions}
         disabled={disabled}
         className={className}
