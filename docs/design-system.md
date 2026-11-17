@@ -4,7 +4,7 @@ Figma `DesignSystem 웹` 페이지(`0:1`)의 컴포넌트와 웹 화면에서 �
 
 - 가져오기: `import { Button, Dialog, Icon } from '@/design-system';`
 - 값의 근거: Figma `use_figma` 노드 스타일 덤프와 `get_design_context`(사이드바 `1921:10813`). 기준 스크린샷은 `.figma/ref/ds/<nodeId>.png`, 원본 SVG는 `.figma/ref/ds/svg-raw/`, 아이콘 메타는 `.figma/ref/ds/icon-meta.json`.
-- 모든 크기·여백은 1920px 캔버스 px 그대로입니다. 화면에서 위치를 잡을 때도 Figma 좌표를 그대로 씁니다.
+- 모든 크기·여백은 1920px 캔버스 px 그대로입니다. 화면에서 위치를 잡을 때도 Figma 좌표를 그대로 씁니다. 축소(cmd -)로 캔버스가 1920px보다 넓어질 때 함께 늘어나야 하는 고정 너비에는 `var(--canvas-extra-width)`를 더합니다(스크립트에서는 `useCanvasExtra`, `@/lib/canvas`). 1920×1080에서는 0입니다.
 - Figma에 없는 호버·포커스 모양은 넣지 않았습니다. 예외: 키보드 포커스 표시(`:focus-visible`)와, 드롭다운 항목 호버를 Figma의 선택 모양(Gray50 배경)과 같게 둔 것.
 
 ## 1. 토큰과 글자
@@ -437,7 +437,7 @@ Popover props: `open`, `anchorRef`, `onClose`, `placement`(`bottom-start` 기본
 </Modal>
 ```
 
-- Modal: 캔버스 전체(사이드바 포함)를 `--color-dim`으로 덮고 내용을 가운데 둡니다(Figma 모달도 1920×1080 가운데). `onClose`가 있으면 Esc로 닫힘, `closeOnOverlayClick` 기본 false.
+- Modal: 캔버스 전체(사이드바 포함)를 `--color-dim`으로 덮고 내용을 가운데 둡니다(Figma 모달도 1920×1080 가운데). `onClose`가 있으면 Esc로 닫힘, `closeOnOverlayClick` 기본 false. 확대하거나 창이 낮아 내용이 화면보다 높으면 바탕이 세로로 스크롤됩니다.
 - Dialog: 흰 카드, `width` 기본 575(약관 동의 519), radius 18, padding 30, 세로 간격 24. 제목 24/700 Gray900, 아이콘이 있으면 28px + 간격 12.
 
 | Dialog prop | 값 |

@@ -20,7 +20,7 @@ export const DRIVER_COLUMN_WIDTH = 184;
 /** 기사 0명일 때 왼쪽 열(1834:10567 Frame 221)은 오른쪽 선을 포함해 185px */
 export const EMPTY_DRIVER_COLUMN_WIDTH = 185;
 
-/** 한 화면에 보이는 행 수. 격자 프레임 최대 높이 837 = 60 + 111 x 7 */
+/** 시안 프레임(1080px 높이)에서 한 화면에 보이는 행 수. 격자 프레임 최대 높이 837 = 60 + 111 x 7 */
 export const VISIBLE_ROWS = 7;
 export const GRID_MAX_HEIGHT = HEADER_HEIGHT + ROW_HEIGHT * VISIBLE_ROWS;
 

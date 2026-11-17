@@ -13,7 +13,7 @@
 .card {
   display: flex;
   flex-direction: column;
-  width: 1534px;
+  width: calc(1534px + var(--canvas-extra-width));
   margin-top: 34px;
   border-radius: 18px;
   background: var(--color-gray-0);

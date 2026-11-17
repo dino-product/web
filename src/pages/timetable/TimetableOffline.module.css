@@ -4,7 +4,7 @@
  * 제목(349,77 끝) 아래 92px, 본문 왼쪽 여백 30보다 11px 왼쪽.
  */
 .card {
-  width: 1559px;
+  width: calc(1559px + var(--canvas-extra-width));
   height: 742px;
   margin: 92px 0 0 -11px;
   padding-top: 202px;

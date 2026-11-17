@@ -1,9 +1,10 @@
 import clsx from 'clsx';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { TaskRegisterDateContext } from '@/features/task-register/registerDate';
 import TaskRegisterModal from '@/features/task-register/TaskRegisterModal';
+import { useCanvasExtra } from '@/lib/canvas';
 import { addDays, minutesToHm, today } from '@/lib/date';
 import {
   findScheduleConflicts,
@@ -26,7 +27,7 @@ import {
   StaleDialog,
   UnassignConfirmDialog,
 } from './AssignDialogs';
-import { CONTENT_GAP, CONTENT_WIDTH, PANEL_COLLAPSED_WIDTH, PANEL_WIDTH } from './grid';
+import { CONTENT_GAP, CONTENT_WIDTH, GRID_MAX_HEIGHT, PANEL_COLLAPSED_WIDTH, PANEL_WIDTH, ROW_HEIGHT } from './grid';
 import TimeGrid, { type GridDrag } from './TimeGrid';
 import TimetableOffline from './TimetableOffline';
 import styles from './TimetablePage.module.css';
@@ -61,6 +62,7 @@ export default function TimetablePage() {
 
   const [date, setDate] = useState<IsoDate>(() => today());
   const [panelCollapsed, setPanelCollapsed] = useState(false);
+  const canvasExtra = useCanvasExtra();
   const [technicianTypeId, setTechnicianTypeId] = useState<ID | null>(null);
   const [workTypeId, setWorkTypeId] = useState<ID | null>(null);
   const [registerOpen, setRegisterOpen] = useState(false);
@@ -218,8 +220,10 @@ export default function TimetablePage() {
 
   const clearReveal = useCallback(() => setRevealTaskId(null), []);
 
+  // 캔버스가 시안 프레임보다 넓으면(축소) 격자가 그만큼 넓어지고, 높으면 들어가는 행 수만큼 격자·대기함이 길어진다.
   const panelWidth = panelCollapsed ? PANEL_COLLAPSED_WIDTH : PANEL_WIDTH;
-  const gridWidth = CONTENT_WIDTH - CONTENT_GAP - panelWidth;
+  const gridWidth = CONTENT_WIDTH + canvasExtra.width - CONTENT_GAP - panelWidth;
+  const extraHeight = Math.floor(canvasExtra.height / ROW_HEIGHT) * ROW_HEIGHT;
 
   return (
     <TaskRegisterDateContext.Provider value={date}>
@@ -248,9 +252,10 @@ export default function TimetablePage() {
                 onRegister={() => setRegisterOpen(true)}
               />
             </div>
-            <div className={styles.content}>
+            <div className={styles.content} style={{ '--grid-extra-height': `${extraHeight}px` } as CSSProperties}>
               <TimeGrid
                 width={gridWidth}
+                maxHeight={GRID_MAX_HEIGHT + extraHeight}
                 technicians={rows}
                 tasks={gridTasks}
                 // 현재 시각선(443:1673 'Line 6')은 보기 모드 시안에만 있고 편집 모드 시안(1038:4233·1039:4935)에는 없다.

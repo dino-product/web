@@ -22,6 +22,7 @@ export interface ModalProps {
 
 /**
  * 모달 바탕. #overlay-root로 포털해 캔버스 전체(사이드바 포함)를 #000 40%로 덮고 내용을 가운데 둔다.
+ * 확대하거나 창이 낮아 내용이 화면보다 높으면 바탕이 세로로 스크롤된다.
  * 확인형 모달은 Dialog, 큰 모달(새 작업 등록 등)은 ModalPanel을 안에 넣는다.
  */
 export function Modal({
@@ -50,21 +51,23 @@ export function Modal({
   if (!open || !root) return null;
 
   return createPortal(
-    <div
-      className={styles.overlay}
-      onMouseDown={(event) => {
-        if (closeOnOverlayClick && onClose && event.target === event.currentTarget) onClose();
-      }}
-    >
+    <div className={styles.overlay}>
       <div
-        ref={contentRef}
-        role="dialog"
-        aria-modal="true"
-        tabIndex={-1}
-        className={clsx(styles.content, className)}
-        {...aria}
+        className={styles.center}
+        onMouseDown={(event) => {
+          if (closeOnOverlayClick && onClose && event.target === event.currentTarget) onClose();
+        }}
       >
-        {children}
+        <div
+          ref={contentRef}
+          role="dialog"
+          aria-modal="true"
+          tabIndex={-1}
+          className={clsx(styles.content, className)}
+          {...aria}
+        >
+          {children}
+        </div>
       </div>
     </div>,
     root,

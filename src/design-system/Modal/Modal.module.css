@@ -1,11 +1,18 @@
+/* 내용이 화면보다 높으면(확대·낮은 창) 세로로 스크롤한다. 바탕색은 스크롤과 상관없이 화면 전체를 덮는다. */
 .overlay {
   position: absolute;
   inset: 0;
   z-index: 1;
+  overflow: hidden auto;
+  background: var(--color-dim);
+}
+
+/* 화면 높이 이상으로 늘어나는 가운데 정렬 상자. 내용이 더 높으면 위가 잘리지 않고 위에서부터 놓인다. */
+.center {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-dim);
+  min-height: 100%;
 }
 
 .content {

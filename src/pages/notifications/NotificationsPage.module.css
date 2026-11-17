@@ -100,7 +100,7 @@
 
 /* 2053:9818: (339,180) 1557x741 상자, 아이콘 y=202 가운데 */
 .empty {
-  width: 1557px;
+  width: calc(1557px + var(--canvas-extra-width));
   height: 741px;
   margin: 103px 0 0 -18px;
   padding-top: 202px;

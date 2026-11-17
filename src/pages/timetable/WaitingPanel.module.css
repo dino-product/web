@@ -1,9 +1,9 @@
-/* 대기함 패널 443:1194 — 295x836, Primary, radius 20 */
+/* 대기함 패널 443:1194 — 295x836, Primary, radius 20. 캔버스가 높아져 격자 행이 늘면 그만큼 길어진다(--grid-extra-height). */
 .panel {
   position: relative;
   flex: none;
   width: 295px;
-  height: 836px;
+  height: calc(836px + var(--grid-extra-height, 0px));
   overflow: hidden;
   border-radius: 20px;
   background: var(--color-primary);
@@ -88,7 +88,7 @@
 /* 빈 상태 1834:9145 — (63,366) 168x80, 상자 40(Gray500) → 12 → 20/600 Gray500 */
 .empty {
   position: absolute;
-  top: 366px;
+  top: calc(366px + var(--grid-extra-height, 0px) / 2);
   left: 63px;
   display: flex;
   flex-direction: column;

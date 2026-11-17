@@ -25,7 +25,6 @@ import {
   durationToWidth,
   EMPTY_DRIVER_COLUMN_WIDTH,
   emptyCardPosition,
-  GRID_MAX_HEIGHT,
   HEADER_HEIGHT,
   HOUR_WIDTH,
   INITIAL_SCROLL_HOUR,
@@ -33,7 +32,6 @@ import {
   minutesToX,
   MINUTES_PER_DAY,
   ROW_HEIGHT,
-  VISIBLE_ROWS,
   xToCellMinutes,
 } from './grid';
 import ScheduleBlock, { type ResizeEdge } from './ScheduleBlock';
@@ -66,8 +64,10 @@ interface ResizeState {
 }
 
 interface TimeGridProps {
-  /** 격자 프레임 너비(대기함 펼침 1212, 접힘 1417) */
+  /** 격자 프레임 너비(대기함 펼침 1212, 접힘 1417). 캔버스가 넓어지면 그만큼 더 넓다 */
   width: number;
+  /** 격자 프레임 최대 높이(837 = 7행). 캔버스가 높아지면 들어가는 행 수만큼 더 높다 */
+  maxHeight: number;
   /** 행(활성 기사, 기사 유형 필터 적용) */
   technicians: Member[];
   /** 보고 있는 날짜의 일정 작업(작업 유형 필터 적용) */
@@ -108,6 +108,7 @@ const HOURS = Array.from({ length: AXIS_HOURS }, (_, hour) => minutesToHm(hour *
  */
 export default function TimeGrid({
   width,
+  maxHeight,
   technicians,
   tasks,
   showNowLine,
@@ -128,9 +129,9 @@ export default function TimeGrid({
   const types = useAppStore((s) => s.types);
 
   const noTechnicians = technicians.length === 0;
-  const rowCount = noTechnicians ? VISIBLE_ROWS : technicians.length;
+  const rowCount = noTechnicians ? Math.round((maxHeight - HEADER_HEIGHT) / ROW_HEIGHT) : technicians.length;
   const bodyHeight = rowCount * ROW_HEIGHT;
-  const frameHeight = Math.min(HEADER_HEIGHT + bodyHeight, GRID_MAX_HEIGHT);
+  const frameHeight = Math.min(HEADER_HEIGHT + bodyHeight, maxHeight);
   const driverWidth = noTechnicians ? EMPTY_DRIVER_COLUMN_WIDTH : DRIVER_COLUMN_WIDTH;
 
   const typeName = useMemo(() => new Map(types.map((t) => [t.id, t.name])), [types]);
