@@ -181,17 +181,7 @@ export function Sidebar({
               <Icon name="selector" size={30} color="var(--color-support-sidebar-icon)" />
             </button>
           ) : (
-            <>
-              {userInfo}
-              <button
-                type="button"
-                className={styles.logoutButton}
-                aria-label="로그아웃"
-                onClick={onLogout}
-              >
-                <Icon name="logout" size={32.1} color="var(--color-support-sidebar-icon)" />
-              </button>
-            </>
+            userInfo
           )}
         </div>
       </div>
