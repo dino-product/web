@@ -57,7 +57,8 @@ interface TimetableToolbarProps {
 /**
  * 타임테이블 툴바(945:6342 + 443:1270). 날짜 이동·오늘·보기/편집 토글·필터·새 작업 등록.
  * 날짜 글자를 누르면 아래에 달력이 열려 날짜를 바로 고를 수 있다.
- * 편집 모드(1038:4233)에서는 날짜 이동·오늘·필터가 50% 흐려지고 동작하지 않으며, 안내 칩이 붙는다.
+ * 편집 모드(1038:4233)에서는 필터가 50% 흐려지고 동작하지 않으며, 안내 칩이 붙는다.
+ * 날짜 이동·달력·오늘은 편집 중에도 쓸 수 있어 다른 날짜로 옮겨 가며 배정할 수 있다.
  * 필터 라벨은 시안 문구('일반 기사', '점검')가 기본이고, 유형을 고르면 그 이름을 보여 준다(다시 고르면 해제).
  */
 export default function TimetableToolbar({
@@ -86,13 +87,12 @@ export default function TimetableToolbar({
   return (
     <div className={styles.toolbar}>
       <div className={styles.left}>
-        <div className={clsx(styles.dateGroup, editing && styles.dimmed)}>
+        <div className={styles.dateGroup}>
           <div ref={dateNavRef} className={clsx(styles.dateNav, editing && styles.dateNavEditing)}>
             <button
               type="button"
               className={styles.navButton}
               aria-label="이전 날짜"
-              disabled={editing}
               onClick={() => {
                 setCalendarOpen(false);
                 onPrevDate();
@@ -106,7 +106,6 @@ export default function TimetableToolbar({
               aria-label="날짜 선택"
               aria-haspopup="dialog"
               aria-expanded={calendarOpen}
-              disabled={editing}
               onClick={() => setCalendarOpen((v) => !v)}
             >
               {formatTimetableDate(date)}
@@ -115,7 +114,6 @@ export default function TimetableToolbar({
               type="button"
               className={styles.navButton}
               aria-label="다음 날짜"
-              disabled={editing}
               onClick={() => {
                 setCalendarOpen(false);
                 onNextDate();
@@ -124,7 +122,7 @@ export default function TimetableToolbar({
               <img src={nextIcon} alt="" width={42} height={50} />
             </button>
           </div>
-          <Popover open={calendarOpen && !editing} anchorRef={dateNavRef} onClose={() => setCalendarOpen(false)}>
+          <Popover open={calendarOpen} anchorRef={dateNavRef} onClose={() => setCalendarOpen(false)}>
             <DateCalendar
               value={date}
               onSelect={(next) => {
@@ -133,7 +131,7 @@ export default function TimetableToolbar({
               }}
             />
           </Popover>
-          <button type="button" className={styles.today} disabled={editing} onClick={onToday}>
+          <button type="button" className={styles.today} onClick={onToday}>
             <span className={clsx('t-body-s-semibold', styles.todayLabel)}>오늘</span>
           </button>
         </div>
