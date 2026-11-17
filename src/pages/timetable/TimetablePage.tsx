@@ -289,7 +289,12 @@ export default function TimetablePage() {
       <TaskRegisterModal
         open={registerOpen}
         onClose={() => setRegisterOpen(false)}
-        onCreated={(taskId) => setRevealTaskId(taskId)}
+        onCreated={(taskId) => {
+          // 바로 배정된 작업은 등록한 날짜로 옮겨 타임테이블에서 보이게 하고, 대기함 작업은 대기함에서 보이게 한다.
+          const created = useAppStore.getState().tasks.find((t) => t.id === taskId);
+          if (created && created.status !== 'REGISTERED' && created.date) setDate(created.date);
+          setRevealTaskId(taskId);
+        }}
       />
       <AssignConfirmDialog
         draft={assignDraft}

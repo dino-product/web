@@ -6,8 +6,9 @@
  *   대기함(등록)으로 저장되고(디자이너 전달사항: 등록 = 담당기사·시간 중 하나라도 비어 대기함에 있는 작업), 작업 유형은
  *   유형이 없는 발주사에서도 등록할 수 있게 필수에서 뺐다.
  * - 저장 실패: 입력값을 남긴 채 저장 버튼 위에 실패 사유(서버 안내 문구)를 헬퍼 텍스트로 보인다. 다시 저장하거나 다시 열면 지운다.
- * - 저장: createTask. 시작 시간을 고르면 날짜는 TaskRegisterDateContext(타임테이블이 보고 있는 날짜, 없으면 오늘).
- *   기사·시작 시간·소요 시간이 모두 있으면 배정됨, 하나라도 없으면 등록(대기함).
+ * - 작업 날짜: 열 때 TaskRegisterDateContext(타임테이블이 보고 있는 날짜, 없으면 오늘)로 채우고, 누르면 달력에서 바꾼다.
+ * - 저장: createTask. 기사·날짜·시작 시간·소요 시간이 모두 있으면 그 날짜·시간에 바로 배정(타임테이블), 하나라도 없으면
+ *   입력한 값을 남긴 채 등록(대기함). 서버가 입력 규칙에 어긋난다고 거절하면 아래 '저장 실패'처럼 헬퍼 텍스트로 보인다.
  * - 일정 충돌: 같은 기사·시간대에 작업이 있어 서버가 등록하지 않으면 등록 모달을 잠시 감추고 일정 충돌 경고(1325:10373, 타임테이블
  *   배정과 같은 모달)를 띄운다. '충돌 확인 후 배치'는 겹침을 확인한 것으로 다시 등록하고, 취소는 입력값이 남은 등록 모달로 돌아간다.
  * - 현장 사진: 최대 6장. 남은 칸보다 많이 고르면 하나도 붙이지 않고 안내 문구 자리에 사유를 보인다(사진을 바꾸거나 다시 열면 지운다).
@@ -27,9 +28,10 @@ import { MAX_SITE_PHOTOS, PAYMENT_METHODS, SITE_PHOTO_CONTENT_TYPES } from '@/da
 import { sitePhotoContentType } from '@/data/rules';
 import { useActiveTechnicians, useActiveTypes } from '@/data/selectors';
 import { type CreateTaskResult, useAppStore } from '@/data/store';
-import type { ScheduleConflict, TaskCustomer } from '@/data/types';
+import type { IsoDate, ScheduleConflict, TaskCustomer } from '@/data/types';
 import { ConflictDialog } from '@/pages/timetable/AssignDialogs';
 
+import { DateSelect } from './DateSelect';
 import { OptionSelect } from './OptionSelect';
 import { TaskRegisterDateContext } from './registerDate';
 import { DURATION_OPTIONS, START_TIME_OPTIONS, START_TIME_SCROLL_HINT } from './scheduleOptions';
@@ -51,6 +53,8 @@ interface FormState {
   title: string;
   workTypeId: string | null;
   technicianId: string | null;
+  /** 작업 날짜. 열 때 타임테이블이 보고 있는 날짜(없으면 오늘)로 채운다 */
+  date: IsoDate;
   startTime: string | null;
   duration: string | null;
   customerName: string;
@@ -64,7 +68,7 @@ interface FormState {
   photos: { file: File; preview: string }[];
 }
 
-const EMPTY_FORM: FormState = {
+const EMPTY_FORM: Omit<FormState, 'date'> = {
   title: '',
   workTypeId: null,
   technicianId: null,
@@ -103,7 +107,7 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
   const createTask = useAppStore((s) => s.createTask);
   const workTypes = useActiveTypes('WORK');
   const technicians = useActiveTechnicians();
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [form, setForm] = useState<FormState>(() => ({ ...EMPTY_FORM, date: contextDate ?? today() }));
   const [failure, setFailure] = useState<string | null>(null);
   /** 남은 칸보다 많이 골라 첨부를 거절한 사유. 사진 안내 문구 자리에 보인다 */
   const [photoError, setPhotoError] = useState<string | null>(null);
@@ -123,7 +127,7 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
   if (open !== wasOpen) {
     setWasOpen(open);
     if (open) {
-      setForm(EMPTY_FORM);
+      setForm({ ...EMPTY_FORM, date: contextDate ?? today() });
       setFailure(null);
       setPhotoError(null);
       setConflict(null);
@@ -204,7 +208,7 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
         title: form.title,
         workTypeId: form.workTypeId,
         technicianId: form.technicianId,
-        date: form.startTime ? (contextDate ?? today()) : null,
+        date: form.date,
         startTime: form.startTime,
         durationMinutes: form.duration ? Number(form.duration) : null,
         customer,
@@ -266,6 +270,9 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
                 </Field>
               </div>
               <div className={styles.row}>
+                <Field label="작업 날짜" htmlFor={`${uid}-date`} className={styles.dateField}>
+                  <DateSelect id={`${uid}-date`} value={form.date} onChange={(v) => set('date', v)} />
+                </Field>
                 <Field label="시작 시간" htmlFor={`${uid}-start`}>
                   <OptionSelect
                     id={`${uid}-start`}
