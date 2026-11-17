@@ -11,7 +11,7 @@ import {
 import { formatDuration, formatTimeRange } from '@/lib/format';
 import { useActiveTechnicians } from '@/data/selectors';
 import { useAppStore } from '@/data/store';
-import type { HourMinute, ID, Task } from '@/data/types';
+import type { HourMinute, ID, ScheduleConflict, Task } from '@/data/types';
 
 import styles from './AssignDialogs.module.css';
 
@@ -109,12 +109,12 @@ export function AssignConfirmDialog({ draft, onChange, onCancel, onConfirm }: As
 
 interface ConflictDialogProps {
   open: boolean;
-  conflicts: Task[];
+  conflicts: ScheduleConflict[];
   onCancel: () => void;
   onConfirm: () => void;
 }
 
-/** 일정 충돌 경고 1325:10373 — 같은 기사·시간대의 기존 작업을 보여 주고 '충돌 확인 후 배치' */
+/** 일정 충돌 경고 1325:10373 — 같은 기사·시간대의 기존 작업을 보여 주고 '충돌 확인 후 배치'. 타임테이블 배정·새 작업 등록이 쓴다 */
 export function ConflictDialog({ open, conflicts, onCancel, onConfirm }: ConflictDialogProps) {
   const members = useAppStore((s) => s.members);
   return (

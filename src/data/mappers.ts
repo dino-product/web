@@ -23,6 +23,7 @@ import type {
   PendingRequestDto,
   RejectionReasonCode,
   RequestChannel,
+  ScheduleChangeDto,
   ScheduledWorkDto,
   TechnicianRefDto,
   WorkDetailDto,
@@ -45,6 +46,7 @@ import type {
   JoinRequest,
   Member,
   NotificationType,
+  ScheduleConflict,
   Task,
   TaskHistoryEntry,
   TechnicianHistoryRow,
@@ -382,6 +384,12 @@ export function taskFromSummary(w: WorkSummaryDto): TaskPatch {
       delayed: w.delayed,
     },
   };
+}
+
+/** 등록·배정 응답의 겹친 작업. 응답에 기사가 없어 요청한 기사(겹침은 같은 기사끼리만 판정)를 넣는다 */
+export function conflictFromDto(c: ScheduleChangeDto['conflicts'][number], technicianId: ID | null): ScheduleConflict {
+  const { startTime, durationMinutes } = scheduleFields(c.startTime, minutesBetween(c.startTime, c.endTime));
+  return { id: toId(ID_PREFIX.plain, c.workId), title: c.name, technicianId, startTime, durationMinutes };
 }
 
 /** 타임테이블 격자 칸 */

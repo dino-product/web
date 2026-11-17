@@ -34,6 +34,7 @@ import { TYPE_COLOR_ORDER } from '@/data/constants';
 import { getMemberNames, sitePhotoContentType } from '@/data/rules';
 import {
   cancelReasonCode,
+  conflictFromDto,
   dayRange,
   emptyTask,
   fromId,
@@ -69,6 +70,7 @@ import type {
   JoinRequest,
   Member,
   MemberKind,
+  ScheduleConflict,
   Session,
   Task,
   TaskAssignment,
@@ -108,8 +110,15 @@ export interface WebLoginResult {
 /** 배정 변경 결과. 'stale'은 화면을 본 뒤 다른 사람이 작업을 바꿔 서버가 거부한 경우(SCHEDULE-016 '변경된 정보입니다') */
 export type AssignResult = 'applied' | 'stale' | 'failed';
 
-/** 작업 등록 결과. 실패하면 화면(새 작업 등록 저장 버튼 위)에 보여 줄 실패 사유 */
-export type CreateTaskResult = { id: ID } | { reason: string };
+/**
+ * 작업 등록 결과. reason은 화면(새 작업 등록 저장 버튼 위)에 보여 줄 실패 사유.
+ * conflicts는 같은 기사·시간대의 기존 작업이 있어 서버가 등록하지 않은 경우로, 일정 충돌 경고에서 확인하면 confirm으로
+ * 같은 내용(올린 현장 사진 포함)을 겹침 확인 표시와 함께 다시 보낸다.
+ */
+export type CreateTaskResult =
+  | { id: ID }
+  | { reason: string }
+  | { conflicts: ScheduleConflict[]; confirm: () => Promise<CreateTaskResult> };
 
 /**
  * 역할 변경 결과. 'blocked'는 서버가 끝나지 않은 작업으로 거부한 경우
@@ -905,18 +914,28 @@ export const useAppStore = create<AppState>()((set, get) => {
               technicianId: fromId(input.technicianId, ID_PREFIX.technician),
               startTime: input.date && input.startTime ? toUtcIso(input.date, input.startTime) : null,
               expectedDurationMinutes: input.durationMinutes,
-              // 등록 모달에는 일정 충돌 확인 시안이 없어 겹쳐도 그대로 등록한다(연동 전과 같은 동작).
-              conflictConfirmed: true,
             }
           : undefined,
       };
       const registerFailed = '작업을 등록하지 못했습니다. 잠시 후 다시 시도해 주세요.';
-      const created = await callWithReason('작업 등록', () => scheduleApi.create(org, body), registerFailed);
-      if ('reason' in created) return created;
-      if (!created.value?.workId) return { reason: registerFailed };
-      const id = toId(ID_PREFIX.plain, created.value.workId);
-      await reloadWork(id);
-      return { id };
+      // 처음에는 겹침 확인 없이 보내 서버가 같은 기사의 겹친 작업을 판정하게 하고, 겹치면 사용자가 확인한 뒤에만 다시 보낸다.
+      const submit = async (conflictConfirmed: boolean): Promise<CreateTaskResult> => {
+        const request = body.schedule ? { ...body, schedule: { ...body.schedule, conflictConfirmed } } : body;
+        const created = await callWithReason('작업 등록', () => scheduleApi.create(org, request), registerFailed);
+        if ('reason' in created) return created;
+        const result = created.value;
+        if (result && !result.applied) {
+          return {
+            conflicts: result.conflicts.map((c) => conflictFromDto(c, input.technicianId)),
+            confirm: () => submit(true),
+          };
+        }
+        if (!result?.workId) return { reason: registerFailed };
+        const id = toId(ID_PREFIX.plain, result.workId);
+        await reloadWork(id);
+        return { id };
+      };
+      return submit(false);
     },
 
     assignTask: async (taskId, assignment) => {

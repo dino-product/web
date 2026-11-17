@@ -212,6 +212,9 @@ export interface TaskInput {
   sitePhotos: File[];
 }
 
+/** 일정 충돌 경고(1325:10373)에 보이는 같은 기사·시간대의 기존 작업 */
+export type ScheduleConflict = Pick<Task, 'id' | 'title' | 'technicianId' | 'startTime' | 'durationMinutes'>;
+
 /** 격자 배정 입력값(배정 확인 모달) */
 export interface TaskAssignment {
   technicianId: ID;

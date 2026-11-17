@@ -8,6 +8,8 @@
  * - 저장 실패: 입력값을 남긴 채 저장 버튼 위에 실패 사유(서버 안내 문구)를 헬퍼 텍스트로 보인다. 다시 저장하거나 다시 열면 지운다.
  * - 저장: createTask. 시작 시간을 고르면 날짜는 TaskRegisterDateContext(타임테이블이 보고 있는 날짜, 없으면 오늘).
  *   기사·시작 시간·소요 시간이 모두 있으면 배정됨, 하나라도 없으면 등록(대기함).
+ * - 일정 충돌: 같은 기사·시간대에 작업이 있어 서버가 등록하지 않으면 등록 모달을 잠시 감추고 일정 충돌 경고(1325:10373, 타임테이블
+ *   배정과 같은 모달)를 띄운다. '충돌 확인 후 배치'는 겹침을 확인한 것으로 다시 등록하고, 취소는 입력값이 남은 등록 모달로 돌아간다.
  * - 현장 사진: 최대 6장. 저장하면 장마다 업로드 주소를 받아 올린 뒤 등록에 붙인다(store createTask).
  * - 주소 검색: 카카오 우편번호 서비스 팝업(lib/kakaoPostcode)으로 고른 우편번호·기본 주소를 채운다. 팝업 시안이 없어 카카오 화면을
  *   그대로 쓴다. 좌표는 서버가 저장할 때 기본 주소로 구한다.
@@ -23,8 +25,9 @@ import { useSingleFlight } from '@/lib/useSingleFlight';
 import { MAX_SITE_PHOTOS, PAYMENT_METHODS, SITE_PHOTO_CONTENT_TYPES } from '@/data/constants';
 import { sitePhotoContentType } from '@/data/rules';
 import { useActiveTechnicians, useActiveTypes } from '@/data/selectors';
-import { useAppStore } from '@/data/store';
-import type { TaskCustomer } from '@/data/types';
+import { type CreateTaskResult, useAppStore } from '@/data/store';
+import type { ScheduleConflict, TaskCustomer } from '@/data/types';
+import { ConflictDialog } from '@/pages/timetable/AssignDialogs';
 
 import { OptionSelect } from './OptionSelect';
 import { TaskRegisterDateContext } from './registerDate';
@@ -101,6 +104,11 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
   const technicians = useActiveTechnicians();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [failure, setFailure] = useState<string | null>(null);
+  /** 서버가 겹쳐 등록하지 않은 기존 작업과, 확인하면 다시 보낼 등록 */
+  const [conflict, setConflict] = useState<{
+    conflicts: ScheduleConflict[];
+    confirm: () => Promise<CreateTaskResult>;
+  } | null>(null);
   const [wasOpen, setWasOpen] = useState(open);
   const fileRef = useRef<HTMLInputElement>(null);
   const uid = useId();
@@ -114,6 +122,7 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
     if (open) {
       setForm(EMPTY_FORM);
       setFailure(null);
+      setConflict(null);
     }
   }
 
@@ -140,6 +149,27 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
 
   const removePhoto = (index: number) =>
     setForm((prev) => ({ ...prev, photos: prev.photos.filter((_, i) => i !== index) }));
+
+  // 등록 실패는 입력값을 남긴 채 사유를 보이고, 겹치면 일정 충돌 경고를 띄우고, 등록되면 닫는다.
+  const settle = (result: CreateTaskResult) => {
+    if ('reason' in result) {
+      setFailure(result.reason);
+      return;
+    }
+    if ('conflicts' in result) {
+      setConflict(result);
+      return;
+    }
+    onCreated?.(result.id);
+    onClose();
+  };
+
+  const handleConfirmConflict = () =>
+    saveOnce(async () => {
+      if (!conflict) return;
+      setConflict(null);
+      settle(await conflict.confirm());
+    });
 
   const handleSave = () =>
     saveOnce(async () => {
@@ -170,19 +200,14 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
         paymentMethod: form.paymentMethod,
         sitePhotos: form.photos.map((photo) => photo.file),
       });
-      // 등록·사진 업로드에 실패하면 입력값을 지우지 않도록 모달을 닫지 않고 실패 사유를 보인다.
-      if ('reason' in result) {
-        setFailure(result.reason);
-        return;
-      }
-      onCreated?.(result.id);
-      onClose();
+      settle(result);
     });
 
   const photoSlots = MAX_SITE_PHOTOS - (form.photos.length < MAX_SITE_PHOTOS ? 1 : 0) - form.photos.length;
 
   return (
-    <Modal open={open} onClose={onClose} aria-label="새 작업 등록">
+    <>
+    <Modal open={open && !conflict} onClose={onClose} aria-label="새 작업 등록">
       <ModalPanel title="새 작업 등록" className={styles.panel} bodyClassName={styles.body}>
         <div className={styles.column}>
           {/* 기본 정보 1325:5513 */}
@@ -414,5 +439,12 @@ export default function TaskRegisterModal({ open, onClose, onCreated }: TaskRegi
         </div>
       </ModalPanel>
     </Modal>
+    <ConflictDialog
+      open={open && conflict !== null}
+      conflicts={conflict?.conflicts ?? []}
+      onCancel={() => setConflict(null)}
+      onConfirm={handleConfirmConflict}
+    />
+    </>
   );
 }
